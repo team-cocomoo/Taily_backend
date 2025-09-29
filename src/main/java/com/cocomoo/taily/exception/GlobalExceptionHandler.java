@@ -1,92 +1,88 @@
 package com.cocomoo.taily.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.kosa.myproject.dto.ApiResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.time.LocalDateTime;
-
 /**
- * 전역 처리 예외 클래스
+ *   전역 처리 예외 클래스
+ *   @ControllerAdvice : 모든 Controller 에서 발생하는 Exception 을 한 곳에서 처리
+ *                                  일관성 있는 에러 응답 형식 제공
+ *                                  Controller 들은 예외 처리 코드 작성이 필요 없음 ( 관심사 분리 -> AOP )
  *
- * @ControllerAdvice: 모든 Controller 에서 발생하는 Exception 을 한 곳에서 처리
- * 일관성 있는 에러 응답 형식 제공
- * Controller 들은 예외 처리 코드 작성이 필요 없음(관심사 분리->AOP)
+ *    GlobalExceptionHandler 업데이트 내용
+ *    1. 응답 형식 통일 (Controller와 동일한 구조) => ApiResponseDto 를 이용
+ *   2. Spring Security 예외 처리 추가
  */
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-    // 예외 처리 메서드들
+/**
+        * IllegalArgumentException 처리
+     * 주로 유효성 검증 실패 시 발생
+     * 예: 중복된 username, 존재하지 않는 회원 등
+     */
+@ExceptionHandler(IllegalArgumentException.class)
+public ResponseEntity<ApiResponseDto<?>> handleIllegalArgumentException(IllegalArgumentException e) {
+    log.warn("유효성 검증 실패: {}", e.getMessage());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseDto.error("BAD_REQUEST", e.getMessage()));
+}
 
+    /**
+     * IllegalStateException 처리
+     * 잘못된 상태에서 작업 시도 시 발생
+     * 예: 인증되지 않은 사용자가 인증 필요 작업 시도
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponseDto<?>> handleIllegalStateException(IllegalStateException e) {
+        log.warn("잘못된 상태: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseDto.error("CONFLICT", e.getMessage()));
+    }
+
+    /**
+     * Spring Security 인증 예외 처리
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponseDto<?>> handleAuthenticationException(AuthenticationException e) {
+        log.error("인증 실패: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseDto.error("UNAUTHORIZED", "인증에 실패했습니다."));
+    }
+
+
+    /**
+     * Spring Security 권한 예외 처리
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponseDto<?>> handleAccessDeniedException(AccessDeniedException e) {
+        log.error("권한 부족: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseDto.error("FORBIDDEN", "해당 작업을 수행할 권한이 없습니다."));
+    }
     /**
      * RuntimeException 처리
-     * - 상품을 찾을 수 없습니다 등의 예외
-     * - 404 Not Found 응답
+     * 예상하지 못한 런타임 오류
      */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<GlobalErrorResponse> handlerRuntimeException(RuntimeException e) {
-        log.info("RuntimeException 발생하여 처리 {}", e.getMessage());
-        GlobalErrorResponse error = GlobalErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(404)
-                .code("NOT_FOUND")
-                .message(e.getMessage())
-                .build();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    /**
-     * IllegalArgumentException
-     * 재고 증가시 "수량은 양수이어야 합니다" 등의 입력값 오류
-     * - 400 Bad Request 응답
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<GlobalErrorResponse> handlerIllegalArgumentException(IllegalArgumentException e) {
-        log.info("IllegalArgumentException 발생하여 처리 {}", e.getMessage());
-        GlobalErrorResponse error = GlobalErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(400)
-                .code("BAD_REQUEST")
-                .message(e.getMessage())
-                .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-
-    /*
-        IllegalStateException
-        재고가 부족합니다 등의 상태 오류
-        - 409 Conflict 응답
-     */
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<GlobalErrorResponse> handlerIllegalStateException(IllegalStateException e) {
-        log.info("IllegalStateException 발생하여 처리 {}", e.getMessage());
-        GlobalErrorResponse error = GlobalErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(409)
-                .code("CONFLICT")
-                .message(e.getMessage())
-                .build();
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    public ResponseEntity<ApiResponseDto<?>> handleRuntimeException(RuntimeException e) {
+        log.error("런타임 오류: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseDto.error("RUNTIME_ERROR", e.getMessage()));
     }
 
     /**
      * 모든 예외의 최종 처리
-     * 예상하지 못한 시스템 오류
-     * - 500 Internal Server Error 응답
+     * 위에서 처리되지 않은 모든 예외
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<GlobalErrorResponse> handleException(Exception e){
-        log.error("예상하지 못한 오류 발생 {}",e.getMessage());
-        GlobalErrorResponse error = GlobalErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(500)
-                .code("INTERNAL_ERROR")
-                .message("서버 내부 오류가 발생했습니다.")
-                .build();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    public ResponseEntity<ApiResponseDto<?>> handleException(Exception e) {
+        log.error("예상하지 못한 오류 발생: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseDto.error("INTERNAL_ERROR", "서버 내부 오류가 발생했습니다."));
     }
 }
+
+
+
 
