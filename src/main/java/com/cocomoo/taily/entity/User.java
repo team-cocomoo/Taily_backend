@@ -59,8 +59,4 @@ public class User {
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-
-
-
 }
