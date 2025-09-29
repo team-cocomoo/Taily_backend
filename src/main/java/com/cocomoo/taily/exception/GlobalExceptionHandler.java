@@ -1,7 +1,7 @@
 package com.cocomoo.taily.exception;
 
+import com.cocomoo.taily.dto.ApiResponseDto;
 import lombok.extern.slf4j.Slf4j;
-import org.kosa.myproject.dto.ApiResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
