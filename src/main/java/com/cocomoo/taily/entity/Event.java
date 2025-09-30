@@ -2,13 +2,16 @@ package com.cocomoo.taily.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "events")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,6 +26,14 @@ public class Event {
 
     @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
+
+    @CreationTimestamp
+    @Column(nullable = false, name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false, foreignKey = @ForeignKey(name="fk_events_user"))
@@ -50,4 +61,10 @@ public class Event {
         return this.user.getId().equals(user.getId());
     }
 
+    @PrePersist
+    protected void setDefaultTableType() {
+        if (this.tableType == null) {
+            this.tableType = TableType.builder().id(7L).build();
+        }
+    }
 }
