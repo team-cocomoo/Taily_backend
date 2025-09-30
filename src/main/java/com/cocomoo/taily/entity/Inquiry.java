@@ -37,7 +37,8 @@ public class Inquiry {
     @Column(nullable = false, updatable = false)
     private LocalDateTime updateAt;
 
-    @Column(nullable = false, unique = true)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }
