@@ -67,14 +67,6 @@ public class Pet {
             this.tableType = TableType.builder().id(2L).build();
         }
     }
-
-
-
-
-    public enum Gender {
-        MALE,
-        FEMALE
-    }
 }
 
 
