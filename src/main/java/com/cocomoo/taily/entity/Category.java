@@ -21,7 +21,4 @@ public class Category {
     private CategoryType name;
 
 }
-enum CategoryType {
-    HEALTH, FACILITY // 예시
-}
 // 1
