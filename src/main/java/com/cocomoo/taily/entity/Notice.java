@@ -20,16 +20,15 @@ public class Notice {
     @Column(name="id")
     private Long id;
 
-    @Column(name="title",nullable = false,length = 50)
+    @Column(name="title",nullable = false,length = 100)
     private String title;
 
-    @Lob
-    @Column(name= "content", nullable = false)
+    @Column(name= "content", nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
     //조회수
     @Column(name = "view", nullable = false)
-    private  Long view;
+    private  Long view =0L;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

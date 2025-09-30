@@ -2,6 +2,8 @@ package com.cocomoo.taily.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,6 +23,7 @@ public class MessageData {
     @Column(name= "content", nullable = false)
     private String content;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
