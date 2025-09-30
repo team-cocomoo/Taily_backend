@@ -49,6 +49,7 @@ public class WalkDiary {
 //    @JoinColumn(name = "table_tybes_id", nullable = false)
 //    private ;
 
+    // 1
 
 
 }
