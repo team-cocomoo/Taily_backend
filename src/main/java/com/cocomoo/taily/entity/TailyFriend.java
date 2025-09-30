@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "taily_friends")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -72,4 +71,10 @@ public class TailyFriend {
                 this.user.getId().equals(user.getId());
     }
 
+    @PrePersist
+    protected void setDefaultTableType() {
+        if (this.tableType == null) {
+            this.tableType = TableType.builder().id(5L).build();
+        }
+    }
 }

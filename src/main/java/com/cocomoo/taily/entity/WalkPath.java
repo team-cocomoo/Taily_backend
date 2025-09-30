@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "walk_paths")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -66,5 +65,12 @@ public class WalkPath {
     // 작성자인지 확인
     public boolean isAuthor(User user) {
         return this.user.getId().equals(user.getId());
+    }
+
+    @PrePersist
+    protected void setDefaultTableType() {
+        if (this.tableType == null) {
+            this.tableType = TableType.builder().id(6L).build();
+        }
     }
 }
