@@ -16,5 +16,5 @@ public class TableType {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private TableType name;
+    private TableTypeCategory category;
 }
