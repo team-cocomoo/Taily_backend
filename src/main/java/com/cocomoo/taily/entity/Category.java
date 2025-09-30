@@ -21,4 +21,3 @@ public class Category {
     private CategoryType name;
 
 }
-// 1
