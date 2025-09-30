@@ -3,6 +3,7 @@ package com.cocomoo.taily.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -59,8 +60,4 @@ public class User {
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-
-
-
 }
