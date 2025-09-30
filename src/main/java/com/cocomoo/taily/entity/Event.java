@@ -1,0 +1,53 @@
+package com.cocomoo.taily.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Entity
+@Table(name = "events")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+public class Event {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 100)
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
+    private String content;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "users_id", nullable = false, foreignKey = @ForeignKey(name="fk_events_user"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name="fk_events_table_type"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private TableType tableType;
+
+    // 글 수정
+    public void updatePost(String title, String content) {
+        if (title != null && !title.trim().isEmpty()) {
+            this.title = title.trim();
+        }
+        // 내용 검증 및 수정
+        if (content != null && !content.trim().isEmpty()) {
+            this.content = content.trim();
+        }
+    }
+
+    // 작성자인지 확인
+    public boolean isAuthor(User user) {
+        return this.user.getId().equals(user.getId());
+    }
+
+}
