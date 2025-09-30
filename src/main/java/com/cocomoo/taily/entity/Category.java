@@ -24,3 +24,4 @@ public class Category {
 enum CategoryType {
     HEALTH, FACILITY // 예시
 }
+// 1
