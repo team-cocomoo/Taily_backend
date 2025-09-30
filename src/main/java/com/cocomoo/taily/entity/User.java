@@ -3,13 +3,15 @@ package com.cocomoo.taily.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name="users")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -28,7 +30,7 @@ public class User {
     @Column(nullable = false, length = 50)
     private String nickname;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String password;
 
     @Column(nullable = false, length = 50)
@@ -37,7 +39,7 @@ public class User {
     @Column(nullable = false, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String address;
 
     @Column(columnDefinition = "MEDIUMTEXT")
@@ -57,7 +59,20 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @CreationTimestamp
+    @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name="fk_users_table_type"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private TableType tableType;
+
+    @PrePersist
+    protected void setDefaultTableType() {
+        if (this.tableType == null) {
+            this.tableType = TableType.builder().id(1L).build();
+        }
+    }
+
 }

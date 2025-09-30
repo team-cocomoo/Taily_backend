@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "pets")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -61,6 +60,16 @@ public class Pet {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false)
     private TableType tableType;
+
+    @PrePersist
+    protected void setDefaultTableType() {
+        if (this.tableType == null) {
+            this.tableType = TableType.builder().id(2L).build();
+        }
+    }
+
+
+
 
     public enum Gender {
         MALE,
