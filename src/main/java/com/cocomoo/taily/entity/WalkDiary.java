@@ -2,6 +2,8 @@ package com.cocomoo.taily.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -9,10 +11,10 @@ import java.time.LocalTime;
 @Entity
 @Table(name = "walk_diaries")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class WalkDiary {
 
     @Id
@@ -26,7 +28,7 @@ public class WalkDiary {
     @Column(nullable = false)
     private WalkDiaryWeather walkDiaryWeather;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
+    @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
     @Column(name = "begin_time", nullable = false)
@@ -35,7 +37,7 @@ public class WalkDiary {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    @Column(name= "crated_at", nullable = false)
+    @Column(name= "crated_at", nullable = false, updatable = false)
     private  LocalDateTime createdAt;
 
     @Column(name="updated_at", nullable = false)
@@ -50,6 +52,16 @@ public class WalkDiary {
 //    private ;
 
     // 1
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name="fk_walk_diaries_table_type"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private TableType tableType;
 
+    @PrePersist
+    protected void setDefaultTableType() {
+        if (this.tableType == null) {
+            this.tableType = TableType.builder().id(4L).build();
+        }
+    }
 
 }
