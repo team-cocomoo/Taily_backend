@@ -57,6 +57,16 @@ public class WalkDiary {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private TableType tableType;
 
+    // ============ 연관관계 메서드 ============
+
+    /**
+     * 작성자 설정
+     * - 산책 일지 생성 시 작성자 지정
+     */
+    public void assignUser(User user) {
+        this.user = user;
+    }
+
     @PrePersist
     protected void setDefaultTableType() {
         if (this.tableType == null) {

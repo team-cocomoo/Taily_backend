@@ -1,4 +1,4 @@
-package com.cocomoo.taily.dto;
+package com.cocomoo.taily.dto.walkDiary;
 
 import com.cocomoo.taily.entity.WalkDiaryWeather;
 import lombok.AllArgsConstructor;
@@ -18,12 +18,13 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WalkDairyCreateDto {
+public class WalkDairyCreateRequestDto {
     private LocalDateTime date;
     private WalkDiaryWeather walkDiaryWeather;
     private String content;
     private LocalTime beginTime;
     private LocalTime endTime;
+    private Long userId;    // 테스트 용 (추후 제거)
 
     // userId는 별도로 받지 않음
     // - Spring Security에서 현재 로그인한 사용자 정보 사용
