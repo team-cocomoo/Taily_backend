@@ -11,5 +11,4 @@ import java.util.List;
 public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
     @Query("SELECT wp FROM WalkPath wp JOIN FETCH wp.user")
     List<WalkPath> findAllWithUser();
-
 }
