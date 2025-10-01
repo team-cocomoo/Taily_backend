@@ -23,9 +23,9 @@ public class Feed {
     private String content;
 
     @Column(nullable = false)
-    private Long view;
+    private Long view =0L;
     @Column(nullable = false)
-    private Long like;
+    private Long like =0L;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -35,10 +35,17 @@ public class Feed {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false, foreignKey = @ForeignKey(name = "fk_feeds_users_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User usersId;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name = "fk_feeds_table_types_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private TableType tableTypesId;
+    private TableType tableType;
+
+    @PrePersist
+    protected void setDefaultTableType() {
+        if (this.tableType == null) {
+            this.tableType = TableType.builder().id(3L).build();
+        }
+    }
 }
