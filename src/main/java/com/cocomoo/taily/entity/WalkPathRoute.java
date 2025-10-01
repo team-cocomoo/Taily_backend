@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.context.annotation.DependsOn;
 
 @Entity
 @Table(name = "walk_paths_routes")
@@ -13,13 +14,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Builder
 @ToString
 public class WalkPathRoute {
-//    	`id`	BIGINT	NOT NULL,
-//            `address`	VARCHAR(50)	NOT NULL,
-//	`order_no`	INT	NOT NULL,
-//            `created_at`	DATETIME	NOT NULL,
-//            `updated_at`	DATETIME	NOT NULL,
-//            `walk_paths_id`	BIGINT	NOT NULL
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -41,5 +35,4 @@ public class WalkPathRoute {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "walk_paths_id", nullable = false)
     private WalkPath walkPath;
-
 }
