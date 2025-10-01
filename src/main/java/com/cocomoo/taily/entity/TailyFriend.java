@@ -34,7 +34,7 @@ public class TailyFriend {
     private Long view = 0L;
 
     @Column(name = "like", nullable = false)
-    private Long like_count = 0L;
+    private Long likeCount = 0L;
 
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)
