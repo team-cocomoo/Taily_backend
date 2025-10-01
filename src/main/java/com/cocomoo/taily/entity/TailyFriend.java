@@ -30,9 +30,11 @@ public class TailyFriend {
     @Column(nullable = false, length = 200)
     private String address;
 
+    @Builder.Default
     @Column(name = "view", nullable = false)
     private Long view = 0L;
 
+    @Builder.Default
     @Column(name = "like", nullable = false)
     private Long likeCount = 0L;
 
