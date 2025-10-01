@@ -50,7 +50,6 @@ public class Feed {
             this.tableType = TableType.builder().id(3L).build();
         }
     }
-    private TableType tableTypesId;
 
     @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TagList> tagLists = new ArrayList<>();
