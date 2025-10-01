@@ -6,6 +6,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "feeds")
@@ -22,10 +24,10 @@ public class Feed {
     @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
-    @Column(nullable = false)
-    private Long view =0L;
-    @Column(nullable = false)
-    private Long like =0L;
+    @Column(name = "view", nullable = false)
+    private Long view = 0L;
+    @Column(name = "like_count", nullable = false)
+    private Long likeCount = 0L;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -48,4 +50,8 @@ public class Feed {
             this.tableType = TableType.builder().id(3L).build();
         }
     }
+    private TableType tableTypesId;
+
+    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TagList> tagLists = new ArrayList<>();
 }

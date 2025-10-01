@@ -30,8 +30,8 @@ public class WalkPath {
     @Column(name = "view", nullable = false)
     private Long view = 0L;
 
-    @Column(name = "like", nullable = false)
-    private Long like = 0L;
+    @Column(name = "like_count", nullable = false)
+    private Long likeCount = 0L;
 
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)

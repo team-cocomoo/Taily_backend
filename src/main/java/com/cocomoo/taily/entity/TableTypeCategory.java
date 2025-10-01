@@ -1,11 +1,11 @@
 package com.cocomoo.taily.entity;
 
 public enum TableTypeCategory {
-    users,
-    pets,
-    feeds,
-    walk_diaries,
-    taily_friends,
-    walk_paths,
-    events
+    USERS,
+    PETS,
+    FEEDS,
+    WALK_DIARIES,
+    TAILY_FRIENDS,
+    WALK_PATHS,
+    EVENTS
 }
