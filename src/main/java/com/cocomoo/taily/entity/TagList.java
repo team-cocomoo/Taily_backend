@@ -20,10 +20,10 @@ public class TagList {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "feeds_id", nullable = false, foreignKey = @ForeignKey(name="fk_tag_lists_feeds_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Long feedId;
+    private Feed feed;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tags_id", nullable = false, foreignKey = @ForeignKey(name="fk_tags_list_tags_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Long tagId;
+    private Tag tag;
 }
