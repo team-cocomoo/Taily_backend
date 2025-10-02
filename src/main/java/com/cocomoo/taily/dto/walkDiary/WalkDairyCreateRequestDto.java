@@ -30,4 +30,15 @@ public class WalkDairyCreateRequestDto {
     // - Spring Security에서 현재 로그인한 사용자 정보 사용
     // - SecurityContextHolder.getContext().getAuthentication()
     // - 보안상 더 안전한 방식
+
+    /**
+     * {
+     *     "date": "2025-10-01",
+     *     "walkDiaryWeather": "SUNNY",
+     *     "content": "오늘은 산책하면서 꽃이 예뻤어요.",
+     *     "beginTime": "09:00",
+     *     "endTime": "10:00",
+     *     "userId": 1
+     * }
+     */
 }
