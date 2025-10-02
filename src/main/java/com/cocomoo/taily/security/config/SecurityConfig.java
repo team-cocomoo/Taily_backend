@@ -81,7 +81,7 @@ public class SecurityConfig {
 
         ///////////////////////인증 인가에 대한 설정(개발자가 주로 확인)//////////////////////
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/login").permitAll()
+                .requestMatchers("/api/auth/login").permitAll()
                 //로그인 허용
                 .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                 // POST 방식의 회원 가입은 인증없이 허용
