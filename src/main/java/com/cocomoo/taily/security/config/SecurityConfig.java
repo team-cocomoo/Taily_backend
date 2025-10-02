@@ -1,5 +1,6 @@
 package com.cocomoo.taily.security.config;
 
+
 import com.cocomoo.taily.security.jwt.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @RequiredArgsConstructor
 @Slf4j
-public class SecurityConfig {
+public class
+        {
     // 인증 설정 객체
     private final AuthenticationConfiguration authenticationConfiguration;
     // JWT 토큰 생성 및 검증 유틸리티
@@ -143,3 +145,6 @@ public class SecurityConfig {
 
     }
 }
+
+        void main() {
+        }

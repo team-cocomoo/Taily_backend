@@ -54,7 +54,7 @@ public class CustomMemberDetailsService implements UserDetailsService {
 
     /**
      * JWT 토큰 검증 시 사용할 수 있는 추가 메서드
-     * memberId로 사용자 조회
+     * userId로 사용자 조회
      *
      * @param userId 회원 ID (PK)
      * @return UserDetails 사용자 상세 정보
