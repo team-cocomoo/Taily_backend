@@ -1,6 +1,5 @@
-package com.cocomoo.taily.dto.tailyFriends;
+package com.cocomoo.taily.dto.common.comment;
 
-import com.cocomoo.taily.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,9 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TailyFriendCreateRequestDto {
-    private String title;
+public class CommentCreateRequestDto {
     private String content;
-    private String address;
+    private Long parentCommentsId;
 }
-
