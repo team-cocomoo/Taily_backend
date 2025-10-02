@@ -26,6 +26,7 @@ public class WalkDiaryDetailResponseDto {
     private LocalTime endTime;
     private Long userId;
     private String username;
+    private String userNickname;
     private LocalDateTime createdAt;
 
     /**
@@ -48,6 +49,7 @@ public class WalkDiaryDetailResponseDto {
                 .endTime(walkDiary.getEndTime())
                 .userId(user.getId())
                 .username(user.getUsername())
+                .userNickname(user.getNickname())
                 .createdAt(walkDiary.getCreatedAt())
                 .build();
     }

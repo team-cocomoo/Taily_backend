@@ -39,6 +39,10 @@ public class WalkDiary {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "emotion", nullable = false)
+    private WalkDiaryEmotion walkDiaryEmotion;
+
     @CreationTimestamp
     @Column(name= "created_at", nullable = false, updatable = false)
     private  LocalDateTime createdAt;
