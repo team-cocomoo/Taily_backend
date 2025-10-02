@@ -45,6 +45,7 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         this.jwtUtil = jwtUtil;
         // 로그인 엔드포인트 설정
         setFilterProcessesUrl("/api/auth/login");
+        // 이 경로일 때 필터가 처리
     }
 
     /**
@@ -111,8 +112,8 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         log.info("=== 로그인 성공: {} ===", authentication.getName());
 
         // 1. 인증된 사용자 정보 추출
-        CustomUserDetails memberDetails = (CustomUserDetails) authentication.getPrincipal();
-        User user = memberDetails.getUser();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User user = userDetails.getUser();
 
         // 2. 사용자 권한 추출
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -126,16 +127,19 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         // 하루로 유효 기간을 준다
         long expiredMs = 1000L * 60 * 60 * 24; // 하루
         String token = jwtUtil.createJwt(user, expiredMs);
+        String bearerToken = "Bearer " + token;
 
         // 4. 응답 헤더에 토큰 추가
-        // Bearer 스키마 사용 (JWT 표준)
-        response.addHeader("Authorization", "Bearer " + token);
-
-        // CORS를 위해 Authorization 헤더 노출 설정
-        response.addHeader("Access-Control-Expose-Headers", "Authorization");
-        //응답 헤더에 인코딩 및 status 추가
+        // 4-1. HTTP 상태 코드 설정
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        // 4-2. Content-Type 설정 (JSON 응답을 위해)
         response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
+        // 4-3. Bearer 토큰을 Authoraiztion 헤더에 추가
+        response.addHeader("Authorization", bearerToken);
+
+        // 4-4. CORS 환경을 위해 Authorization 헤더 노출
+        // 이 헤더가 없으면 클라이언트(브라우저)에서 Authorization 헤더 값을 읽을 수 없습니다.
+        response.addHeader("Access-Control-Expose-Headers", "Authorization");
 
         // 5. 응답 바디에 사용자 정보 추가 (JSON)
         // 응답 데이터 생성
