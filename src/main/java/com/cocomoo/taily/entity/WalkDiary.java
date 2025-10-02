@@ -2,8 +2,10 @@ package com.cocomoo.taily.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,7 +27,7 @@ public class WalkDiary {
     private LocalDateTime date;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "weather", nullable = false)
     private WalkDiaryWeather walkDiaryWeather;
 
     @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
@@ -37,9 +39,11 @@ public class WalkDiary {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    @Column(name= "crated_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    @Column(name= "created_at", nullable = false, updatable = false)
     private  LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name="updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
@@ -56,6 +60,16 @@ public class WalkDiary {
     @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name="fk_walk_diaries_table_type"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private TableType tableType;
+
+    // ============ 연관관계 메서드 ============
+
+    /**
+     * 작성자 설정
+     * - 산책 일지 생성 시 작성자 지정
+     */
+    public void assignUser(User user) {
+        this.user = user;
+    }
 
     @PrePersist
     protected void setDefaultTableType() {

@@ -21,7 +21,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="public_id", nullable = false, unique = true, length = 36)
+    @Column(name = "public_id", nullable = false, unique = true, length = 36)
     private String publicId;
 
     @Column(nullable = false, unique = true, length = 50)
@@ -64,7 +64,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name="fk_users_table_type"))
+    @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name = "fk_users_table_type"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private TableType tableType;
 
@@ -74,5 +74,45 @@ public class User {
             this.tableType = TableType.builder().id(1L).build();
         }
     }
+
+    /**
+     * 회원 정보 수정
+     * (비밀번호는 서비스 계층에서 반드시 암호화 후 전달해야 함)
+     */
+    public void updateInfo(String username,
+                           String nickname,
+                           String password,
+                           String tel,
+                           String email,
+                           String address,
+                           String introduction,
+                           UserState state
+    ) {
+        if (username != null && !username.isBlank()) {
+            this.username = username.trim();
+        }
+        if (nickname != null && !nickname.isBlank()) {
+            this.nickname = nickname.trim();
+        }
+        if (password != null && !password.isBlank()) {
+            this.password = password.trim();
+        }
+        if (tel != null && !tel.isBlank()) {
+            this.tel = tel.trim();
+        }
+        if (email != null && !email.isBlank()) {
+            this.email = email.trim();
+        }
+        if (address != null && !address.isBlank()) {
+            this.address = address.trim();
+        }
+        if (introduction != null) { // 소개는 공백 가능
+            this.introduction = introduction.trim();
+        }
+        if (state != null) {
+            this.state = state;
+        }
+    }
+
 
 }

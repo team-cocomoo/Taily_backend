@@ -27,6 +27,9 @@ public class Event {
     @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
+    @Column(nullable = false)
+    private Long view;
+
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)
     private LocalDateTime createdAt;
