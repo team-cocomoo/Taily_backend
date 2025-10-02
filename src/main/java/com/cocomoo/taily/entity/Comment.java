@@ -34,6 +34,9 @@ public class Comment {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "posts_id", nullable = false)
+    private Long postsId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comments_users_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -43,4 +46,9 @@ public class Comment {
     @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comments_table_types_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private TableType tableTypesId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comments_id", nullable = true,foreignKey = @ForeignKey(name = "fk_comments_parent_comments_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Comment parentCommentsId;
 }

@@ -27,6 +27,7 @@ public class TailyFriend {
     @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
+
     @Column(nullable = false, length = 200)
     private String address;
 
@@ -35,7 +36,11 @@ public class TailyFriend {
     private Long view = 0L;
 
     @Builder.Default
+<<<<<<< HEAD
     @Column(name = "like", nullable = false)
+=======
+    @Column(name = "like_count", nullable = false)
+>>>>>>> develop
     private Long likeCount = 0L;
 
     @CreationTimestamp
@@ -77,6 +82,20 @@ public class TailyFriend {
     protected void setDefaultTableType() {
         if (this.tableType == null) {
             this.tableType = TableType.builder().id(5L).build();
+        }
+    }
+
+    public void increaseView() {
+        this.view = this.view + 1;
+    }
+
+    public void increaseLike() {
+        this.likeCount = this.likeCount + 1;
+    }
+
+    public void decreaseLike() {
+        if (this.likeCount > 0) {
+            this.likeCount = this.likeCount - 1;
         }
     }
 }

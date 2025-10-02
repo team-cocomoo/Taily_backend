@@ -81,6 +81,7 @@ public class SecurityConfig {
 
         ///////////////////////인증 인가에 대한 설정(개발자가 주로 확인)//////////////////////
         http.authorizeHttpRequests(auth -> auth
+<<<<<<< HEAD
                 //로그인 허용
                 .requestMatchers("/api/users/login").permitAll()
                 // POST 방식의 회원 가입은 인증없이 허용
@@ -96,6 +97,26 @@ public class SecurityConfig {
                 .requestMatchers("/api-docs/**").permitAll()
                 // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated());
+=======
+                .requestMatchers("/api/auth/login").permitAll()
+                //로그인 허용
+                .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+                // POST 방식의 회원 가입은 인증없이 허용
+                .requestMatchers("/admin").hasRole("ADMIN")
+                // 관리자 모드는 인증과 ROLE_ADMIN 권한이 필요
+                // ROLE_ 은 자동 삽입
+                .requestMatchers("/admin/login").permitAll()
+                // 관리자 로그인 페이지 인증 없이 접근 허용
+                .requestMatchers(HttpMethod.GET,"/api/posts").permitAll()
+                // GET 방식, 전체 게시글 조회는 인증 없이 접근을 모두 허용
+                .requestMatchers("/api/products", "/api/products/**").permitAll()
+                // 참고 /api/products, /api/products/** 경로에 대한 접근을 모두 허용합니다
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                // swagger용 접근 경로 허용
+                .requestMatchers("/api-docs/**").permitAll()
+                .anyRequest().authenticated());
+                // 나머지 모든 요청은 인증 필요
+>>>>>>> develop
 
         // 예외 처리 핸들러 등록
         http.exceptionHandling(exception -> exception

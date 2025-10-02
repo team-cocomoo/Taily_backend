@@ -30,4 +30,8 @@ public class Like {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false)
     private TableType tableTypesId;
+
+    public void toggle() {
+        this.state = !this.state;
+    }
 }

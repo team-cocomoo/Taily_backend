@@ -14,6 +14,9 @@ public class TailyFriendCreateRequestDto {
     private String title;
     private String content;
     private String address;
+<<<<<<< HEAD
     private Long userId;
+=======
+>>>>>>> develop
 }
 

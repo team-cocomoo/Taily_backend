@@ -86,6 +86,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+<<<<<<< HEAD
     /** 로그인 메서드
      *
      */
@@ -105,3 +106,27 @@ public class UserController {
 
 }
 
+=======
+    /**
+     * 5. 로그인 (Swagger 테스트용)
+     * URL: /api/auth/login
+     */
+//    @PostMapping(path = "/api/auth/login")
+//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
+//            @RequestBody UserLoginRequestDto requestDto) {
+//
+//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
+//
+//        // UserService에서 로그인 처리 및 JWT 발급
+//        UserLoginResponseDto loginResponse = userService.login(requestDto);
+//
+//        log.info("로그인 성공: username={}", loginResponse.getUsername());
+//
+//        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
+//    }
+
+
+
+
+}
+>>>>>>> develop
