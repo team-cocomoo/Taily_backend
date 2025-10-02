@@ -1,24 +1,19 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
+import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
-import com.cocomoo.taily.entity.Like;
-import com.cocomoo.taily.entity.TableType;
-import com.cocomoo.taily.entity.TailyFriend;
-import com.cocomoo.taily.entity.User;
-import com.cocomoo.taily.repository.LikeRepository;
-import com.cocomoo.taily.repository.TableTypeRepository;
-import com.cocomoo.taily.repository.TailyFriendRepository;
-import com.cocomoo.taily.repository.UserRepository;
+import com.cocomoo.taily.entity.*;
+import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Member;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,6 +26,7 @@ public class TailyFriendService {
     private final TableTypeRepository tableTypeRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
     // 테일리 프렌즈 작성
    @Transactional
@@ -119,5 +115,36 @@ public class TailyFriendService {
             like.toggle();
             post.decreaseLike();
         }
+    }
+
+    // 댓글 작성
+    @Transactional
+    public CommentResponseDto addComment(Long postId, String username, CommentCreateRequestDto dto) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        TailyFriend post = tailyFriendRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+
+        TableType tableType = tableTypeRepository.findById(5L) // TailyFriend = 5
+                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
+
+        Comment parent = null;
+        if (dto.getParentCommentsId() != null) {
+            parent = commentRepository.findById(dto.getParentCommentsId())
+                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글 없음"));
+        }
+
+        Comment comment = Comment.builder()
+                .postsId(post.getId())
+                .usersId(user)
+                .tableTypesId(tableType)
+                .content(dto.getContent())
+                .parentCommentsId(parent)
+                .build();
+
+        commentRepository.save(comment);
+
+        return CommentResponseDto.from(comment);
     }
 }
