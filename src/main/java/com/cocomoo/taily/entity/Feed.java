@@ -24,8 +24,10 @@ public class Feed {
     @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
+    @Builder.Default
     @Column(name = "view", nullable = false)
     private Long view = 0L;
+    @Builder.Default
     @Column(name = "like_count", nullable = false)
     private Long likeCount = 0L;
 
@@ -51,6 +53,7 @@ public class Feed {
         }
     }
 
+    @Builder.Default
     @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TagList> tagLists = new ArrayList<>();
 }
