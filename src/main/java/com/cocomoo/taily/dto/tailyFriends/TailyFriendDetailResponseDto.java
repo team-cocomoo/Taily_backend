@@ -17,7 +17,6 @@ public class TailyFriendDetailResponseDto {
     private Long view;
     private Long likeCount;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private TableTypeCategory category;
     private Long userId;
     private String nickname;
@@ -33,7 +32,6 @@ public class TailyFriendDetailResponseDto {
                 .likeCount(tailyFriend.getLikeCount())
                 .liked(liked)
                 .createdAt(tailyFriend.getCreatedAt())
-                .updatedAt(tailyFriend.getUpdatedAt())
                 .category(tailyFriend.getTableType().getCategory())
                 .userId(tailyFriend.getUser().getId())
                 .nickname(tailyFriend.getUser().getNickname())

@@ -47,6 +47,37 @@ public class TailyFriendService {
        return TailyFriendDetailResponseDto.from(savedPost,false);
    }
 
+    // 게시글 수정
+    @Transactional
+    public TailyFriendDetailResponseDto updateTailyFriend(Long postId, String username, TailyFriendCreateRequestDto dto) {
+        TailyFriend post = tailyFriendRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+
+        // 작성자 검증
+        if (!post.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
+        }
+
+        // 수정
+        post.updatePost(dto.getTitle(), dto.getAddress(), dto.getContent());
+
+        return TailyFriendDetailResponseDto.from(post, false);
+    }
+
+    // 게시글 삭제
+    @Transactional
+    public void deleteTailyFriend(Long postId, String username) {
+        TailyFriend post = tailyFriendRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+
+        // 작성자 검증
+        if (!post.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
+        }
+
+        tailyFriendRepository.delete(post);
+    }
+
    // 테일리 프렌즈 상세 조회
     @Transactional
    public TailyFriendDetailResponseDto getTailyFriendById(Long postId, String username){
@@ -119,7 +150,7 @@ public class TailyFriendService {
 
     // 댓글 작성
     @Transactional
-    public CommentResponseDto addComment(Long postId, String username, CommentCreateRequestDto dto) {
+    public CommentResponseDto createComment(Long postId, String username, CommentCreateRequestDto dto) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
@@ -143,8 +174,50 @@ public class TailyFriendService {
                 .parentCommentsId(parent)
                 .build();
 
-        commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+
+        return CommentResponseDto.from(savedComment);
+    }
+
+    // 댓글 조회
+    public List<CommentResponseDto> getComments(Long postId) {
+        // 해당 게시글의 모든 댓글 가져오기
+        List<Comment> allComments = commentRepository.findByPostsId(postId);
+
+        // 부모 댓글만 걸러서 대댓글까지 DTO 변환
+        return allComments.stream()
+                .filter(c -> c.getParentCommentsId() == null)
+                .map(root -> CommentResponseDto.fromWithReplies(root, allComments))
+                .collect(Collectors.toList());
+    }
+
+    // 댓글 수정
+    @Transactional
+    public CommentResponseDto updateComment(Long commentId, String username, String newContent) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+
+        // 작성자 검증
+        if (!comment.getUsersId().getUsername().equals(username)) {
+            throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
+        }
+
+        comment.updateContent(newContent);
 
         return CommentResponseDto.from(comment);
+    }
+
+    // 댓글 삭제
+    @Transactional
+    public void deleteComment(Long commentId, String username) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+
+        // 작성자 검증
+        if (!comment.getUsersId().getUsername().equals(username)) {
+            throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
+        }
+
+        commentRepository.delete(comment);
     }
 }
