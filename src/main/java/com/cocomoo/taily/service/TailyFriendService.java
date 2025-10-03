@@ -2,6 +2,8 @@ package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
+import com.cocomoo.taily.dto.common.image.ImageRequestDto;
+import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,24 +33,56 @@ public class TailyFriendService {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final ImageRepository imageRepository;
 
-    // 테일리 프렌즈 작성
+    // 게시글 작성
     @Transactional
     public TailyFriendDetailResponseDto createTailyFriend(TailyFriendCreateRequestDto requestDto, String username) {
-        log.info("게시글 작성: username = {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        User author = userService.getUserEntity(username);
+        TableType tableType = tableTypeRepository.findById(5L) // TailyFriend = 5
+                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
+
+        log.info("게시글 작성: username = {}", username);
 
         TailyFriend post = TailyFriend.builder()
                 .title(requestDto.getTitle())
                 .address(requestDto.getAddress())
                 .content(requestDto.getContent())
-                .user(author)
+                .user(user)
                 .build();
         TailyFriend savedPost = tailyFriendRepository.save(post);
+
+        // 이미지 저장
+        List<ImageResponseDto> images = new ArrayList<>();
+        if (requestDto.getImages() != null && !requestDto.getImages().isEmpty()) {
+            List<Image> imageEntities = requestDto.getImages().stream()
+                    .map(imgDto -> {
+                        String uuid = UUID.randomUUID().toString(); // 이미지별 고유 UUID 생성
+                        return Image.builder()
+                                .uuid(uuid)
+                                .filePath(imgDto.getFilePath())
+                                .fileSize(imgDto.getFileSize())
+                                .postsId(savedPost.getId())
+                                .usersId(user)
+                                .tableTypeId(tableType)
+                                .build();
+                    })
+                    .toList();
+
+            imageRepository.saveAll(imageEntities);
+
+            // DTO 변환
+            images = imageEntities.stream()
+                    .map(ImageResponseDto::from)
+                    .toList();
+        }
+
         log.info("게시글 작성 완료 id = {}, title = {}", savedPost.getId(), savedPost.getTitle());
 
-        return TailyFriendDetailResponseDto.from(savedPost, false);
+
+        return TailyFriendDetailResponseDto.from(savedPost, false, images);
     }
 
     // 게시글 수정
@@ -56,15 +91,48 @@ public class TailyFriendService {
         TailyFriend post = tailyFriendRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
-        // 작성자 검증
+
         if (!post.getUser().getUsername().equals(username)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        // 수정
         post.updatePost(dto.getTitle(), dto.getAddress(), dto.getContent());
 
-        return TailyFriendDetailResponseDto.from(post, false);
+        // 이미지 수정
+        List<ImageResponseDto> images = new ArrayList<>();
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            User user = post.getUser();
+            TableType tableType = tableTypeRepository.findById(5L)
+                    .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
+
+            List<Image> imageEntities = dto.getImages().stream()
+                    .map(imgDto -> {
+                        String uuid = UUID.randomUUID().toString(); // 이미지별 고유 UUID
+                        return Image.builder()
+                                .uuid(uuid)
+                                .filePath(imgDto.getFilePath())
+                                .fileSize(imgDto.getFileSize())
+                                .postsId(post.getId())
+                                .usersId(user)
+                                .tableTypeId(tableType)
+                                .build();
+                    })
+                    .toList();
+
+            imageRepository.saveAll(imageEntities); // 배치 저장
+
+            images = imageEntities.stream()
+                    .map(ImageResponseDto::from)
+                    .toList();
+        } else {
+            // 기존 이미지 조회만
+            images = imageRepository.findByPostsId(post.getId())
+                    .stream()
+                    .map(ImageResponseDto::from)
+                    .toList();
+        }
+
+        return TailyFriendDetailResponseDto.from(post, false, images);
     }
 
     // 게시글 삭제
@@ -105,16 +173,29 @@ public class TailyFriendService {
                 post.getId(), tableType, user, true
         );
 
+        // 게시글에 연결된 이미지 조회
+        List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                .stream()
+                .map(ImageResponseDto::from)
+                .toList();
+
         log.info("게시글 조회 성공: title={}", post.getTitle());
 
-        return TailyFriendDetailResponseDto.from(post, liked);
+        return TailyFriendDetailResponseDto.from(post, liked, images);
     }
 
     // 테일리 프렌즈 전체 조회
     public List<TailyFriendListResponseDto> getTailyFriendsPage(int page, int size) {
         Page<TailyFriend> posts = tailyFriendRepository.findAllWithUser(PageRequest.of(page, size));
+
         return posts.stream()
-                .map(TailyFriendListResponseDto::from)
+                .map(post -> {
+                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                            .stream()
+                            .map(ImageResponseDto::from)
+                            .toList();
+                    return TailyFriendListResponseDto.from(post, images);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -229,7 +310,13 @@ public class TailyFriendService {
     public List<TailyFriendListResponseDto> searchTailyFriendsPage(String keyword, int page, int size) {
         Page<TailyFriend> posts = tailyFriendRepository.searchByKeyword(keyword, PageRequest.of(page, size));
         return posts.stream()
-                .map(TailyFriendListResponseDto::from)
+                .map(post -> {
+                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                            .stream()
+                            .map(ImageResponseDto::from)
+                            .toList();
+                    return TailyFriendListResponseDto.from(post, images);
+                })
                 .collect(Collectors.toList());
     }
 }

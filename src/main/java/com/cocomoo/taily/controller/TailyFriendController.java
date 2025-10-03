@@ -26,7 +26,7 @@ import java.util.Map;
 public class TailyFriendController {
     private final TailyFriendService tailyFriendService;
 
-    // 테일리 프렌즈 게시글 전체 조회
+    // 게시글 전체 조회
     @GetMapping
     public ResponseEntity<?> getTailyFriends(
             @RequestParam(defaultValue = "1") int page,
@@ -35,17 +35,18 @@ public class TailyFriendController {
         return ResponseEntity.ok(ApiResponseDto.success(posts, "게시물 목록 조회 성공"));
     }
 
-    // 테일리 프렌즈 게시글 상세 조회
+    // 게시글 상세 조회
     @GetMapping("/{id}")
     public ResponseEntity<?> getTailyFriendById(@PathVariable Long id){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
+
         TailyFriendDetailResponseDto post = tailyFriendService.getTailyFriendById(id,username);
         log.info("게시글 조회 성공 : title = {}",post.getTitle());
         return ResponseEntity.ok(ApiResponseDto.success(post,"게시글 조회 성공"));
     }
 
-    // 테일리 프렌즈 게시글 작성하기
+    // 게시글 작성
     @PostMapping
     public ResponseEntity<?> createTailyFriend(@RequestBody TailyFriendCreateRequestDto requestDto){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
