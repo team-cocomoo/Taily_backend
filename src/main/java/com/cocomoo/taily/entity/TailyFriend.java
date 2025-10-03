@@ -94,4 +94,5 @@ public class TailyFriend {
             this.likeCount = this.likeCount - 1;
         }
     }
+
 }
