@@ -9,6 +9,9 @@ import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,23 +32,23 @@ public class TailyFriendService {
     private final CommentRepository commentRepository;
 
     // 테일리 프렌즈 작성
-   @Transactional
-    public TailyFriendDetailResponseDto createTailyFriend(TailyFriendCreateRequestDto requestDto, String username){
-    log.info("게시글 작성: username = {}",username);
+    @Transactional
+    public TailyFriendDetailResponseDto createTailyFriend(TailyFriendCreateRequestDto requestDto, String username) {
+        log.info("게시글 작성: username = {}", username);
 
-       User author = userService.getUserEntity(username);
+        User author = userService.getUserEntity(username);
 
-       TailyFriend post = TailyFriend.builder()
-               .title(requestDto.getTitle())
-               .address(requestDto.getAddress())
-               .content(requestDto.getContent())
-               .user(author)
-               .build();
-       TailyFriend savedPost = tailyFriendRepository.save(post);
-       log.info("게시글 작성 완료 id = {}, title = {}",savedPost.getId(),savedPost.getTitle());
+        TailyFriend post = TailyFriend.builder()
+                .title(requestDto.getTitle())
+                .address(requestDto.getAddress())
+                .content(requestDto.getContent())
+                .user(author)
+                .build();
+        TailyFriend savedPost = tailyFriendRepository.save(post);
+        log.info("게시글 작성 완료 id = {}, title = {}", savedPost.getId(), savedPost.getTitle());
 
-       return TailyFriendDetailResponseDto.from(savedPost,false);
-   }
+        return TailyFriendDetailResponseDto.from(savedPost, false);
+    }
 
     // 게시글 수정
     @Transactional
@@ -78,20 +81,20 @@ public class TailyFriendService {
         tailyFriendRepository.delete(post);
     }
 
-   // 테일리 프렌즈 상세 조회
+    // 테일리 프렌즈 상세 조회
     @Transactional
-   public TailyFriendDetailResponseDto getTailyFriendById(Long postId, String username){
-       log.info("게시글 상세 조회 : id = {}",postId);
+    public TailyFriendDetailResponseDto getTailyFriendById(Long postId, String username) {
+        log.info("게시글 상세 조회 : id = {}", postId);
 
-       TailyFriend post = tailyFriendRepository.findByIdWithUser(postId).orElseThrow(()->{
-           log.error("게시글 조회 실패: id={}", postId);
-           return new IllegalArgumentException("존재하지 않는 게시글입니다.");
-       });
+        TailyFriend post = tailyFriendRepository.findByIdWithUser(postId).orElseThrow(() -> {
+            log.error("게시글 조회 실패: id={}", postId);
+            return new IllegalArgumentException("존재하지 않는 게시글입니다.");
+        });
 
-       // 조회수 증가
-       post.increaseView();
+        // 조회수 증가
+        post.increaseView();
 
-       // 현재 사용자의 좋아요 상태 확인
+        // 현재 사용자의 좋아요 상태 확인
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
@@ -102,16 +105,17 @@ public class TailyFriendService {
                 post.getId(), tableType, user, true
         );
 
-       log.info("게시글 조회 성공: title={}", post.getTitle());
+        log.info("게시글 조회 성공: title={}", post.getTitle());
 
-       return TailyFriendDetailResponseDto.from(post,liked);
-   }
+        return TailyFriendDetailResponseDto.from(post, liked);
+    }
 
-   // 테일리 프렌즈 전체 조회
-    public List<TailyFriendListResponseDto> getAllTailyFriends(){
-        List<TailyFriend> posts = tailyFriendRepository.findAllWithUser();
-        log.info("조회된 게시글 수 : {}", posts.size());
-        return posts.stream().map(TailyFriendListResponseDto::from).collect(Collectors.toList());
+    // 테일리 프렌즈 전체 조회
+    public List<TailyFriendListResponseDto> getTailyFriendsPage(int page, int size) {
+        Page<TailyFriend> posts = tailyFriendRepository.findAllWithUser(PageRequest.of(page, size));
+        return posts.stream()
+                .map(TailyFriendListResponseDto::from)
+                .collect(Collectors.toList());
     }
 
     // 좋아요 상태 변화
@@ -180,13 +184,13 @@ public class TailyFriendService {
     }
 
     // 댓글 조회
-    public List<CommentResponseDto> getComments(Long postId) {
-        // 해당 게시글의 모든 댓글 가져오기
-        List<Comment> allComments = commentRepository.findByPostsId(postId);
+    public List<CommentResponseDto> getCommentsPage(Long postId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size); // page: 0부터 시작
+        Page<Comment> parentComments = commentRepository.findByPostsIdAndParentCommentsIdIsNull(postId, pageable);
 
-        // 부모 댓글만 걸러서 대댓글까지 DTO 변환
-        return allComments.stream()
-                .filter(c -> c.getParentCommentsId() == null)
+        List<Comment> allComments = commentRepository.findByPostsId(postId); // 전체 댓글 (대댓글 포함)
+
+        return parentComments.getContent().stream()
                 .map(root -> CommentResponseDto.fromWithReplies(root, allComments))
                 .collect(Collectors.toList());
     }
@@ -219,5 +223,13 @@ public class TailyFriendService {
         }
 
         commentRepository.delete(comment);
+    }
+
+    // 검색 기능
+    public List<TailyFriendListResponseDto> searchTailyFriendsPage(String keyword, int page, int size) {
+        Page<TailyFriend> posts = tailyFriendRepository.searchByKeyword(keyword, PageRequest.of(page, size));
+        return posts.stream()
+                .map(TailyFriendListResponseDto::from)
+                .collect(Collectors.toList());
     }
 }

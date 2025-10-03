@@ -28,9 +28,11 @@ public class TailyFriendController {
 
     // 테일리 프렌즈 게시글 전체 조회
     @GetMapping
-    public ResponseEntity<?> getAllTailyFriends(){
-        List<TailyFriendListResponseDto> posts = tailyFriendService.getAllTailyFriends();
-        return ResponseEntity.ok(ApiResponseDto.success(posts,"게시물 목록 조회 성공"));
+    public ResponseEntity<?> getTailyFriends(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        List<TailyFriendListResponseDto> posts = tailyFriendService.getTailyFriendsPage(page-1, size);
+        return ResponseEntity.ok(ApiResponseDto.success(posts, "게시물 목록 조회 성공"));
     }
 
     // 테일리 프렌즈 게시글 상세 조회
@@ -123,9 +125,13 @@ public class TailyFriendController {
 
     // 댓글 조회
     @GetMapping("/{id}/comments")
-    public ResponseEntity<?> getComments(@PathVariable Long id) {
-        List<CommentResponseDto> comments = tailyFriendService.getComments(id);
-        return ResponseEntity.ok(ApiResponseDto.success(comments, "댓글 조회 성공"));
+    public ResponseEntity<?> getCommentsPage(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
+        List<CommentResponseDto> comments = tailyFriendService.getCommentsPage(id, page-1, size);
+        return ResponseEntity.ok(ApiResponseDto.success(comments, "댓글 목록 조회 성공"));
     }
 
     // 댓글 수정
@@ -152,5 +158,15 @@ public class TailyFriendController {
 
         tailyFriendService.deleteComment(commentId, username);
         return ResponseEntity.ok(ApiResponseDto.success(null, "댓글 삭제 성공"));
+    }
+
+    // 검색
+    @GetMapping("/search")
+    public ResponseEntity<?> searchTailyFriendsPage(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        List<TailyFriendListResponseDto> results = tailyFriendService.searchTailyFriendsPage(keyword, page, size);
+        return ResponseEntity.ok(ApiResponseDto.success(results, "검색 결과"));
     }
 }
