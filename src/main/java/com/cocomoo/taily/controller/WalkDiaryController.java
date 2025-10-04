@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +34,12 @@ public class WalkDiaryController {
     @PostMapping
     public ResponseEntity<?> createWalkDiary (@RequestBody WalkDairyCreateRequestDto walkDairyCreateRequestDto) {
         log.info("산책 일지 작성 시작");
-        WalkDiaryDetailResponseDto walkDiaryDetailResponseDto = walkDiaryService.createWalkDiary(walkDairyCreateRequestDto);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+        log.info("산책 일지 작성, 작성자: username={}",username);
+
+        WalkDiaryDetailResponseDto walkDiaryDetailResponseDto = walkDiaryService.createWalkDiary(walkDairyCreateRequestDto, username);
         log.info("산책 일지 작성 {}", walkDiaryDetailResponseDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(walkDiaryDetailResponseDto, "산책 일지가 작성되었습니다."));

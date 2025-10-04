@@ -6,6 +6,7 @@ import com.cocomoo.taily.entity.WalkDiaryWeather;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -19,7 +20,7 @@ import java.time.LocalTime;
 @Builder
 public class WalkDiaryDetailResponseDto {
     private Long walkDairyId;
-    private LocalDateTime date;
+    private LocalDate date;
     private WalkDiaryWeather walkDiaryWeather;
     private String content;
     private LocalTime beginTime;

@@ -1,12 +1,14 @@
 package com.cocomoo.taily.dto.walkDiary;
 
+import com.cocomoo.taily.entity.WalkDiaryEmotion;
 import com.cocomoo.taily.entity.WalkDiaryWeather;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
@@ -19,26 +21,19 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Builder
 public class WalkDairyCreateRequestDto {
-    private LocalDateTime date;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate date;
     private WalkDiaryWeather walkDiaryWeather;
     private String content;
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime beginTime;
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
-    private Long userId;    // 테스트 용 (추후 제거)
+    private WalkDiaryEmotion walkDiaryEmotion;
 
     // userId는 별도로 받지 않음
     // - Spring Security에서 현재 로그인한 사용자 정보 사용
     // - SecurityContextHolder.getContext().getAuthentication()
     // - 보안상 더 안전한 방식
 
-    /**
-     * {
-     *     "date": "2025-10-01",
-     *     "walkDiaryWeather": "SUNNY",
-     *     "content": "오늘은 산책하면서 꽃이 예뻤어요.",
-     *     "beginTime": "09:00",
-     *     "endTime": "10:00",
-     *     "userId": 1
-     * }
-     */
 }
