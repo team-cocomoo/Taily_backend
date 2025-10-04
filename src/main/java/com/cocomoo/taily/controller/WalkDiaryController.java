@@ -23,9 +23,13 @@ public class WalkDiaryController {
     public final WalkDiaryService walkDiaryService;
 
     @GetMapping
-    public ResponseEntity<?> getAllWalkDiaries() {
+    public ResponseEntity<?> getWalkDiaryByMonth(@RequestParam int year, @RequestParam int month) {
         log.info("산책 일지 리스트 조회 요청 ");
-        List<WalkDiaryListResponseDto> walkDiaries = walkDiaryService.getAllWalkDiaries();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        List<WalkDiaryListResponseDto> walkDiaries = walkDiaryService.getWalkDiaryByMonth(username, year, month);
         log.info("산책 일지 리스트 조회 완료 {} 건", walkDiaries.size());
 
         return ResponseEntity.ok(ApiResponseDto.success(walkDiaries, "산책 일지 리스트 조회 성공"));
