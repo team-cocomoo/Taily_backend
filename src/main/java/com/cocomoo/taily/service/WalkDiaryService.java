@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,9 +28,13 @@ public class WalkDiaryService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
 
-    public List<WalkDiaryListResponseDto> getAllWalkDiaries() {
+    public List<WalkDiaryListResponseDto> getWalkDiaryByMonth(String username, int year, int month) {
         log.info("=== 산책 일지 리스트 조회 시작 ===");
-        List<WalkDiary> walkDiaries = walkDairyRepository.findAllWithUser();
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate start = yearMonth.atDay(1);
+        LocalDate end = yearMonth.atEndOfMonth();
+
+        List<WalkDiary> walkDiaries = walkDairyRepository.findByMonth(username, start, end);
 
         log.info("조회된 산책 일지 수 : {}", walkDiaries.size());
 
