@@ -128,6 +128,23 @@ public class WalkDiaryService {
         return WalkDiaryDetailResponseDto.from(walkDiary);
     }
 
+    /**
+     * 특정 산책 일지 수정
+     * PUT http://localhost:8080/walk-diaries/2
+     *
+     * {
+     *   "walkDiaryWeather": "SUNNY",
+     *   "beginTime": "07:30",
+     *   "endTime": "08:10",
+     *   "walkDiaryEmotion": "SMILE",
+     *   "content": "오늘은 날씨가 맑아서 산책하기 딱 좋았다!"
+     * }
+     *
+     * @param walkDiaryId
+     * @param walkDiaryUpdateRequestDto
+     * @param username
+     * @return
+     */
     @Transactional
     public WalkDiaryDetailResponseDto updateWalkDiary(Long walkDiaryId, WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto, String username) {
         WalkDiary walkDiary = walkDairyRepository.findById(walkDiaryId).orElseThrow(() -> new IllegalArgumentException("산책 일지가 존재하지 않습니다."));
@@ -149,4 +166,21 @@ public class WalkDiaryService {
         return WalkDiaryDetailResponseDto.from(walkDiary);
     }
 
+    /**
+     * 특정 산책 일지 삭제
+     * DELETE http://localhost:8080/api/walk-diaries/2
+     *
+     * @param walkDiaryId
+     * @param username
+     */
+    @Transactional
+    public void deleteWalkDiary(Long walkDiaryId, String username) {
+        WalkDiary walkDiary = walkDairyRepository.findById(walkDiaryId).orElseThrow(() -> new IllegalArgumentException("산책 일지가 존재하지 않습니다."));
+
+        if (!walkDiary.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("본인 산책 일지만 삭제할 수 있습니다.");
+        }
+
+        walkDairyRepository.delete(walkDiary);
+    }
 }

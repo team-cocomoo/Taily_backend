@@ -76,4 +76,17 @@ public class WalkDiaryController {
 
         return ResponseEntity.ok(ApiResponseDto.success(updatedWalkDiary, "산책 일지 수정 성공"));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteWalkDiary(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        log.info("산책 일지 삭제, 작성자 {}", username);
+
+        walkDiaryService.deleteWalkDiary(id, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(null, "산책 일지 삭제 성공"));
+    }
 }
