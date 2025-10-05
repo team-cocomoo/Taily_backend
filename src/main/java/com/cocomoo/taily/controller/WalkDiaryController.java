@@ -1,7 +1,7 @@
 package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
-import com.cocomoo.taily.dto.walkDiary.WalkDairyCreateRequestDto;
+import com.cocomoo.taily.dto.walkDiary.WalkDiaryCreateRequestDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryDetailResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryListResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryUpdateRequestDto;
@@ -39,14 +39,14 @@ public class WalkDiaryController {
 
     // 산책 일지 작성
     @PostMapping
-    public ResponseEntity<?> createWalkDiary (@RequestBody WalkDairyCreateRequestDto walkDairyCreateRequestDto) {
+    public ResponseEntity<?> createWalkDiary (@RequestBody WalkDiaryCreateRequestDto walkDiaryCreateRequestDto) {
         log.info("산책 일지 작성 시작");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName();
         log.info("산책 일지 작성, 작성자: username={}",username);
 
-        WalkDiaryDetailResponseDto walkDiaryDetailResponseDto = walkDiaryService.createWalkDiary(walkDairyCreateRequestDto, username);
+        WalkDiaryDetailResponseDto walkDiaryDetailResponseDto = walkDiaryService.createWalkDiary(walkDiaryCreateRequestDto, username);
         log.info("산책 일지 작성 {}", walkDiaryDetailResponseDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(walkDiaryDetailResponseDto, "산책 일지가 작성되었습니다."));

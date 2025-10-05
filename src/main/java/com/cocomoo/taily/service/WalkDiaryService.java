@@ -1,6 +1,6 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.walkDiary.WalkDairyCreateRequestDto;
+import com.cocomoo.taily.dto.walkDiary.WalkDiaryCreateRequestDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryDetailResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryListResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryUpdateRequestDto;
@@ -69,11 +69,11 @@ public class WalkDiaryService {
      *   "userId": 1
      * }
      *
-     * @param walkDairyCreateRequestDto 산책 일지 작성 정보
+     * @param walkDiaryCreateRequestDto 산책 일지 작성 정보
      * @return 생성된 산책 일지 상세 정보
      */
     @Transactional
-    public WalkDiaryDetailResponseDto createWalkDiary(WalkDairyCreateRequestDto walkDairyCreateRequestDto, String username) {
+    public WalkDiaryDetailResponseDto createWalkDiary(WalkDiaryCreateRequestDto walkDiaryCreateRequestDto, String username) {
         log.info("=== 산책 일지 작성 시작 : username={} ===", username);
 
         // 작성자 조회
@@ -83,12 +83,12 @@ public class WalkDiaryService {
 
         // WalkDiary entity 생성
         WalkDiary walkDiary = WalkDiary.builder()
-                .date(walkDairyCreateRequestDto.getDate())
-                .walkDiaryWeather(walkDairyCreateRequestDto.getWalkDiaryWeather())
-                .beginTime(walkDairyCreateRequestDto.getBeginTime())
-                .endTime(walkDairyCreateRequestDto.getEndTime())
-                .walkDiaryEmotion(walkDairyCreateRequestDto.getWalkDiaryEmotion())
-                .content(walkDairyCreateRequestDto.getContent())
+                .date(walkDiaryCreateRequestDto.getDate())
+                .walkDiaryWeather(walkDiaryCreateRequestDto.getWalkDiaryWeather())
+                .beginTime(walkDiaryCreateRequestDto.getBeginTime())
+                .endTime(walkDiaryCreateRequestDto.getEndTime())
+                .walkDiaryEmotion(walkDiaryCreateRequestDto.getWalkDiaryEmotion())
+                .content(walkDiaryCreateRequestDto.getContent())
                 .user(user)
                 .build();
 
