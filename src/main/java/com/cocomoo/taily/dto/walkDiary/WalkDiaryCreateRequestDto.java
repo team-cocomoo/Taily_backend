@@ -1,5 +1,6 @@
 package com.cocomoo.taily.dto.walkDiary;
 
+import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.entity.WalkDiaryEmotion;
 import com.cocomoo.taily.entity.WalkDiaryWeather;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  * 산책 일지 작성 요청 DTO
@@ -30,6 +32,8 @@ public class WalkDiaryCreateRequestDto {
     private LocalTime endTime;
     private WalkDiaryEmotion walkDiaryEmotion;
     private String content;
+
+    private List<ImageRequestDto> images;
 
     // userId는 별도로 받지 않음
     // - Spring Security에서 현재 로그인한 사용자 정보 사용

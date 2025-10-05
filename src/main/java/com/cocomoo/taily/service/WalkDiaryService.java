@@ -1,12 +1,15 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryCreateRequestDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryDetailResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryListResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryUpdateRequestDto;
+import com.cocomoo.taily.entity.Image;
 import com.cocomoo.taily.entity.TableType;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.WalkDiary;
+import com.cocomoo.taily.repository.ImageRepository;
 import com.cocomoo.taily.repository.TableTypeRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.repository.WalkDiaryRepository;
@@ -17,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +33,7 @@ public class WalkDiaryService {
     private final WalkDiaryRepository walkDairyRepository;
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
+    private final ImageRepository imageRepository;
 
     /**
      * 현재 년도, 월 별로 작성한 산책 일지 조회
@@ -44,7 +50,7 @@ public class WalkDiaryService {
      * @return
      */
     public List<WalkDiaryListResponseDto> getWalkDiaryByMonth(String username, int year, int month) {
-        log.info("=== 산책 일지 리스트 조회 시작 ===");
+        log.info("=== 산책 일지 월별 조회 시작 ===");
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
@@ -95,11 +101,28 @@ public class WalkDiaryService {
         // DB 저장
         WalkDiary savedWalkDiary = walkDairyRepository.save(walkDiary);
 
-        // 이미지 추가
+        // 이미지 저장
+        List<ImageResponseDto> images = new ArrayList<>();
+        if (walkDiaryCreateRequestDto.getImages() != null && !walkDiaryCreateRequestDto.getImages().isEmpty()) {
+            List<Image> imageEntities = walkDiaryCreateRequestDto.getImages().stream().map(imageRequestDto -> {
+                String uuid = UUID.randomUUID().toString();
+                return Image.builder()
+                        .uuid(uuid)
+                        .filePath(imageRequestDto.getFilePath())
+                        .fileSize(imageRequestDto.getFileSize())
+                        .postsId(savedWalkDiary.getId())
+                        .usersId(user)
+                        .tableTypeId(tableType)
+                        .build();
+            }).toList();
+            imageRepository.saveAll(imageEntities);
+
+            images = imageEntities.stream().map(ImageResponseDto::from).toList();
+        }
 
         log.info("산책 일지 작성 완료: id={}, title={}", savedWalkDiary.getId(), savedWalkDiary.getContent());
 
-        return WalkDiaryDetailResponseDto.from(savedWalkDiary);
+        return WalkDiaryDetailResponseDto.from(savedWalkDiary, images);
     }
 
     /**
