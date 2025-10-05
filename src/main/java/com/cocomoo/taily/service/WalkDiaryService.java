@@ -28,6 +28,20 @@ public class WalkDiaryService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
 
+    /**
+     * 현재 년도, 월 별로 작성한 산책 일지 조회
+     *
+     * GET http://localhost:8080/api/walk-diaries?year=2025&month=10
+     *
+     * {
+     *     "username": "tailyUser"
+     * }
+     *
+     * @param username
+     * @param year
+     * @param month
+     * @return
+     */
     public List<WalkDiaryListResponseDto> getWalkDiaryByMonth(String username, int year, int month) {
         log.info("=== 산책 일지 리스트 조회 시작 ===");
         YearMonth yearMonth = YearMonth.of(year, month);
@@ -87,5 +101,29 @@ public class WalkDiaryService {
         return WalkDiaryDetailResponseDto.from(savedWalkDiary);
     }
 
+    /**
+     * 특정 산책 일지 상세 조회
+     *
+     * GET http://localhost:8080/walk-diaries/1
+     *
+     * @param walkDiaryId
+     * @param username
+     * @return
+     */
+    @Transactional
+    public WalkDiaryDetailResponseDto getWalkDiaryById(Long walkDiaryId, String username) {
+        log.info("산책 일지 상세 조회 : id = {}", walkDiaryId);
 
+        WalkDiary walkDiary = walkDairyRepository.findByIdWithUser(walkDiaryId).orElseThrow(() -> {
+            log.info("산책 일지 상세 조회 실패: id={}", walkDiaryId);
+            return new IllegalArgumentException("존재하지 않는 산책 일지 입니다.");
+
+        });
+
+        // 이미지 조회
+
+        log.info("산책 일지 조회 성공: content={}", walkDiary.getContent());
+
+        return WalkDiaryDetailResponseDto.from(walkDiary);
+    }
 }
