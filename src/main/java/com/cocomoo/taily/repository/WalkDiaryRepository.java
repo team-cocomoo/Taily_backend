@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface WalkDiaryRepository extends JpaRepository<WalkDiary, Long> {
@@ -22,5 +23,8 @@ public interface WalkDiaryRepository extends JpaRepository<WalkDiary, Long> {
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
     );
+
+    @Query("SELECT w FROM WalkDiary w JOIN FETCH w.user WHERE w.id = :id")
+    Optional<WalkDiary> findByIdWithUser(Long id);
 
 }

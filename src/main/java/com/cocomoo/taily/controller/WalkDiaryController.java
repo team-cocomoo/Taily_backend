@@ -22,6 +22,7 @@ import java.util.List;
 public class WalkDiaryController {
     public final WalkDiaryService walkDiaryService;
 
+    // 년도, 월 별 산책 일지 조회
     @GetMapping
     public ResponseEntity<?> getWalkDiaryByMonth(@RequestParam int year, @RequestParam int month) {
         log.info("산책 일지 리스트 조회 요청 ");
@@ -35,6 +36,7 @@ public class WalkDiaryController {
         return ResponseEntity.ok(ApiResponseDto.success(walkDiaries, "산책 일지 리스트 조회 성공"));
     }
 
+    // 산책 일지 작성
     @PostMapping
     public ResponseEntity<?> createWalkDiary (@RequestBody WalkDairyCreateRequestDto walkDairyCreateRequestDto) {
         log.info("산책 일지 작성 시작");
@@ -48,4 +50,18 @@ public class WalkDiaryController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(walkDiaryDetailResponseDto, "산책 일지가 작성되었습니다."));
     }
+
+    // 산책 일지 상세 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getWalkDiaryById(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        WalkDiaryDetailResponseDto walkDiary = walkDiaryService.getWalkDiaryById(id, username);
+
+        log.info("산책 일지 상세 조회 성공: date={}", walkDiary.getDate());
+        return ResponseEntity.ok(ApiResponseDto.success(walkDiary, "산책 일지 상세 조회 성공"));
+    }
+
 }
