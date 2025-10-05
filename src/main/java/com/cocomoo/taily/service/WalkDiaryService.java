@@ -3,6 +3,7 @@ package com.cocomoo.taily.service;
 import com.cocomoo.taily.dto.walkDiary.WalkDairyCreateRequestDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryDetailResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryListResponseDto;
+import com.cocomoo.taily.dto.walkDiary.WalkDiaryUpdateRequestDto;
 import com.cocomoo.taily.entity.TableType;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.WalkDiary;
@@ -126,4 +127,26 @@ public class WalkDiaryService {
 
         return WalkDiaryDetailResponseDto.from(walkDiary);
     }
+
+    @Transactional
+    public WalkDiaryDetailResponseDto updateWalkDiary(Long walkDiaryId, WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto, String username) {
+        WalkDiary walkDiary = walkDairyRepository.findById(walkDiaryId).orElseThrow(() -> new IllegalArgumentException("산책 일지가 존재하지 않습니다."));
+
+        if (!walkDiary.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("본인 산책 일지만 수정할 수 있습니다.");
+        }
+
+        walkDiary.updateWalkDiary(
+                walkDiaryUpdateRequestDto.getWalkDiaryWeather(),
+                walkDiaryUpdateRequestDto.getBeginTime(),
+                walkDiaryUpdateRequestDto.getEndTime(),
+                walkDiaryUpdateRequestDto.getWalkDiaryEmotion(),
+                walkDiaryUpdateRequestDto.getContent()
+        );
+
+        // 이미지 추가
+
+        return WalkDiaryDetailResponseDto.from(walkDiary);
+    }
+
 }

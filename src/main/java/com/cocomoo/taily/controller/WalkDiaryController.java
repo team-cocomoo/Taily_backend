@@ -4,6 +4,7 @@ import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDairyCreateRequestDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryDetailResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryListResponseDto;
+import com.cocomoo.taily.dto.walkDiary.WalkDiaryUpdateRequestDto;
 import com.cocomoo.taily.service.WalkDiaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,4 +65,15 @@ public class WalkDiaryController {
         return ResponseEntity.ok(ApiResponseDto.success(walkDiary, "산책 일지 상세 조회 성공"));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateWalkDiary(@PathVariable Long id, @RequestBody WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+        log.info("산책 일지 수정, 작성자: username={}",username);
+
+        WalkDiaryDetailResponseDto updatedWalkDiary = walkDiaryService.updateWalkDiary(id, walkDiaryUpdateRequestDto, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(updatedWalkDiary, "산책 일지 수정 성공"));
+    }
 }
