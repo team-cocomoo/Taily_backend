@@ -145,10 +145,11 @@ public class WalkDiaryService {
         });
 
         // 이미지 조회
+        List<ImageResponseDto> images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(ImageResponseDto::from).toList();
 
         log.info("산책 일지 조회 성공: content={}", walkDiary.getContent());
 
-        return WalkDiaryDetailResponseDto.from(walkDiary);
+        return WalkDiaryDetailResponseDto.from(walkDiary, images);
     }
 
     /**
@@ -184,9 +185,34 @@ public class WalkDiaryService {
                 walkDiaryUpdateRequestDto.getContent()
         );
 
-        // 이미지 추가
+        // 이미지 수정
+        List<ImageResponseDto> images = new ArrayList<>();
+        if (walkDiaryUpdateRequestDto.getImages() != null && !walkDiaryUpdateRequestDto.getImages().isEmpty()) {
+            User user = walkDiary.getUser();
+            TableType tableType = tableTypeRepository.findById(4L).orElseThrow(() -> new IllegalArgumentException("TableType가 존재하지않습니다."));
 
-        return WalkDiaryDetailResponseDto.from(walkDiary);
+             List<Image> imageEntities = walkDiaryUpdateRequestDto.getImages().stream().map(imageRequestDto -> {
+
+                 String uuid = UUID.randomUUID().toString();
+                 return Image.builder()
+                         .uuid(uuid)
+                         .filePath(imageRequestDto.getFilePath())
+                         .fileSize(imageRequestDto.getFileSize())
+                         .postsId(walkDiary.getId())
+                         .usersId(user)
+                         .tableTypeId(tableType)
+                         .build();
+             }).toList();
+
+             imageRepository.saveAll(imageEntities);
+
+             images = imageEntities.stream().map(ImageResponseDto::from).toList();
+        } else {
+            // 기존 이미지 조회만
+            images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(ImageResponseDto::from).toList();
+        }
+
+        return WalkDiaryDetailResponseDto.from(walkDiary, images);
     }
 
     /**

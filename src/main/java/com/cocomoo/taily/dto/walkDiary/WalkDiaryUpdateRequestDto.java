@@ -1,5 +1,6 @@
 package com.cocomoo.taily.dto.walkDiary;
 
+import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.entity.WalkDiaryEmotion;
 import com.cocomoo.taily.entity.WalkDiaryWeather;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -9,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  * 산책 일지 수정 요청 DTO
@@ -27,4 +29,5 @@ public class WalkDiaryUpdateRequestDto {
     private LocalTime endTime;
     private WalkDiaryEmotion walkDiaryEmotion;
     private String content;
+    private List<ImageRequestDto> images;
 }
