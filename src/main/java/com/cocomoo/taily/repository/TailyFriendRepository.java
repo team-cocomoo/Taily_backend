@@ -28,4 +28,7 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
 
     @Query("SELECT t FROM TailyFriend t ORDER BY t.createdAt DESC")
     Page<TailyFriend> findAllWithUser(Pageable pageable);
+
+    @Query("SELECT t.address FROM TailyFriend t")
+    List<String> findAllAddresses();
 }
