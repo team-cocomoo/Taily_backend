@@ -41,7 +41,5 @@ public class UserResponseDto {
                 .updatedAt(user.getUpdatedAt())
                 .tableTypeId(user.getTableType())
                 .build();
-
     }
-
 }

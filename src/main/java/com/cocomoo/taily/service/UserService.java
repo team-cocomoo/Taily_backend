@@ -4,6 +4,7 @@ import com.cocomoo.taily.dto.User.UserCreateRequestDto;
 import com.cocomoo.taily.dto.User.UserLoginRequestDto;
 import com.cocomoo.taily.dto.User.UserLoginResponseDto;
 import com.cocomoo.taily.dto.User.UserResponseDto;
+import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserRole;
 import com.cocomoo.taily.entity.UserState;
@@ -95,7 +96,7 @@ public class UserService {
     /**
      * 4. 현재 로그인한 회원 정보 조회
      */
-    public UserResponseDto getMyInfo(String username) {
+    public UserProfileResponseDto getMyInfo(String username) {
         return findByUsername(username);
     }
 

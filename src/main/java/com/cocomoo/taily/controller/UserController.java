@@ -5,12 +5,15 @@ import com.cocomoo.taily.dto.User.UserCreateRequestDto;
 import com.cocomoo.taily.dto.User.UserLoginRequestDto;
 import com.cocomoo.taily.dto.User.UserLoginResponseDto;
 import com.cocomoo.taily.dto.User.UserResponseDto;
+import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.UserState;
+import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -58,9 +61,9 @@ public class UserController {
      * (JWT 인증 후 SecurityContext에서 username 추출해서 전달)
      */
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDto> getMyInfo(@RequestParam String username) {
+    public ResponseEntity<UserProfileResponseDto> getMyInfo(@RequestParam String username) {
         log.info("내 정보 조회 API 호출: username={}", username);
-        UserResponseDto response = userService.getMyInfo(username);
+        UserProfileResponseDto response = userService.getMyInfo(username);
         return ResponseEntity.ok(response);
     }
 
@@ -88,23 +91,20 @@ public class UserController {
 
     /**
      * 5. 로그인 (Swagger 테스트용)
-     * URL: /api/auth/login
+     * URL: /login
      */
-//    @PostMapping(path = "/api/auth/login")
-//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
-//            @RequestBody UserLoginRequestDto requestDto) {
-//
-//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
-//
-//        // UserService에서 로그인 처리 및 JWT 발급
-//        UserLoginResponseDto loginResponse = userService.login(requestDto);
-//
-//        log.info("로그인 성공: username={}", loginResponse.getUsername());
-//
-//        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
-//    }
+    @PostMapping(path = "/login")
+    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
+            @RequestBody UserLoginRequestDto requestDto) {
 
+        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
 
+        // UserService에서 로그인 처리 및 JWT 발급
+        UserLoginResponseDto loginResponse = userService.login(requestDto);
 
+        log.info("로그인 성공: username={}", loginResponse.getUsername());
+
+        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
+    }
 
 }
