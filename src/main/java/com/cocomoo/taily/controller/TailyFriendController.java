@@ -3,6 +3,7 @@ package com.cocomoo.taily.controller;
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
+import com.cocomoo.taily.dto.tailyFriends.TailyFriendAddressResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
@@ -169,5 +170,13 @@ public class TailyFriendController {
             @RequestParam(defaultValue = "6") int size) {
         List<TailyFriendListResponseDto> results = tailyFriendService.searchTailyFriendsPage(keyword, page, size);
         return ResponseEntity.ok(ApiResponseDto.success(results, "검색 결과"));
+    }
+
+    // 주소만 검색
+    @GetMapping("/addresses")
+    public ResponseEntity<?> getAllAddresses() {
+        List<TailyFriendAddressResponseDto> addresses = tailyFriendService.getAllAddresses();
+        log.info("전체 게시글 주소 조회, 개수: {}", addresses.size());
+        return ResponseEntity.ok(ApiResponseDto.success(addresses, "전체 주소 조회 성공"));
     }
 }
