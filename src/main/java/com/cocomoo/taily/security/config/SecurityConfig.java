@@ -81,7 +81,7 @@ public class SecurityConfig {
 
         ///////////////////////인증 인가에 대한 설정(개발자가 주로 확인)//////////////////////
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/users/login").permitAll()
                 //로그인 허용
                 .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                 // POST 방식의 회원 가입은 인증없이 허용
@@ -97,6 +97,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                 // swagger용 접근 경로 허용
                 .requestMatchers("/api-docs/**").permitAll()
+                .requestMatchers("/api/mypage/**").hasRole("USER")
                 .anyRequest().authenticated());
                 // 나머지 모든 요청은 인증 필요
 

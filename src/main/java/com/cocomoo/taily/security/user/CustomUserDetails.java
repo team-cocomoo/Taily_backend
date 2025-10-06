@@ -17,6 +17,7 @@ import java.util.Collections;
  * 예) Servelt Interface를 구현한 웹 프로그램은
  * Web Container가 service라는 단일한 방식으로 실행한다.
  * 즉 Spring Security가 표준화된 방식으로 사용자 정보를 관리하지 위해서
+ * 인증(Authentication)과 인가(Authorization)를 위한 클래스
  */
 
 @Slf4j
@@ -107,7 +108,7 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
-     * 편의 메서드: Member 엔티티의 실명 가져오기
+     * 편의 메서드: Member 엔티티의 닉네임 가져오기
      */
     public String getNickname() {
         return user.getNickname();
