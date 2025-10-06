@@ -1,5 +1,6 @@
 package com.cocomoo.taily.repository;
 
+import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.WalkDiary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,5 @@ public interface WalkDiaryRepository extends JpaRepository<WalkDiary, Long> {
     @Query("SELECT w FROM WalkDiary w JOIN FETCH w.user WHERE w.id = :id")
     Optional<WalkDiary> findByIdWithUser(Long id);
 
+    List<WalkDiary> findAllByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
 }
