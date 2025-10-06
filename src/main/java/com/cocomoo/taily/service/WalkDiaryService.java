@@ -295,4 +295,8 @@ public class WalkDiaryService {
         }
         return "저번 주보다 산책 시간이 더 늘었어요! 👏";
     }
+
+    public boolean existsByUserAndDate(User user, LocalDate date) {
+        return walkDairyRepository.existsByUserAndDate(user,date);
+    }
 }
