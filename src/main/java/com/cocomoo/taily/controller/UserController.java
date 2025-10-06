@@ -7,13 +7,11 @@ import com.cocomoo.taily.dto.User.UserLoginResponseDto;
 import com.cocomoo.taily.dto.User.UserResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.UserState;
-import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -50,9 +48,9 @@ public class UserController {
      * 2. username으로 회원 조회
      */
     @GetMapping("/{username}")
-    public ResponseEntity<UserResponseDto> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserProfileResponseDto> getUserByUsername(@PathVariable String username) {
         log.info("회원 조회 API 호출: username={}", username);
-        UserResponseDto response = userService.findByUsername(username);
+        UserProfileResponseDto response = userService.findByUsername(username);
         return ResponseEntity.ok(response);
     }
 
@@ -60,12 +58,12 @@ public class UserController {
      * 3. 현재 로그인한 사용자 정보 조회
      * (JWT 인증 후 SecurityContext에서 username 추출해서 전달)
      */
-    @GetMapping("/me")
+/*    @GetMapping("/me")
     public ResponseEntity<UserProfileResponseDto> getMyInfo(@RequestParam String username) {
         log.info("내 정보 조회 API 호출: username={}", username);
         UserProfileResponseDto response = userService.getMyInfo(username);
         return ResponseEntity.ok(response);
-    }
+    }*/
 
     /**
      * 4. 회원 정보 수정

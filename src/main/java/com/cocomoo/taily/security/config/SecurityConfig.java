@@ -97,6 +97,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                 // swagger용 접근 경로 허용
                 .requestMatchers("/api-docs/**").permitAll()
+                .requestMatchers("/api/mypage/**").hasRole("USER")
                 .anyRequest().authenticated());
                 // 나머지 모든 요청은 인증 필요
 

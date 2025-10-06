@@ -1,9 +1,6 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.User.UserCreateRequestDto;
-import com.cocomoo.taily.dto.User.UserLoginRequestDto;
-import com.cocomoo.taily.dto.User.UserLoginResponseDto;
-import com.cocomoo.taily.dto.User.UserResponseDto;
+import com.cocomoo.taily.dto.User.*;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserRole;
@@ -66,7 +63,7 @@ public class UserService {
     /**
      * 2. username으로 회원 조회 - JWT 토큰 발급 시 사용
      */
-    public UserResponseDto findByUsername(String username) {
+    public UserProfileResponseDto findByUsername(String username) {
         log.debug("회원 조회: username={}", username);
 
         User user = userRepository.findByUsername(username)
@@ -75,7 +72,7 @@ public class UserService {
                     return new IllegalArgumentException("존재하지 않는 회원입니다.");
                 });
 
-        return UserResponseDto.from(user);
+        return UserProfileResponseDto.from(user);
     }
 
     /**
@@ -193,4 +190,6 @@ public class UserService {
         );
     }
 
+//    public UserProfileResponseDto updateMyProfile(String username, UserUpdateRequestDto requestDto) {
+//    }
 }
