@@ -29,4 +29,6 @@ public interface WalkDiaryRepository extends JpaRepository<WalkDiary, Long> {
     Optional<WalkDiary> findByIdWithUser(Long id);
 
     List<WalkDiary> findAllByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
+
+    boolean existsByUserAndDate(User user, LocalDate date);
 }

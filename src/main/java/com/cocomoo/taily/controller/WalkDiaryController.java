@@ -2,16 +2,20 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.walkDiary.*;
+import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.WalkDiaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/walk-diaries")
@@ -24,6 +28,7 @@ public class WalkDiaryController {
     @GetMapping
     public ResponseEntity<?> getWalkDiaryByMonth(@RequestParam int year, @RequestParam int month) {
         log.info("산책 일지 리스트 조회 요청 ");
+        log.info("요청 year={}, month={}", year, month);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName();
@@ -34,8 +39,16 @@ public class WalkDiaryController {
         return ResponseEntity.ok(ApiResponseDto.success(walkDiaries, "산책 일지 리스트 조회 성공"));
     }
 
+    // 산책 일지 유무 체크
+    @GetMapping("/check")
+    public ResponseEntity<?> checkWalkDiary(@AuthenticationPrincipal CustomUserDetails user, @RequestParam("date") LocalDate date) {
+        boolean exists = walkDiaryService.existsByUserAndDate(user.getUser(), date);
+
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
     // 산책 일지 작성
-    @PostMapping
+    @PostMapping("/write/{date}")
     public ResponseEntity<?> createWalkDiary (@RequestBody WalkDiaryCreateRequestDto walkDiaryCreateRequestDto) {
         log.info("산책 일지 작성 시작");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
