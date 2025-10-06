@@ -11,14 +11,14 @@ import java.time.LocalDateTime;
 public class WalkDiaryListResponseDto {
     private Long id;
     private String content;
-    private String userNickname;
+    private String username;
     private LocalDateTime createdAt;
 
     public static WalkDiaryListResponseDto from(WalkDiary walkDiary) {
         return WalkDiaryListResponseDto.builder()
                 .id(walkDiary.getId())
                 .content(walkDiary.getContent())
-                .userNickname(walkDiary.getContent())
+                .username(walkDiary.getUser().getUsername())
                 .createdAt(walkDiary.getCreatedAt())
                 .build();
     }
