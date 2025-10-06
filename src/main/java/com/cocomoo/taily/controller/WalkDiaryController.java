@@ -1,10 +1,7 @@
 package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
-import com.cocomoo.taily.dto.walkDiary.WalkDiaryCreateRequestDto;
-import com.cocomoo.taily.dto.walkDiary.WalkDiaryDetailResponseDto;
-import com.cocomoo.taily.dto.walkDiary.WalkDiaryListResponseDto;
-import com.cocomoo.taily.dto.walkDiary.WalkDiaryUpdateRequestDto;
+import com.cocomoo.taily.dto.walkDiary.*;
 import com.cocomoo.taily.service.WalkDiaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,5 +85,15 @@ public class WalkDiaryController {
         walkDiaryService.deleteWalkDiary(id, username);
 
         return ResponseEntity.ok(ApiResponseDto.success(null, "산책 일지 삭제 성공"));
+    }
+
+    // 산책 일지 월간 통계
+    @GetMapping("/stats")
+    public ResponseEntity<?> getMonthlyStats() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        WalkDiaryStatsResponseDto statsDto = walkDiaryService.getMonthlyStats(username);
+        return ResponseEntity.ok(ApiResponseDto.success(statsDto, "월간 산책 통계 조회 성공"));
     }
 }
