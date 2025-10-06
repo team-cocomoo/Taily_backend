@@ -1,8 +1,6 @@
 package com.cocomoo.taily.service;
 
-<<<<<<< HEAD
 import com.cocomoo.taily.repository.TailyFriendRepository;
-=======
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
@@ -10,30 +8,20 @@ import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
->>>>>>> develop
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-<<<<<<< HEAD
-=======
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
->>>>>>> develop
 @Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class TailyFriendService {
     private final TailyFriendRepository tailyFriendRepository;
-<<<<<<< HEAD
-
-   
-
-=======
     private final UserService userService;
     private final TableTypeRepository tableTypeRepository;
     private final UserRepository userRepository;
@@ -159,5 +147,4 @@ public class TailyFriendService {
 
         return CommentResponseDto.from(comment);
     }
->>>>>>> develop
 }

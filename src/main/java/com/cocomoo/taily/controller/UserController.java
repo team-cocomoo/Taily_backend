@@ -86,7 +86,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-<<<<<<< HEAD
+
     /** 로그인 메서드
      *
      */
@@ -106,7 +106,7 @@ public class UserController {
 
 }
 
-=======
+
     /**
      * 5. 로그인 (Swagger 테스트용)
      * URL: /api/auth/login
@@ -124,9 +124,5 @@ public class UserController {
 //
 //        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
 //    }
+//}
 
-
-
-
-}
->>>>>>> develop

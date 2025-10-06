@@ -3,37 +3,25 @@ package com.cocomoo.taily.controller;
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDairyCreateRequestDto;
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryDetailResponseDto;
-<<<<<<< HEAD
-=======
 import com.cocomoo.taily.dto.walkDiary.WalkDiaryListResponseDto;
->>>>>>> develop
 import com.cocomoo.taily.service.WalkDiaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-<<<<<<< HEAD
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-@RequestMapping("/api/walk-dairies")
-=======
 import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/walk-diaries")
->>>>>>> develop
 @RequiredArgsConstructor
 @Slf4j
 public class WalkDiaryController {
     public final WalkDiaryService walkDiaryService;
 
-<<<<<<< HEAD
+
 //    @GetMapping
 //    public ResponseEntity<?> getAllList() {
 //        log.info("게시글 리스트 조회 요청 ");
@@ -41,7 +29,7 @@ public class WalkDiaryController {
 //
 //        return null;
 //    }
-=======
+
     @GetMapping
     public ResponseEntity<?> getAllWalkDiaries() {
         log.info("산책 일지 리스트 조회 요청 ");
@@ -50,7 +38,7 @@ public class WalkDiaryController {
 
         return ResponseEntity.ok(ApiResponseDto.success(walkDiaries, "산책 일지 리스트 조회 성공"));
     }
->>>>>>> develop
+
 
     @PostMapping
     public ResponseEntity<?> createWalkDiary (@RequestBody WalkDairyCreateRequestDto walkDairyCreateRequestDto) {

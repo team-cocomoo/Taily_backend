@@ -1,4 +1,4 @@
-package com.cocomoo.taily.dto;
+package com.cocomoo.taily.dto.walkPaths;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

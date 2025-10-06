@@ -1,4 +1,4 @@
-package com.cocomoo.taily.dto;
+package com.cocomoo.taily.dto.walkPaths;
 
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.WalkPath;

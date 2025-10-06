@@ -1,17 +1,19 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.WalkPathCreateRequestDto;
-import com.cocomoo.taily.dto.WalkPathDetailResponseDto;
-import com.cocomoo.taily.dto.WalkPathListResponseDto;
+import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathCreateRequestDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathDetailResponseDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathListResponseDto;
+import com.cocomoo.taily.entity.TableType;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.WalkPath;
+import com.cocomoo.taily.repository.TableTypeRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.repository.WalkPathRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,30 @@ import java.util.stream.Collectors;
 public class WalkPathService {
     private final WalkPathRepository walkPathRepository;
     private final UserRepository userRepository;
+    private final TableTypeRepository tableTypeRepository;
+    private final UserService userService;
+
+    //게시물 상세 조회
+    @Transactional
+    public WalkPathDetailResponseDto getWalkPathById(Long postId, String username) {
+        log.info("게시글 상세 조회 : id = {}",postId);
+
+        WalkPath post = walkPathRepository.findByIdWithUser(postId).orElseThrow(()->{
+            log.error("게시글 조회 실패: id={}", postId);
+            return new IllegalArgumentException("존재하지 않는 게시글입니다.");
+        });
+
+        // 현재 사용자의 좋아요 상태 확인
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        TableType tableType = tableTypeRepository.findById(5L)
+                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
+
+        log.info("게시글 조회 성공: title={}", post.getTitle());
+
+        return WalkPathDetailResponseDto.from(post);
+    }
 
     //게시물 생성
     @Transactional
@@ -38,7 +64,6 @@ public class WalkPathService {
                 .build();
         //db에 저장
         WalkPath savedWalkPath = walkPathRepository.save(walkPath);
-
         return WalkPathDetailResponseDto.from(savedWalkPath);
     }
 
@@ -49,6 +74,6 @@ public class WalkPathService {
         return posts.stream().map(WalkPathListResponseDto::from).collect(Collectors.toUnmodifiableList());
     }
 
-
+    //
 
 }
