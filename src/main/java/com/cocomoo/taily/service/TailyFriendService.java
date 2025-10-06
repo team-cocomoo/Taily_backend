@@ -4,6 +4,7 @@ import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
+import com.cocomoo.taily.dto.tailyFriends.TailyFriendAddressResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
@@ -317,6 +318,14 @@ public class TailyFriendService {
                             .toList();
                     return TailyFriendListResponseDto.from(post, images);
                 })
+                .collect(Collectors.toList());
+    }
+
+    // 주소만 검색
+    public List<TailyFriendAddressResponseDto> getAllAddresses() {
+        List<String> addresses = tailyFriendRepository.findAllAddresses();
+        return addresses.stream()
+                .map(TailyFriendAddressResponseDto::from)
                 .collect(Collectors.toList());
     }
 }
