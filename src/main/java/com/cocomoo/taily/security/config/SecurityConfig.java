@@ -83,6 +83,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 //로그인 허용
                 .requestMatchers("/api/users/login").permitAll()
                 // POST 방식의 회원 가입은 인증없이 허용
@@ -122,6 +123,46 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
                 // 나머지 모든 요청은 인증 필요
 >>>>>>> develop
+=======
+                        // 비회원 가능 (permitAll)
+                        .requestMatchers(
+                                "/api/users/login",
+                                "/api/users/register",
+                                "/api/auth/**",
+                                "/api/facilities/**",         // 동물 관련 시설 조회
+                                "/api/events/public/**",      // 이벤트 조회용 (목록/배너)
+                                "/api/notices/public/**",     // 공지사항 목록
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/api-docs/**"
+                        ).permitAll()
+
+                        // 회원만 접근 가능 (ROLE_USER)
+                        .requestMatchers(
+                                "/api/mypage/**",             // 마이페이지
+                                "/api/walk-diaries/**",              // 신책 일일 일지
+                                "/api/taily-friends/**",      // 테일리 프렌드
+                                "/api/feeds/**",              // 피드, 좋아요
+                                "/api/follows/**",            // 팔로우/팔로잉
+                                "/api/chats/**",              // 채팅
+                                "/api/events/**",             // 이벤트 참여
+                                "/api/notices/**",            // 공지사항 상세
+                                "/api/qna/**"                 // 1:1 문의
+                        ).hasRole("USER")
+
+                        // 관리자만 접근 가능 (ROLE_ADMIN)
+                        .requestMatchers(
+                                "/api/admin/**",              // 관리자 기능 전체
+                                "/api/manage/**"              // (회원관리, 신고처리, 공지, 이벤트)
+                        ).hasRole("ADMIN")
+
+                        // 나머지 모든 요청은 인증 필요
+                        .anyRequest().authenticated()
+        );
+
+>>>>>>> origin/feat/ohs-login&logout
 
         // 예외 처리 핸들러 등록
         http.exceptionHandling(exception -> exception

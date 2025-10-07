@@ -100,7 +100,7 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
-     * 편의 메서드: Member 엔티티의 ID 가져오기
+     * 편의 메서드: User 엔티티의 ID 가져오기
      * JWT 토큰 생성 시 사용
      */
     public Long getUserId() {
@@ -108,10 +108,15 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
-     * 편의 메서드: Member 엔티티의 닉네임 가져오기
+     * : User 엔티티의 닉네임 가져오기
      */
     public String getNickname() {
         return user.getNickname();
+    }
+
+
+    public String getPublicId() {
+        return user.getPublicId();
     }
 
 }

@@ -58,12 +58,12 @@ public class UserController {
      * 3. 현재 로그인한 사용자 정보 조회
      * (JWT 인증 후 SecurityContext에서 username 추출해서 전달)
      */
-/*    @GetMapping("/me")
+    @GetMapping("/me")
     public ResponseEntity<UserProfileResponseDto> getMyInfo(@RequestParam String username) {
         log.info("내 정보 조회 API 호출: username={}", username);
         UserProfileResponseDto response = userService.getMyInfo(username);
         return ResponseEntity.ok(response);
-    }*/
+    }
 
     /**
      * 4. 회원 정보 수정
