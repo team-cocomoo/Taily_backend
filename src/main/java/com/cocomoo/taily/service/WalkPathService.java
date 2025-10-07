@@ -1,14 +1,12 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.repository.TailyFriendRepository;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
-import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendAddressResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathCreateRequestDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathDetailResponseDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathListResponseDto;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -18,42 +16,70 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-@Transactional(readOnly = true)
+@Transactional(readOnly=true)
 @RequiredArgsConstructor
-public class TailyFriendService {
-    private final TailyFriendRepository tailyFriendRepository;
-    private final UserService userService;
-    private final TableTypeRepository tableTypeRepository;
+@Slf4j
+public class WalkPathService {
+    private final WalkPathRepository walkPathRepository;
     private final UserRepository userRepository;
-    private final LikeRepository likeRepository;
-    private final CommentRepository commentRepository;
+    private final TableTypeRepository tableTypeRepository;
+    private final UserService userService;
     private final ImageRepository imageRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
-    // 게시글 작성
+    //게시물 상세 조회
     @Transactional
-    public TailyFriendDetailResponseDto createTailyFriend(TailyFriendCreateRequestDto requestDto, String username) {
+    public WalkPathDetailResponseDto getWalkPathById(Long postId, String username) {
+        log.info("게시글 상세 조회 : id = {}", postId);
+
+        WalkPath post = walkPathRepository.findByIdWithUser(postId).orElseThrow(() -> {
+            log.error("게시글 조회 실패: id={}", postId);
+            return new IllegalArgumentException("존재하지 않는 게시글입니다.");
+        });
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        TableType tableType = tableTypeRepository.findById(5L) // TailyFriend = 5
+        TableType tableType = tableTypeRepository.findById(5L)
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
-        log.info("게시글 작성: username = {}", username);
+        log.info("게시글 조회 성공: title={}", post.getTitle());
 
-        TailyFriend post = TailyFriend.builder()
+        // 게시글에 연결된 이미지 조회
+        List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                .stream()
+                .map(ImageResponseDto::from)
+                .toList();
+
+        return WalkPathDetailResponseDto.from(post,false,images);
+    }
+
+    //게시물 생성
+    @Transactional
+    public WalkPathDetailResponseDto createWalkPath(WalkPathCreateRequestDto requestDto, String username) {
+        //작성자 조회
+        User author = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+        //tabletype 명시
+        TableType tableType = tableTypeRepository.findById(6L) // WalkPath = 6
+                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
+
+        //Post 생성
+        WalkPath walkPath = WalkPath.builder()
                 .title(requestDto.getTitle())
-                .address(requestDto.getAddress())
                 .content(requestDto.getContent())
-                .user(user)
+                .user(author) // ManyToOne 관계 설정
                 .build();
-        TailyFriend savedPost = tailyFriendRepository.save(post);
+        //db에 저장
+        WalkPath savedWalkPath = walkPathRepository.save(walkPath);
 
         // 이미지 저장
         List<ImageResponseDto> images = new ArrayList<>();
@@ -65,8 +91,8 @@ public class TailyFriendService {
                                 .uuid(uuid)
                                 .filePath(imgDto.getFilePath())
                                 .fileSize(imgDto.getFileSize())
-                                .postsId(savedPost.getId())
-                                .usersId(user)
+                                .postsId(savedWalkPath.getId())
+                                .usersId(author)
                                 .tableTypeId(tableType)
                                 .build();
                     })
@@ -78,26 +104,40 @@ public class TailyFriendService {
             images = imageEntities.stream()
                     .map(ImageResponseDto::from)
                     .toList();
+
+
         }
+        log.info("게시글 작성 완료 id = {}, title = {}", savedWalkPath.getId(), savedWalkPath.getTitle());
 
-        log.info("게시글 작성 완료 id = {}, title = {}", savedPost.getId(), savedPost.getTitle());
+        return WalkPathDetailResponseDto.from(savedWalkPath,false,images);
+    }
 
+    //전체 게시물 목록으로 조회
+    public List<WalkPathListResponseDto> findAllPostList(int page, int size) {
 
-        return TailyFriendDetailResponseDto.from(savedPost, false, images);
+        Page<WalkPath> posts = walkPathRepository.findAllWithUser(PageRequest.of(page, size));
+
+        return posts.stream()
+                .map(post -> {
+                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                            .stream()
+                            .map(ImageResponseDto::from)
+                            .toList();
+                    return WalkPathListResponseDto.from(post, images);
+                })
+                .collect(Collectors.toList());
     }
 
     // 게시글 수정
     @Transactional
-    public TailyFriendDetailResponseDto updateTailyFriend(Long postId, String username, TailyFriendCreateRequestDto dto) {
-        TailyFriend post = tailyFriendRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
-
+    public WalkPathDetailResponseDto updateWalkPath(Long postId, String username, WalkPathCreateRequestDto dto){
+        WalkPath post = walkPathRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
         if (!post.getUser().getUsername().equals(username)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        post.updatePost(dto.getTitle(), dto.getAddress(), dto.getContent());
+        post.updatePost(dto.getTitle(), dto.getContent());
 
         // 이미지 수정
         List<ImageResponseDto> images = new ArrayList<>();
@@ -132,14 +172,13 @@ public class TailyFriendService {
                     .map(ImageResponseDto::from)
                     .toList();
         }
-
-        return TailyFriendDetailResponseDto.from(post, false, images);
+        return WalkPathDetailResponseDto.from(post,false,images);
     }
 
     // 게시글 삭제
     @Transactional
-    public void deleteTailyFriend(Long postId, String username) {
-        TailyFriend post = tailyFriendRepository.findById(postId)
+    public void deleteWalkPath(Long postId, String username) {
+        WalkPath post = walkPathRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
         // 작성자 검증
@@ -147,66 +186,15 @@ public class TailyFriendService {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
 
-        tailyFriendRepository.delete(post);
+        walkPathRepository.delete(post);
     }
 
-    // 테일리 프렌즈 상세 조회
-    @Transactional
-    public TailyFriendDetailResponseDto getTailyFriendById(Long postId, String username) {
-        log.info("게시글 상세 조회 : id = {}", postId);
-
-        TailyFriend post = tailyFriendRepository.findByIdWithUser(postId).orElseThrow(() -> {
-            log.error("게시글 조회 실패: id={}", postId);
-            return new IllegalArgumentException("존재하지 않는 게시글입니다.");
-        });
-
-        // 조회수 증가
-        post.increaseView();
-
-        // 현재 사용자의 좋아요 상태 확인
+    //좋아요 상태 변화
+    public void toggleLike(Long id, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        TableType tableType = tableTypeRepository.findById(5L)
-                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
-
-        boolean liked = likeRepository.existsByPostsIdAndTableTypesIdAndUsersIdAndState(
-                post.getId(), tableType, user, true
-        );
-
-        // 게시글에 연결된 이미지 조회
-        List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
-                .stream()
-                .map(ImageResponseDto::from)
-                .toList();
-
-        log.info("게시글 조회 성공: title={}", post.getTitle());
-
-        return TailyFriendDetailResponseDto.from(post, liked, images);
-    }
-
-    // 테일리 프렌즈 전체 조회
-    public List<TailyFriendListResponseDto> getTailyFriendsPage(int page, int size) {
-        Page<TailyFriend> posts = tailyFriendRepository.findAllWithUser(PageRequest.of(page, size));
-
-        return posts.stream()
-                .map(post -> {
-                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
-                            .stream()
-                            .map(ImageResponseDto::from)
-                            .toList();
-                    return TailyFriendListResponseDto.from(post, images);
-                })
-                .collect(Collectors.toList());
-    }
-
-    // 좋아요 상태 변화
-    @Transactional
-    public void toggleLike(Long postId, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
-
-        TailyFriend post = tailyFriendRepository.findById(postId)
+        WalkPath post = walkPathRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
         TableType tableType = tableTypeRepository.findById(5L)
@@ -233,17 +221,16 @@ public class TailyFriendService {
             post.decreaseLike();
         }
     }
-
-    // 댓글 작성
+    //댓글 작성
     @Transactional
-    public CommentResponseDto createComment(Long postId, String username, CommentCreateRequestDto dto) {
+    public CommentResponseDto createComment(Long id, String username, CommentCreateRequestDto dto) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        TailyFriend post = tailyFriendRepository.findById(postId)
+        WalkPath post = walkPathRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
-        TableType tableType = tableTypeRepository.findById(5L) // TailyFriend = 5
+        TableType tableType = tableTypeRepository.findById(6L) // WalkPath= 6
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
         Comment parent = null;
@@ -264,8 +251,7 @@ public class TailyFriendService {
 
         return CommentResponseDto.from(savedComment);
     }
-
-    // 댓글 조회
+    //댓글 조회
     public List<CommentResponseDto> getCommentsPage(Long postId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size); // page: 0부터 시작
         Page<Comment> parentComments = commentRepository.findByPostsIdAndParentCommentsIdIsNull(postId, pageable);
@@ -276,9 +262,7 @@ public class TailyFriendService {
                 .map(root -> CommentResponseDto.fromWithReplies(root, allComments))
                 .collect(Collectors.toList());
     }
-
     // 댓글 수정
-    @Transactional
     public CommentResponseDto updateComment(Long commentId, String username, String newContent) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
@@ -292,9 +276,7 @@ public class TailyFriendService {
 
         return CommentResponseDto.from(comment);
     }
-
     // 댓글 삭제
-    @Transactional
     public void deleteComment(Long commentId, String username) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
@@ -308,24 +290,16 @@ public class TailyFriendService {
     }
 
     // 검색 기능
-    public List<TailyFriendListResponseDto> searchTailyFriendsPage(String keyword, int page, int size) {
-        Page<TailyFriend> posts = tailyFriendRepository.searchByKeyword(keyword, PageRequest.of(page, size));
+    public List<WalkPathListResponseDto> searchWalkPathsPage(String keyword, int page, int size) {
+        Page<WalkPath> posts = walkPathRepository.searchByKeyword(keyword, PageRequest.of(page, size));
         return posts.stream()
                 .map(post -> {
                     List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();
-                    return TailyFriendListResponseDto.from(post, images);
+                    return WalkPathListResponseDto.from(post, images);
                 })
-                .collect(Collectors.toList());
-    }
-
-    // 주소만 검색
-    public List<TailyFriendAddressResponseDto> getAllAddresses() {
-        List<String> addresses = tailyFriendRepository.findAllAddresses();
-        return addresses.stream()
-                .map(TailyFriendAddressResponseDto::from)
                 .collect(Collectors.toList());
     }
 }
