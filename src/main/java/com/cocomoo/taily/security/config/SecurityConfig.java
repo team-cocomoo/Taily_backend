@@ -81,25 +81,44 @@ public class SecurityConfig {
 
         ///////////////////////인증 인가에 대한 설정(개발자가 주로 확인)//////////////////////
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/login").permitAll()
-                //로그인 허용
-                .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
-                // POST 방식의 회원 가입은 인증없이 허용
-                .requestMatchers("/admin").hasRole("ADMIN")
-                // 관리자 모드는 인증과 ROLE_ADMIN 권한이 필요
-                // ROLE_ 은 자동 삽입
-                .requestMatchers("/admin/login").permitAll()
-                // 관리자 로그인 페이지 인증 없이 접근 허용
-                .requestMatchers(HttpMethod.GET,"/api/posts").permitAll()
-                // GET 방식, 전체 게시글 조회는 인증 없이 접근을 모두 허용
-                .requestMatchers("/api/products", "/api/products/**").permitAll()
-                // 참고 /api/products, /api/products/** 경로에 대한 접근을 모두 허용합니다
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
-                // swagger용 접근 경로 허용
-                .requestMatchers("/api-docs/**").permitAll()
-                .requestMatchers("/api/mypage/**").permitAll()
-                .anyRequest().authenticated());
-                // 나머지 모든 요청은 인증 필요
+                        // 비회원 가능 (permitAll)
+                        .requestMatchers(
+                                "/api/users/login",
+                                "/api/users/register",
+                                "/api/auth/**",
+                                "/api/facilities/**",         // 동물 관련 시설 조회
+                                "/api/events/public/**",      // 이벤트 조회용 (목록/배너)
+                                "/api/notices/public/**",     // 공지사항 목록
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/api-docs/**"
+                        ).permitAll()
+
+                        // 회원만 접근 가능 (ROLE_USER)
+                        .requestMatchers(
+                                "/api/mypage/**",             // 마이페이지
+                                "/api/walk-diaries/**",              // 신책 일일 일지
+                                "/api/taily-friends/**",      // 테일리 프렌드
+                                "/api/feeds/**",              // 피드, 좋아요
+                                "/api/follows/**",            // 팔로우/팔로잉
+                                "/api/chats/**",              // 채팅
+                                "/api/events/**",             // 이벤트 참여
+                                "/api/notices/**",            // 공지사항 상세
+                                "/api/qna/**"                 // 1:1 문의
+                        ).hasRole("USER")
+
+                        // 관리자만 접근 가능 (ROLE_ADMIN)
+                        .requestMatchers(
+                                "/api/admin/**",              // 관리자 기능 전체
+                                "/api/manage/**"              // (회원관리, 신고처리, 공지, 이벤트)
+                        ).hasRole("ADMIN")
+
+                        // 나머지 모든 요청은 인증 필요
+                        .anyRequest().authenticated()
+        );
+
 
         // 예외 처리 핸들러 등록
         http.exceptionHandling(exception -> exception
