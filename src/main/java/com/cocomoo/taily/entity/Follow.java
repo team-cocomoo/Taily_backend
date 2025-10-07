@@ -39,7 +39,13 @@ public class Follow {
     @JoinColumn(name = "follower_id", nullable = false)
     private User follower;
 
+    public void deactivate() {
+        this.state = FollowState.INACTIVE;
+    }
 
+    public void activate() {
+        this.state = FollowState.ACTIVE;
+    }
 
 }
 
