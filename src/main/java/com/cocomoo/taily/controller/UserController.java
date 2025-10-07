@@ -91,7 +91,7 @@ public class UserController {
      * 5. 로그인 (Swagger 테스트용)
      * URL: /login
      */
-    @PostMapping(path = "/login")
+    @PostMapping(path = "/login-st")
     public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
             @RequestBody UserLoginRequestDto requestDto) {
 
