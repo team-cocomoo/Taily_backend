@@ -5,6 +5,7 @@ import com.cocomoo.taily.dto.User.UserCreateRequestDto;
 import com.cocomoo.taily.dto.User.UserLoginRequestDto;
 import com.cocomoo.taily.dto.User.UserLoginResponseDto;
 import com.cocomoo.taily.dto.User.UserResponseDto;
+import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.UserState;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +48,9 @@ public class UserController {
      * 2. username으로 회원 조회
      */
     @GetMapping("/{username}")
-    public ResponseEntity<UserResponseDto> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserProfileResponseDto> getUserByUsername(@PathVariable String username) {
         log.info("회원 조회 API 호출: username={}", username);
-        UserResponseDto response = userService.findByUsername(username);
+        UserProfileResponseDto response = userService.findByUsername(username);
         return ResponseEntity.ok(response);
     }
 
@@ -57,12 +58,12 @@ public class UserController {
      * 3. 현재 로그인한 사용자 정보 조회
      * (JWT 인증 후 SecurityContext에서 username 추출해서 전달)
      */
-    @GetMapping("/me")
-    public ResponseEntity<UserResponseDto> getMyInfo(@RequestParam String username) {
+/*    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponseDto> getMyInfo(@RequestParam String username) {
         log.info("내 정보 조회 API 호출: username={}", username);
-        UserResponseDto response = userService.getMyInfo(username);
+        UserProfileResponseDto response = userService.getMyInfo(username);
         return ResponseEntity.ok(response);
-    }
+    }*/
 
     /**
      * 4. 회원 정보 수정
@@ -109,8 +110,9 @@ public class UserController {
 
     /**
      * 5. 로그인 (Swagger 테스트용)
-     * URL: /api/auth/login
+     * URL: /login
      */
+<<<<<<< HEAD
 //    @PostMapping(path = "/api/auth/login")
 //    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
 //            @RequestBody UserLoginRequestDto requestDto) {
@@ -126,3 +128,20 @@ public class UserController {
 //    }
 //}
 
+=======
+    @PostMapping(path = "/login-st")
+    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
+            @RequestBody UserLoginRequestDto requestDto) {
+
+        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
+
+        // UserService에서 로그인 처리 및 JWT 발급
+        UserLoginResponseDto loginResponse = userService.login(requestDto);
+
+        log.info("로그인 성공: username={}", loginResponse.getUsername());
+
+        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
+    }
+
+}
+>>>>>>> origin/feat/ohs-login&logout
