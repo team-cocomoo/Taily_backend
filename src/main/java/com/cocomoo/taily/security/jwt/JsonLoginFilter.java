@@ -145,9 +145,11 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         // 응답 데이터 생성
         Map<String, Object> responseData = Map.of(
                 "id", user.getId(),
+                "publicId", user.getPublicId(),
                 "username", user.getUsername(),
                 "nickname", user.getNickname(),
-                "role", role
+                "role", role,
+                "state", user.getState()
         );
 
 // ApiResponseDto.success()를 사용하여 표준 응답 생성

@@ -37,6 +37,7 @@ public class JwtUtil {
                 .claim("username", user.getUsername())
                 .claim("nickname", user.getNickname())
                 .claim("role", user.getRole().name())
+                .claim("state", user.getState())  // 추가
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
