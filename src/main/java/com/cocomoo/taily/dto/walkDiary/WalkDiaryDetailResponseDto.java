@@ -1,13 +1,17 @@
 package com.cocomoo.taily.dto.walkDiary;
 
+import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.WalkDiary;
+import com.cocomoo.taily.entity.WalkDiaryEmotion;
 import com.cocomoo.taily.entity.WalkDiaryWeather;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  * 산책 일지 상세 응답 DTO
@@ -19,11 +23,12 @@ import java.time.LocalTime;
 @Builder
 public class WalkDiaryDetailResponseDto {
     private Long walkDairyId;
-    private LocalDateTime date;
+    private LocalDate date;
     private WalkDiaryWeather walkDiaryWeather;
-    private String content;
     private LocalTime beginTime;
     private LocalTime endTime;
+    private WalkDiaryEmotion walkDiaryEmotion;
+    private String content;
     private Long userId;
     private String username;
 <<<<<<< HEAD
@@ -31,6 +36,7 @@ public class WalkDiaryDetailResponseDto {
     private String userNickname;
 >>>>>>> develop
     private LocalDateTime createdAt;
+    private List<ImageResponseDto> images;
 
     /**
      * Entity -> Dto 변환 메서드
@@ -40,16 +46,18 @@ public class WalkDiaryDetailResponseDto {
      * @param walkDiary 변환할 WalkDiary 엔티티
      * @return WalkDairyDetailResponseDto
      */
-    public static WalkDiaryDetailResponseDto from(WalkDiary walkDiary) {
+    public static WalkDiaryDetailResponseDto from(WalkDiary walkDiary, List<ImageResponseDto> images) {
         User user = walkDiary.getUser();
 
         return WalkDiaryDetailResponseDto.builder()
                 .walkDairyId(walkDiary.getId())
                 .date(walkDiary.getDate())
                 .walkDiaryWeather(walkDiary.getWalkDiaryWeather())
-                .content(walkDiary.getContent())
                 .beginTime(walkDiary.getBeginTime())
                 .endTime(walkDiary.getEndTime())
+                .walkDiaryEmotion(walkDiary.getWalkDiaryEmotion())
+                .content(walkDiary.getContent())
+                .images(images)
                 .userId(user.getId())
                 .username(user.getUsername())
 <<<<<<< HEAD

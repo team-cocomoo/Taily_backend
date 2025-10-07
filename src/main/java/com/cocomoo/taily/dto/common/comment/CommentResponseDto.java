@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -30,6 +31,21 @@ public class CommentResponseDto {
                 .username(comment.getUsersId().getUsername())
                 .createdAt(comment.getCreatedAt())
                 .replies(new ArrayList<>())
+                .build();
+    }
+
+    public static CommentResponseDto fromWithReplies(Comment comment, List<Comment> allComments) {
+        List<CommentResponseDto> childReplies = allComments.stream()
+                .filter(c -> c.getParentCommentsId() != null && c.getParentCommentsId().getId().equals(comment.getId()))
+                .map(c -> fromWithReplies(c, allComments)) // 재귀 호출
+                .collect(Collectors.toList());
+
+        return CommentResponseDto.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .username(comment.getUsersId().getUsername())
+                .createdAt(comment.getCreatedAt())
+                .replies(childReplies)
                 .build();
     }
 }

@@ -51,4 +51,11 @@ public class Comment {
     @JoinColumn(name = "parent_comments_id", nullable = true,foreignKey = @ForeignKey(name = "fk_comments_parent_comments_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Comment parentCommentsId;
+
+    public void updateContent(String newContent) {
+        if (newContent == null || newContent.isBlank()) {
+            throw new IllegalArgumentException("댓글 내용은 비어 있을 수 없습니다.");
+        }
+        this.content = newContent;
+    }
 }

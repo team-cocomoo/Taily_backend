@@ -37,11 +37,11 @@ public class Image {
     @Column(name = "updated_at", updatable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "post_id", nullable = false)
+    @Column(name = "posts_id", nullable = false)
     private Long postsId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "users_id", nullable = false)
     private User usersId;
 
     @ManyToOne(fetch = FetchType.LAZY)
