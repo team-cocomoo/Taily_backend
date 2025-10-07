@@ -36,11 +36,8 @@ public class TailyFriend {
     private Long view = 0L;
 
     @Builder.Default
-<<<<<<< HEAD
-    @Column(name = "like", nullable = false)
-=======
     @Column(name = "like_count", nullable = false)
->>>>>>> develop
+
     private Long likeCount = 0L;
 
     @CreationTimestamp
