@@ -32,4 +32,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return true: 이미 존재, false: 사용 가능
      */
     boolean existsByUsername(String username);
+
+    // publicId로 회원 모든 정보 조회
+    Optional<User> findByPublicId(String publicId);
 }

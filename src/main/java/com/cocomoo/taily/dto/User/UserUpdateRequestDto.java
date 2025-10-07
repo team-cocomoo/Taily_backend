@@ -20,4 +20,6 @@ public class UserUpdateRequestDto {
     private String email;
     private String address;
     private String introduction;
+    private String state;
+    // 데이터 타입 맞춰야 한다.
 }

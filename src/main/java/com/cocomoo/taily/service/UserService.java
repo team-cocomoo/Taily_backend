@@ -91,6 +91,11 @@ public class UserService {
     }
 
     /**
+     *
+     */
+
+
+    /**
      * 4. 현재 로그인한 회원 정보 조회
      */
     public UserProfileResponseDto getMyInfo(String username) {
@@ -188,6 +193,33 @@ public class UserService {
                 user.getRole().name(),
                 token
         );
+    }
+
+    @Transactional
+    public UserProfileResponseDto updateMyProfileByPublicId(String publicId, UserUpdateRequestDto requestDto) {
+        log.info("회원 정보 수정: publicId={}", publicId);
+
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        String encodedPassword = null;
+        if (requestDto.getPassword() != null && !requestDto.getPassword().isBlank()) {
+            encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        }
+
+        user.updateInfo(
+                requestDto.getUsername(),
+                requestDto.getNickname(),
+                encodedPassword,
+                requestDto.getTel(),
+                requestDto.getEmail(),
+                requestDto.getAddress(),
+                requestDto.getIntroduction(),
+                UserState.valueOf(requestDto.getState())
+        );
+
+        log.info("회원 정보 수정 완료: publicId={}", publicId);
+        return UserProfileResponseDto.from(user);
     }
 
 //    public UserProfileResponseDto updateMyProfile(String username, UserUpdateRequestDto requestDto) {
