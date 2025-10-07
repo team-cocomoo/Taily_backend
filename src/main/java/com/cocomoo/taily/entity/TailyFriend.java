@@ -37,6 +37,7 @@ public class TailyFriend {
 
     @Builder.Default
     @Column(name = "like_count", nullable = false)
+
     private Long likeCount = 0L;
 
     @CreationTimestamp

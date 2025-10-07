@@ -31,7 +31,10 @@ public class WalkDiaryDetailResponseDto {
     private String content;
     private Long userId;
     private String username;
+<<<<<<< HEAD
+=======
     private String userNickname;
+>>>>>>> develop
     private LocalDateTime createdAt;
     private List<ImageResponseDto> images;
 
@@ -57,7 +60,10 @@ public class WalkDiaryDetailResponseDto {
                 .images(images)
                 .userId(user.getId())
                 .username(user.getUsername())
+<<<<<<< HEAD
+=======
                 .userNickname(user.getNickname())
+>>>>>>> develop
                 .createdAt(walkDiary.getCreatedAt())
                 .build();
     }
