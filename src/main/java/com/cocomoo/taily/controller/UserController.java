@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -59,7 +60,10 @@ public class UserController {
      * (JWT 인증 후 SecurityContext에서 username 추출해서 전달)
      */
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponseDto> getMyInfo(@RequestParam String username) {
+    public ResponseEntity<UserProfileResponseDto> getMyInfo(Authentication authentication) {
+        // Spring Security가 JWT에서 추출한 username
+        String username = authentication.getName();
+
         log.info("내 정보 조회 API 호출: username={}", username);
         UserProfileResponseDto response = userService.getMyInfo(username);
         return ResponseEntity.ok(response);
