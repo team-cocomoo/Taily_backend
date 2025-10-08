@@ -21,8 +21,8 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
 
     @Query("SELECT w FROM WalkPath w WHERE " +
             "LOWER(w.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(w.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "ORDER BY t.createdAt DESC")
+            "LOWER(w.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "ORDER BY w.createdAt DESC")
     Page<WalkPath> searchByKeyword(String keyword, PageRequest of);
 
     @Query("SELECT w FROM WalkPath w ORDER BY w.createdAt DESC")
