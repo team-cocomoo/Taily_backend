@@ -82,4 +82,14 @@ public class MyPageService {
 
         return MyPetProfileResponseDto.from(pet);
     }
+
+    @Transactional
+    public void deleteMyPetProfile(Long id, String username) {
+        Pet pet = myPetRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("내 반려동물 프로필이 존재하지 않습니다."));
+
+        if (!pet.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("본인 반려동물 프로필만 삭제할 수 있습니다.");
+        }
+        myPetRepository.delete(pet);
+    }
 }

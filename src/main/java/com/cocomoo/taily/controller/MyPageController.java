@@ -74,7 +74,7 @@ public class MyPageController {
     /**
      * 내 반려동물 프로필 작성
      */
-    @PostMapping
+    @PostMapping("/mypet")
     public ResponseEntity<?> createMyPetProfile (@RequestBody MyPetProfileCreateRequestDto myPetProfileCreateRequestDto) {
         log.info("내 반려동물 프로필 작성 시작!");
 
@@ -93,7 +93,7 @@ public class MyPageController {
     /**
      * 내 반려동물 리스트 조회
      */
-    @GetMapping
+    @GetMapping("/mypet")
     public ResponseEntity<?> getAllMyPetProfile() {
         log.info("내 반려동물 리스트 조회");
 
@@ -107,7 +107,10 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponseDto.success(myPetProfiles, "나의 반려동물 프로필 리스트 조회 성공"));
     }
 
-    @PostMapping("/mypet/{id}")
+    /**
+     * 내 반려동물 프로필 수정
+     */
+    @PutMapping("/mypet/{id}")
     public ResponseEntity<?> updateMyPetProfile(@PathVariable Long id, @RequestBody MyPetProfileUpdateRequestDto myPetProfileUpdateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -117,4 +120,18 @@ public class MyPageController {
 
         return ResponseEntity.ok(ApiResponseDto.success(updatedMyPetProfile, "내 반려동물 프로필 수정 성공"));
     }
+
+    /**
+     * 내 반려동물 프로필 삭제
+     */
+    @DeleteMapping("/mypet/{id}")
+    public ResponseEntity<?> deleteMyPetProfile(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        myPageService.deleteMyPetProfile(id, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(null, "내 반려동물 프로필 삭제 성공"));
+    }
+
 }
