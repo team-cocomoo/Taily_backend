@@ -4,6 +4,7 @@ import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
 import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
 import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
+import com.cocomoo.taily.dto.myPage.MyPetProfileUpdateRequestDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.user.CustomUserDetails;
@@ -89,6 +90,9 @@ public class MyPageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(mypetProfileResponseDto, "내 반려동물 프로필이 등록되었습니다."));
     }
 
+    /**
+     * 내 반려동물 리스트 조회
+     */
     @GetMapping
     public ResponseEntity<?> getAllMyPetProfile() {
         log.info("내 반려동물 리스트 조회");
@@ -103,4 +107,14 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponseDto.success(myPetProfiles, "나의 반려동물 프로필 리스트 조회 성공"));
     }
 
+    @PostMapping("/mypet/{id}")
+    public ResponseEntity<?> updateMyPetProfile(@PathVariable Long id, @RequestBody MyPetProfileUpdateRequestDto myPetProfileUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        MyPetProfileResponseDto updatedMyPetProfile = myPageService.updateMyPetProfile(id, myPetProfileUpdateRequestDto, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(updatedMyPetProfile, "내 반려동물 프로필 수정 성공"));
+    }
 }

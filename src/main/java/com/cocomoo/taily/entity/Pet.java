@@ -75,6 +75,40 @@ public class Pet {
     public void assignUser(User user) {
         this.user = user;
     }
+
+    /**
+     * 반려 동물 프로필 수정
+     * - 이름, 성별, 취향, 소개만 수정 가능
+     * - pet의 연락처는 주인 번호로 수정
+     * - 작성자와 선택된 일자는 변경 불가
+     * - 입력값 검증 포함
+     */
+    public void updateMyPetProfile(String name, PetGender gender, String preference, String introduction) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name.trim();
+        }
+
+        if (gender != null) {
+            this.gender = gender;
+        }
+
+        if (preference != null && !preference.trim().isEmpty()) {
+            this.preference = preference.trim();
+        }
+
+        if (introduction != null && !introduction.trim().isEmpty()) {
+            this.introduction = introduction.trim();
+        }
+    }
+
+    /**
+     * 작성자 확인
+     * - 수정/삭제 권한 체크
+     * - Service 레이어에서 활용
+     */
+    public boolean isUser(User user) {
+        return this.user != null && this.user.getId().equals(user.getId());
+    }
 }
 
 

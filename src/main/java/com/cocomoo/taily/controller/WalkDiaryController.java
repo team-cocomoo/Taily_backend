@@ -75,6 +75,7 @@ public class WalkDiaryController {
         return ResponseEntity.ok(ApiResponseDto.success(walkDiary, "산책 일지 상세 조회 성공"));
     }
 
+    // 추후 date로 변경
     @PutMapping("/{id}")
     public ResponseEntity<?> updateWalkDiary(@PathVariable Long id, @RequestBody WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -87,6 +88,7 @@ public class WalkDiaryController {
         return ResponseEntity.ok(ApiResponseDto.success(updatedWalkDiary, "산책 일지 수정 성공"));
     }
 
+    // 추후 date로 변경
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteWalkDiary(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

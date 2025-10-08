@@ -2,6 +2,7 @@ package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
 import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
+import com.cocomoo.taily.dto.myPage.MyPetProfileUpdateRequestDto;
 import com.cocomoo.taily.entity.Pet;
 import com.cocomoo.taily.entity.TableType;
 import com.cocomoo.taily.entity.User;
@@ -52,7 +53,7 @@ public class MyPageService {
 
         return MyPetProfileResponseDto.from(savedMyPetProfile);
     }
-
+    @Transactional
     public List<MyPetProfileResponseDto> getMyPetProfiles(String username) {
         log.info("=== 내 반려동물 프로필 리스트 조회 시작 ===");
 
@@ -61,5 +62,24 @@ public class MyPageService {
         log.info("조회된 산책 내 반려동물 프로필 리스트 수 : {}", myPetProfiles.size());
 
         return myPetProfiles.stream().map(MyPetProfileResponseDto::from).collect(Collectors.toList());
+    }
+    @Transactional
+    public MyPetProfileResponseDto updateMyPetProfile(Long id, MyPetProfileUpdateRequestDto myPetProfileUpdateRequestDto, String username) {
+        Pet pet = myPetRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("작성된 내 반려동물 프로필이 존재하지 않습니다."));
+
+        if (!pet.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("본인 반려동물 프로필만 수정할 수 있습니다.");
+        }
+
+        pet.updateMyPetProfile(
+                myPetProfileUpdateRequestDto.getName(),
+                myPetProfileUpdateRequestDto.getGender(),
+                myPetProfileUpdateRequestDto.getPreference(),
+                myPetProfileUpdateRequestDto.getIntroduction()
+        );
+
+        // 이미지 수정
+
+        return MyPetProfileResponseDto.from(pet);
     }
 }
