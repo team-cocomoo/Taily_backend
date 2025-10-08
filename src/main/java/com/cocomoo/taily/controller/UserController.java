@@ -95,19 +95,19 @@ public class UserController {
     /** 로그인 메서드
      *
      */
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(@RequestBody UserLoginRequestDto requestDto) {
-        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
-
-        // 기존 서비스 login 메서드 사용
-        UserLoginResponseDto responseDto = userService.login(
-                new UserLoginRequestDto(requestDto.getUsername(), requestDto.getPassword())
-        );
-
-        log.info("로그인 성공: username={}", responseDto.getUsername());
-
-        return ResponseEntity.ok(ApiResponseDto.success(responseDto, "로그인 성공"));
-    }
+//    @PostMapping("/login")
+//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(@RequestBody UserLoginRequestDto requestDto) {
+//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
+//
+//        // 기존 서비스 login 메서드 사용
+//        UserLoginResponseDto responseDto = userService.login(
+//                new UserLoginRequestDto(requestDto.getUsername(), requestDto.getPassword())
+//        );
+//
+//        log.info("로그인 성공: username={}", responseDto.getUsername());
+//
+//        return ResponseEntity.ok(ApiResponseDto.success(responseDto, "로그인 성공"));
+//    }
 
 //    @PostMapping(path = "/login-st")
 //    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
