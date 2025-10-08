@@ -44,15 +44,9 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         // 로그인 엔드포인트 설정
-<<<<<<< HEAD
 
         setFilterProcessesUrl("/api/auth/login");
 
-        setFilterProcessesUrl("/api/users/login");
-
-=======
-        setFilterProcessesUrl("/api/users/login");
->>>>>>> develop
         // 이 경로일 때 필터가 처리
     }
 
@@ -121,15 +115,8 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         log.info("=== 로그인 성공: {} ===", authentication.getName());
 
         // 1. 인증된 사용자 정보 추출
-<<<<<<< HEAD
-
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
-
-=======
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        User user = userDetails.getUser();
->>>>>>> develop
 
         // 2. 사용자 권한 추출
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -143,7 +130,6 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         // 하루로 유효 기간을 준다
         long expiredMs = 1000L * 60 * 60 * 24; // 하루
         String token = jwtUtil.createJwt(user, expiredMs);
-<<<<<<< HEAD
 
         // 4. 응답 헤더에 토큰 추가
         // Bearer 스키마 사용 (JWT 표준)
@@ -155,8 +141,7 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_OK);
 
-=======
->>>>>>> develop
+
         String bearerToken = "Bearer " + token;
 
         // 4. 응답 헤더에 토큰 추가
@@ -170,10 +155,6 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         // 4-4. CORS 환경을 위해 Authorization 헤더 노출
         // 이 헤더가 없으면 클라이언트(브라우저)에서 Authorization 헤더 값을 읽을 수 없습니다.
         response.addHeader("Access-Control-Expose-Headers", "Authorization");
-<<<<<<< HEAD
-
-=======
->>>>>>> develop
 
         // 5. 응답 바디에 사용자 정보 추가 (JSON)
         // 응답 데이터 생성
