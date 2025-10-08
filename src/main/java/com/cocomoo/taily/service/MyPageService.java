@@ -1,7 +1,7 @@
 package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
-import com.cocomoo.taily.dto.myPage.MypetProfileResponseDto;
+import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
 import com.cocomoo.taily.entity.Pet;
 import com.cocomoo.taily.entity.TableType;
 import com.cocomoo.taily.entity.User;
@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -23,7 +26,7 @@ public class MyPageService {
     private final TableTypeRepository tableTypeRepository;
 
     @Transactional
-    public MypetProfileResponseDto createMyPetProfile(MyPetProfileCreateRequestDto myPetProfileCreateRequestDto, String username) {
+    public MyPetProfileResponseDto createMyPetProfile(MyPetProfileCreateRequestDto myPetProfileCreateRequestDto, String username) {
         log.info("=== 내 반려동물 프로필 작성 시작 : 주인={} ===", username);
 
         // 작성자 조회
@@ -47,6 +50,16 @@ public class MyPageService {
 
         log.info("내 반려동물 프로필 작성 완료: id={}, title={}", savedMyPetProfile.getId(), savedMyPetProfile.getName());
 
-        return MypetProfileResponseDto.from(savedMyPetProfile);
+        return MyPetProfileResponseDto.from(savedMyPetProfile);
+    }
+
+    public List<MyPetProfileResponseDto> getMyPetProfiles(String username) {
+        log.info("=== 내 반려동물 프로필 리스트 조회 시작 ===");
+
+        List<Pet> myPetProfiles = myPetRepository.findMyPetProfilesByPetOwner(username);
+
+        log.info("조회된 산책 내 반려동물 프로필 리스트 수 : {}", myPetProfiles.size());
+
+        return myPetProfiles.stream().map(MyPetProfileResponseDto::from).collect(Collectors.toList());
     }
 }

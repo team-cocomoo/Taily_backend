@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Builder
-public class MypetProfileResponseDto {
+public class MyPetProfileResponseDto {
     private Long petId;
     private String name;
     private PetGender gender;
@@ -30,10 +30,10 @@ public class MypetProfileResponseDto {
     //    private ImageResponseDto image;
 
     //public static MypetProfileResponseDto from (Pet pet, ImageResponseDto image) {
-    public static MypetProfileResponseDto from (Pet pet) {
+    public static MyPetProfileResponseDto from (Pet pet) {
         User user = pet.getUser();
 
-        return MypetProfileResponseDto.builder()
+        return MyPetProfileResponseDto.builder()
                 .petId(pet.getId())
                 .name(pet.getName())
                 .gender(pet.getGender())

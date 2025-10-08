@@ -3,7 +3,7 @@ package com.cocomoo.taily.controller;
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
 import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
-import com.cocomoo.taily.dto.myPage.MypetProfileResponseDto;
+import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.user.CustomUserDetails;
@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -68,6 +70,9 @@ public class MyPageController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 내 반려동물 프로필 작성
+     */
     @PostMapping
     public ResponseEntity<?> createMyPetProfile (@RequestBody MyPetProfileCreateRequestDto myPetProfileCreateRequestDto) {
         log.info("내 반려동물 프로필 작성 시작!");
@@ -77,11 +82,25 @@ public class MyPageController {
         String username = authentication.getName();
         log.info("내 반려동물 프로필 작성, 주인: username={}",username);
 
-        MypetProfileResponseDto mypetProfileResponseDto = myPageService.createMyPetProfile(myPetProfileCreateRequestDto, username);
+        MyPetProfileResponseDto mypetProfileResponseDto = myPageService.createMyPetProfile(myPetProfileCreateRequestDto, username);
 
         log.info("내 반려동물 프로필 {}", mypetProfileResponseDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(mypetProfileResponseDto, "내 반려동물 프로필이 등록되었습니다."));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllMyPetProfile() {
+        log.info("내 반려동물 리스트 조회");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        List<MyPetProfileResponseDto> myPetProfiles = myPageService.getMyPetProfiles(username);
+        log.info("산책 일지 리스트 조회 완료 {} 건", myPetProfiles.size());
+
+        return ResponseEntity.ok(ApiResponseDto.success(myPetProfiles, "나의 반려동물 프로필 리스트 조회 성공"));
     }
 
 }
