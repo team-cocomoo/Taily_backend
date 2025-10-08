@@ -126,10 +126,10 @@ public class UserController {
 }
 
 
-    /**
-     * 5. 로그인 (Swagger 테스트용)
-     * URL: /login
-     */
+/**
+ * 5. 로그인 (Swagger 테스트용)
+ * URL: /login
+ */
 //    @PostMapping(path = "/api/auth/login")
 //    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
 //            @RequestBody UserLoginRequestDto requestDto) {
@@ -144,4 +144,3 @@ public class UserController {
 //        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
 //    }
 //}
-

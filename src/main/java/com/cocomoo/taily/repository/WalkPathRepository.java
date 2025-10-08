@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +24,11 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
             "LOWER(w.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(w.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "ORDER BY w.createdAt DESC")
+<<<<<<< HEAD
+    Page<WalkPath> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+=======
     Page<WalkPath> searchByKeyword(String keyword, PageRequest of);
+>>>>>>> develop
 
     @Query("SELECT w FROM WalkPath w ORDER BY w.createdAt DESC")
     Page<WalkPath> findAllWithUser(Pageable pageable);

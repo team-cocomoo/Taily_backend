@@ -133,13 +133,16 @@ public class WalkDiaryService {
      * @return
      */
     @Transactional
-    public WalkDiaryDetailResponseDto getWalkDiaryById(Long walkDiaryId, String username) {
-        log.info("산책 일지 상세 조회 : id = {}", walkDiaryId);
+    public WalkDiaryDetailResponseDto getWalkDiaryById(LocalDate date, String username) {
+        log.info("산책 일지 상세 조회 : username = {}, date = {}", username, date);
 
-        WalkDiary walkDiary = walkDairyRepository.findByIdWithUser(walkDiaryId).orElseThrow(() -> {
-            log.info("산책 일지 상세 조회 실패: id={}", walkDiaryId);
-            return new IllegalArgumentException("존재하지 않는 산책 일지 입니다.");
+        // 작성자 조회
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 입니다."));
 
+        // 작성자 + 날짜로 산책 일지 찾기
+        WalkDiary walkDiary = walkDairyRepository.findByUserAndDate(user, date).orElseThrow(() -> {
+            log.warn("산책 일지 조회 실패 : username={}, date={}", username, date);
+            return new IllegalArgumentException("존재하지 않는 산책 일지입니다.");
         });
 
         // 이미지 조회
