@@ -1,18 +1,25 @@
 package com.cocomoo.taily.controller;
 
+import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
+import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
+import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
+import com.cocomoo.taily.dto.myPage.MyPetProfileUpdateRequestDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.user.CustomUserDetails;
+import com.cocomoo.taily.service.MyPageService;
 import com.cocomoo.taily.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -20,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MyPageController {
     private final UserService userService;
+    private final MyPageService myPageService;
 
     /**
      * 현재 로그인한 사용자 정보 조회
@@ -62,4 +70,68 @@ public class MyPageController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * 내 반려동물 프로필 작성
+     */
+    @PostMapping("/mypet")
+    public ResponseEntity<?> createMyPetProfile (@RequestBody MyPetProfileCreateRequestDto myPetProfileCreateRequestDto) {
+        log.info("내 반려동물 프로필 작성 시작!");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+        log.info("내 반려동물 프로필 작성, 주인: username={}",username);
+
+        MyPetProfileResponseDto mypetProfileResponseDto = myPageService.createMyPetProfile(myPetProfileCreateRequestDto, username);
+
+        log.info("내 반려동물 프로필 {}", mypetProfileResponseDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(mypetProfileResponseDto, "내 반려동물 프로필이 등록되었습니다."));
+    }
+
+    /**
+     * 내 반려동물 리스트 조회
+     */
+    @GetMapping("/mypet")
+    public ResponseEntity<?> getAllMyPetProfile() {
+        log.info("내 반려동물 리스트 조회");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        List<MyPetProfileResponseDto> myPetProfiles = myPageService.getMyPetProfiles(username);
+        log.info("산책 일지 리스트 조회 완료 {} 건", myPetProfiles.size());
+
+        return ResponseEntity.ok(ApiResponseDto.success(myPetProfiles, "나의 반려동물 프로필 리스트 조회 성공"));
+    }
+
+    /**
+     * 내 반려동물 프로필 수정
+     */
+    @PutMapping("/mypet/{id}")
+    public ResponseEntity<?> updateMyPetProfile(@PathVariable Long id, @RequestBody MyPetProfileUpdateRequestDto myPetProfileUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        MyPetProfileResponseDto updatedMyPetProfile = myPageService.updateMyPetProfile(id, myPetProfileUpdateRequestDto, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(updatedMyPetProfile, "내 반려동물 프로필 수정 성공"));
+    }
+
+    /**
+     * 내 반려동물 프로필 삭제
+     */
+    @DeleteMapping("/mypet/{id}")
+    public ResponseEntity<?> deleteMyPetProfile(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        myPageService.deleteMyPetProfile(id, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(null, "내 반려동물 프로필 삭제 성공"));
+    }
+
 }
