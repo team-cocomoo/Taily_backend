@@ -12,15 +12,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * UserController - 회원 관련 API
  * 1. 회원가입
  * 2. 회원 조회
- * 3. 내 정보 조회
- * 4. 회원 정보 수정
- * 5. 로그인
+ * 3. 회원 정보 수정
  */
 @Slf4j
 @RestController
@@ -30,17 +29,20 @@ public class UserController {
 
     private final UserService userService;
 
+
     /**
      * 1. 회원가입
      */
     @PostMapping("/register")
     public ResponseEntity<ApiResponseDto<UserResponseDto>> register(@RequestBody UserCreateRequestDto requestDto) {
         log.info("=== 회원가입 요청: username={}", requestDto.getUsername());
+
+        // 예외는 GlobalExceptionHandler가 처리
         UserResponseDto responseDto = userService.register(requestDto);
+
         log.info("회원가입 성공: username={}", responseDto.getUsername());
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseDto.success(responseDto, "회원가입이 완료되었습니다."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(responseDto, "회원가입이 완료되었습니다."));
     }
 
     /**
@@ -55,9 +57,13 @@ public class UserController {
 
     /**
      * 3. 현재 로그인한 사용자 정보 조회
+     * (JWT 인증 후 SecurityContext에서 username 추출해서 전달)
      */
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponseDto> getMyInfo(@RequestParam String username) {
+    public ResponseEntity<UserProfileResponseDto> getMyInfo(Authentication authentication) {
+        // Spring Security가 JWT에서 추출한 username
+        String username = authentication.getName();
+
         log.info("내 정보 조회 API 호출: username={}", username);
         UserProfileResponseDto response = userService.getMyInfo(username);
         return ResponseEntity.ok(response);
@@ -80,33 +86,61 @@ public class UserController {
     ) {
         log.info("회원 정보 수정 API 호출: username={}", username);
         UserResponseDto response = userService.updateMember(
-                username, newUsername, newNickname, newPassword,
-                newTel, newEmail, newAddress, newIntroduction, newState
+                username, newUsername, newNickname, newPassword, newTel, newEmail, newAddress, newIntroduction, newState
         );
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 5. 로그인
+
+    /** 로그인 메서드
+     *
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(@RequestBody UserLoginRequestDto requestDto) {
         log.info("=== 로그인 요청: username={}", requestDto.getUsername());
+
+        // 기존 서비스 login 메서드 사용
         UserLoginResponseDto responseDto = userService.login(
                 new UserLoginRequestDto(requestDto.getUsername(), requestDto.getPassword())
         );
+
         log.info("로그인 성공: username={}", responseDto.getUsername());
+
         return ResponseEntity.ok(ApiResponseDto.success(responseDto, "로그인 성공"));
     }
 
-    /**
-     * 6. 로그인 (Swagger 테스트용)
-     */
-    @PostMapping("/login-st")
-    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> loginSwaggerTest(@RequestBody UserLoginRequestDto requestDto) {
-        log.info("[Swagger 테스트 로그인] username={}", requestDto.getUsername());
-        UserLoginResponseDto loginResponse = userService.login(requestDto);
-        log.info("로그인 성공: username={}", loginResponse.getUsername());
-        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공 (Swagger Test)"));
-    }
+//    @PostMapping(path = "/login-st")
+//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
+//            @RequestBody UserLoginRequestDto requestDto) {
+//
+//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
+//
+//        // UserService에서 로그인 처리 및 JWT 발급
+//        UserLoginResponseDto loginResponse = userService.login(requestDto);
+//
+//        log.info("로그인 성공: username={}", loginResponse.getUsername());
+//
+//        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
+//    }
+
 }
+
+
+/**
+ * 5. 로그인 (Swagger 테스트용)
+ * URL: /login
+ */
+//    @PostMapping(path = "/api/auth/login")
+//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
+//            @RequestBody UserLoginRequestDto requestDto) {
+//
+//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
+//
+//        // UserService에서 로그인 처리 및 JWT 발급
+//        UserLoginResponseDto loginResponse = userService.login(requestDto);
+//
+//        log.info("로그인 성공: username={}", loginResponse.getUsername());
+//
+//        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
+//    }
+//}
