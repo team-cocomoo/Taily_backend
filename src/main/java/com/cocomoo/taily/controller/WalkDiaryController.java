@@ -63,13 +63,13 @@ public class WalkDiaryController {
     }
 
     // 산책 일지 상세 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getWalkDiaryById(@PathVariable Long id) {
+    @GetMapping("/{date}")
+    public ResponseEntity<?> getWalkDiaryByDate(@PathVariable LocalDate date) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName();
 
-        WalkDiaryDetailResponseDto walkDiary = walkDiaryService.getWalkDiaryById(id, username);
+        WalkDiaryDetailResponseDto walkDiary = walkDiaryService.getWalkDiaryById(date, username);
 
         log.info("산책 일지 상세 조회 성공: date={}", walkDiary.getDate());
         return ResponseEntity.ok(ApiResponseDto.success(walkDiary, "산책 일지 상세 조회 성공"));
