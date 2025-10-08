@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
-    JWT 인증 실패 시 처리하는 EntryPoint
+ JWT 인증 실패 시 처리하는 EntryPoint
  AuthenticationEntryPoint는 인증되지 않은 사용자가 시큐리티로 보호된
  자원에 접근할 때 실행됩니다
 
@@ -32,8 +32,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request,
-                        HttpServletResponse response,
-                        AuthenticationException authException) throws IOException, ServletException {
+                         HttpServletResponse response,
+                         AuthenticationException authException) throws IOException, ServletException {
 
         // 로그를 통해 어떤 인증 실패인지 확인
         log.error("인증 실패: {}", authException.getMessage());
@@ -43,8 +43,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         // ApiResponseDto 형식으로 응답 생성
         ApiResponseDto<?> errorResponse = ApiResponseDto.error(
-            "UNAUTHORIZED",
-            errorMessage
+                "UNAUTHORIZED",
+                errorMessage
         );
 
         // HTTP 응답 설정

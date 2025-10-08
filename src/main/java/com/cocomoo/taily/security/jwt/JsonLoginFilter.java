@@ -44,9 +44,7 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         // 로그인 엔드포인트 설정
-
-        setFilterProcessesUrl("/api/auth/login");
-
+        setFilterProcessesUrl("/api/users/login");
         // 이 경로일 때 필터가 처리
     }
 
@@ -130,18 +128,6 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         // 하루로 유효 기간을 준다
         long expiredMs = 1000L * 60 * 60 * 24; // 하루
         String token = jwtUtil.createJwt(user, expiredMs);
-
-        // 4. 응답 헤더에 토큰 추가
-        // Bearer 스키마 사용 (JWT 표준)
-        response.addHeader("Authorization", "Bearer " + token);
-
-        // CORS를 위해 Authorization 헤더 노출 설정
-        response.addHeader("Access-Control-Expose-Headers", "Authorization");
-        //응답 헤더에 인코딩 및 status 추가
-        response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-
-
         String bearerToken = "Bearer " + token;
 
         // 4. 응답 헤더에 토큰 추가
