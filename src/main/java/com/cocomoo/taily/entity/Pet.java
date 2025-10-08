@@ -67,6 +67,14 @@ public class Pet {
             this.tableType = TableType.builder().id(2L).build();
         }
     }
+
+    /**
+     * 작성자 설정
+     * - 반려 동물 프로필 생성 시 작성자 지정
+     */
+    public void assignUser(User user) {
+        this.user = user;
+    }
 }
 
 
