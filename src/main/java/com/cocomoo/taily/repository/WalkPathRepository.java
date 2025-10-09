@@ -30,5 +30,6 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
     @Query("SELECT w FROM WalkPath w ORDER BY w.createdAt DESC")
     Page<WalkPath> findAllWithUser(Pageable pageable);
 
-
+    @Query("SELECT COUNT(w) FROM WalkPath w JOIN w.user u WHERE u.id = :userId")
+    Long countWalkPathsByUserId(@Param("userId") Long userId);
 }

@@ -3,14 +3,18 @@ package com.cocomoo.taily.dto.tailyFriends;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.entity.TableTypeCategory;
 import com.cocomoo.taily.entity.TailyFriend;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class TailyFriendDetailResponseDto {
     private Long id;

@@ -3,10 +3,7 @@ package com.cocomoo.taily.controller;
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendAddressResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
+import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.service.TailyFriendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +24,13 @@ import java.util.Map;
 public class TailyFriendController {
     private final TailyFriendService tailyFriendService;
 
-    // 게시글 전체 조회
     @GetMapping
     public ResponseEntity<?> getTailyFriends(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "6") int size) {
-        List<TailyFriendListResponseDto> posts = tailyFriendService.getTailyFriendsPage(page-1, size);
-        return ResponseEntity.ok(ApiResponseDto.success(posts, "게시물 목록 조회 성공"));
+
+        TailyFriendPageResponseDto response = tailyFriendService.getTailyFriendsPage(page - 1, size);
+        return ResponseEntity.ok(ApiResponseDto.success(response, "게시물 목록 조회 성공"));
     }
 
     // 게시글 상세 조회

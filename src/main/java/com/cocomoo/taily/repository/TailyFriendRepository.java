@@ -13,9 +13,6 @@ import java.util.Optional;
 
 @Repository
 public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> {
-    @Query("SELECT t FROM TailyFriend t JOIN FETCH t.user ORDER BY t.createdAt DESC")
-    List<TailyFriend> findAllWithUser();
-
     @Query("SELECT t FROM TailyFriend t JOIN FETCH t.user WHERE t.id = :id")
     Optional<TailyFriend> findByIdWithUser(Long id);
 
@@ -31,4 +28,7 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
 
     @Query("SELECT t.address FROM TailyFriend t")
     List<String> findAllAddresses();
+
+    @Query("SELECT COUNT(t) FROM TailyFriend t JOIN t.user u WHERE u.id = :userId")
+    Long countTailyFriendsByUserId(@Param("userId") Long userId);
 }
