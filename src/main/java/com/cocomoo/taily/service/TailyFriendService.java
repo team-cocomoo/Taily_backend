@@ -1,14 +1,11 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.repository.TailyFriendRepository;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendAddressResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendCreateRequestDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendDetailResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -97,7 +94,7 @@ public class TailyFriendService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        post.updatePost(dto.getTitle(), dto.getAddress(), dto.getContent());
+        post.updatePost(dto.getTitle(), dto.getContent(),dto.getAddress());
 
         // 이미지 수정
         List<ImageResponseDto> images = new ArrayList<>();
@@ -186,10 +183,10 @@ public class TailyFriendService {
     }
 
     // 테일리 프렌즈 전체 조회
-    public List<TailyFriendListResponseDto> getTailyFriendsPage(int page, int size) {
-        Page<TailyFriend> posts = tailyFriendRepository.findAllWithUser(PageRequest.of(page, size));
+    public TailyFriendPageResponseDto getTailyFriendsPage(int page, int size) {
+        Page<TailyFriend> postsPage = tailyFriendRepository.findAllWithUser(PageRequest.of(page, size));
 
-        return posts.stream()
+        List<TailyFriendListResponseDto> posts = postsPage.stream()
                 .map(post -> {
                     List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
                             .stream()
@@ -197,7 +194,12 @@ public class TailyFriendService {
                             .toList();
                     return TailyFriendListResponseDto.from(post, images);
                 })
-                .collect(Collectors.toList());
+                .toList();
+
+        return TailyFriendPageResponseDto.builder()
+                .data(posts)
+                .totalCount(postsPage.getTotalElements()) // 총 게시글 수
+                .build();
     }
 
     // 좋아요 상태 변화

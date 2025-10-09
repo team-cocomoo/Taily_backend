@@ -18,6 +18,7 @@ public class TailyFriendListResponseDto {
     private List<ImageResponseDto> images;
     private LocalDateTime createdAt;
 
+
     public static TailyFriendListResponseDto from(TailyFriend tailyFriend, List<ImageResponseDto> images){
         return TailyFriendListResponseDto.builder()
                 .id(tailyFriend.getId())
