@@ -97,7 +97,7 @@ public class TailyFriendService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        post.updatePost(dto.getTitle(), dto.getAddress(), dto.getContent());
+        post.updatePost(dto.getTitle(), dto.getContent(),dto.getAddress());
 
         // 이미지 수정
         List<ImageResponseDto> images = new ArrayList<>();

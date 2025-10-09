@@ -11,8 +11,8 @@ import java.util.List;
 @Builder
 public class TailyFriendCreateRequestDto {
     private String title;
-    private String content;
     private String address;
+    private String content;
     private List<ImageRequestDto> images;
 }
 

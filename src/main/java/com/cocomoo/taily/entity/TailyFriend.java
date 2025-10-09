@@ -24,11 +24,11 @@ public class TailyFriend {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
+    @Column(name = "content", nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
 
-    @Column(nullable = false, length = 200)
+    @Column(name = "address", nullable = false, length = 200)
     private String address;
 
     @Builder.Default
