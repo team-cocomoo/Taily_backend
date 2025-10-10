@@ -94,7 +94,11 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**",
                         "/api-docs/**"
-                ).permitAll()
+                )
+                .permitAll()
+
+                // WebSocket 허용
+                .requestMatchers("/ws-chat/**").permitAll()
 
                 // 회원만 접근 가능 (ROLE_USER)
                 .requestMatchers(
