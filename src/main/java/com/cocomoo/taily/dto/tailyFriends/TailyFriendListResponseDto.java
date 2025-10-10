@@ -2,13 +2,17 @@ package com.cocomoo.taily.dto.tailyFriends;
 
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.entity.TailyFriend;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class TailyFriendListResponseDto {
     private long id;
