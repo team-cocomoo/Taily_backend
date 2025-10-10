@@ -6,13 +6,17 @@ import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.WalkDiaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -48,18 +52,41 @@ public class WalkDiaryController {
     }
 
     // 산책 일지 작성
-    @PostMapping("/write/{date}")
-    public ResponseEntity<?> createWalkDiary (@RequestBody WalkDiaryCreateRequestDto walkDiaryCreateRequestDto) {
+    @PostMapping(value = "/write/{date}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createWalkDiary(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestPart("walkDiaryWeather") String walkDiaryWeather,
+            @RequestPart("beginTime") String beginTime,
+            @RequestPart("endTime") String endTime,
+            @RequestPart("walkDiaryEmotion") String walkDiaryEmotion,
+            @RequestPart("content") String content,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) throws IOException {
+
         log.info("산책 일지 작성 시작");
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         String username = authentication.getName();
-        log.info("산책 일지 작성, 작성자: username={}",username);
+        log.info("산책 일지 작성, 작성자: username={}", username);
 
-        WalkDiaryDetailResponseDto walkDiaryDetailResponseDto = walkDiaryService.createWalkDiary(walkDiaryCreateRequestDto, username);
-        log.info("산책 일지 작성 {}", walkDiaryDetailResponseDto);
+        // DTO 생성
+        WalkDiaryCreateRequestDto walkDiaryCreateRequestDto = WalkDiaryCreateRequestDto.builder()
+                .date(date)
+                .walkDiaryWeather(walkDiaryWeather)
+                .beginTime(beginTime)
+                .endTime(endTime)
+                .walkDiaryEmotion(walkDiaryEmotion)
+                .content(content)
+                .images(images)
+                .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(walkDiaryDetailResponseDto, "산책 일지가 작성되었습니다."));
+        WalkDiaryDetailResponseDto walkDiaryDetailResponseDto =
+                walkDiaryService.createWalkDiary(walkDiaryCreateRequestDto, date, username);
+
+        log.info("산책 일지 작성 완료: {}", walkDiaryDetailResponseDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponseDto.success(walkDiaryDetailResponseDto, "산책 일지가 작성되었습니다."));
     }
 
     // 산책 일지 상세 조회
