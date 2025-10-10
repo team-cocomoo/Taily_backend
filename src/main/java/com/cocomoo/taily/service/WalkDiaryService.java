@@ -9,6 +9,7 @@ import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.repository.WalkDiaryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +37,9 @@ public class WalkDiaryService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final ImageRepository imageRepository;
+
+    @Value("${app.base-url}")
+    private String baseUrl; // application.properties 값 주입
 
     /**
      * 현재 년도, 월 별로 작성한 산책 일지 조회
@@ -115,7 +119,7 @@ public class WalkDiaryService {
                 Path path = Paths.get("uploads/", filename);
                 Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
-                String fileUrl = "http://localhost:8080/uploads/" + filename;
+                String fileUrl = "/uploads/" + filename;
 
                 Image image = Image.builder()
                         .uuid(uuid)
@@ -129,7 +133,8 @@ public class WalkDiaryService {
 
             }
                 imageRepository.saveAll(imageEntities);
-                images = imageEntities.stream().map(ImageResponseDto::from).toList();
+                images = imageEntities.stream().map(img -> ImageResponseDto.from(img, baseUrl)) // 여기서 baseUrl 전달
+                        .toList();
         }
 
         log.info("산책 일지 작성 완료: id={}, title={}", savedWalkDiary.getId(), savedWalkDiary.getContent());
@@ -142,7 +147,7 @@ public class WalkDiaryService {
      *
      * GET http://localhost:8080/walk-diaries/1
      *
-     * @param walkDiaryId
+     * @param date
      * @param username
      * @return
      */
@@ -159,8 +164,8 @@ public class WalkDiaryService {
             return new IllegalArgumentException("존재하지 않는 산책 일지입니다.");
         });
 
-        // 이미지 조회
-        List<ImageResponseDto> images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(ImageResponseDto::from).toList();
+        // 이미지 조회 + url 완성
+        List<ImageResponseDto> images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(img -> ImageResponseDto.from(img, baseUrl)).toList();
 
         log.info("산책 일지 조회 성공: content={}", walkDiary.getContent());
 
@@ -221,10 +226,11 @@ public class WalkDiaryService {
 
              imageRepository.saveAll(imageEntities);
 
-             images = imageEntities.stream().map(ImageResponseDto::from).toList();
+             images = imageEntities.stream().map(img -> ImageResponseDto.from(img, baseUrl)) // 여기서 baseUrl 전달
+                     .toList();
         } else {
             // 기존 이미지 조회만
-            images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(ImageResponseDto::from).toList();
+            images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(img -> ImageResponseDto.from(img, baseUrl)).toList();
         }
 
         return WalkDiaryDetailResponseDto.from(walkDiary, images);
