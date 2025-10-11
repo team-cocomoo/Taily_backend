@@ -16,11 +16,11 @@ public class ImageResponseDto {
     private String filePath;
     private String fileSize;
 
-    public static ImageResponseDto from(Image image) {
+    public static ImageResponseDto from(Image image, String baseUrl) {
         return ImageResponseDto.builder()
                 .id(image.getId())
                 .uuid(image.getUuid())
-                .filePath(image.getFilePath())
+                .filePath(baseUrl + image.getFilePath())
                 .fileSize(image.getFileSize())
                 .build();
     }

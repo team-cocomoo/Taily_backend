@@ -1,16 +1,10 @@
 package com.cocomoo.taily.dto.walkDiary;
 
-import com.cocomoo.taily.dto.common.image.ImageRequestDto;
-import com.cocomoo.taily.entity.WalkDiaryEmotion;
-import com.cocomoo.taily.entity.WalkDiaryWeather;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -22,18 +16,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class WalkDiaryCreateRequestDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
-    private WalkDiaryWeather walkDiaryWeather;
-    @JsonFormat(pattern = "HH:mm")
-    private LocalTime beginTime;
-    @JsonFormat(pattern = "HH:mm")
-    private LocalTime endTime;
-    private WalkDiaryEmotion walkDiaryEmotion;
+    private String walkDiaryWeather;
+    private String beginTime;
+    private String endTime;
+    private String walkDiaryEmotion;
     private String content;
 
-    private List<ImageRequestDto> images;
+    private List<MultipartFile> images;
 
     // userId는 별도로 받지 않음
     // - Spring Security에서 현재 로그인한 사용자 정보 사용
