@@ -22,7 +22,7 @@ import java.util.List;
 @Getter
 @Builder
 public class WalkDiaryDetailResponseDto {
-    private Long walkDairyId;
+    private Long walkDiaryId;
     private LocalDate date;
     private WalkDiaryWeather walkDiaryWeather;
     private LocalTime beginTime;
@@ -47,7 +47,7 @@ public class WalkDiaryDetailResponseDto {
         User user = walkDiary.getUser();
 
         return WalkDiaryDetailResponseDto.builder()
-                .walkDairyId(walkDiary.getId())
+                .walkDiaryId(walkDiary.getId())
                 .date(walkDiary.getDate())
                 .walkDiaryWeather(walkDiary.getWalkDiaryWeather())
                 .beginTime(walkDiary.getBeginTime())

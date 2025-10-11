@@ -37,6 +37,7 @@ public class WalkDiaryService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final ImageRepository imageRepository;
+    private final FileUploadService fileUploadService;
 
     @Value("${app.base-url}")
     private String baseUrl; // application.properties 값 주입
@@ -147,20 +148,20 @@ public class WalkDiaryService {
      *
      * GET http://localhost:8080/walk-diaries/1
      *
-     * @param date
+     * @param walkDiaryId
      * @param username
      * @return
      */
     @Transactional
-    public WalkDiaryDetailResponseDto getWalkDiaryById(LocalDate date, String username) {
-        log.info("산책 일지 상세 조회 : username = {}, date = {}", username, date);
+    public WalkDiaryDetailResponseDto getWalkDiaryById(Long walkDiaryId, String username) {
+        log.info("산책 일지 상세 조회 : username = {}, date = {}", username, walkDiaryId);
 
         // 작성자 조회
         User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 입니다."));
 
         // 작성자 + 날짜로 산책 일지 찾기
-        WalkDiary walkDiary = walkDairyRepository.findByUserAndDate(user, date).orElseThrow(() -> {
-            log.warn("산책 일지 조회 실패 : username={}, date={}", username, date);
+        WalkDiary walkDiary = walkDairyRepository.findByIdAndUser(walkDiaryId, user.getUsername()).orElseThrow(() -> {
+            log.warn("산책 일지 조회 실패 : username={}, walkDiaryId={}", username, walkDiaryId);
             return new IllegalArgumentException("존재하지 않는 산책 일지입니다.");
         });
 
@@ -190,13 +191,16 @@ public class WalkDiaryService {
      * @return
      */
     @Transactional
-    public WalkDiaryDetailResponseDto updateWalkDiary(Long walkDiaryId, WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto, String username) {
+    public WalkDiaryDetailResponseDto updateWalkDiary(Long walkDiaryId, WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto, String username, List<MultipartFile> newImages) throws IOException {
+        // 기존 산책 일지 조회
         WalkDiary walkDiary = walkDairyRepository.findById(walkDiaryId).orElseThrow(() -> new IllegalArgumentException("산책 일지가 존재하지 않습니다."));
 
+        // 작성자 검증
         if (!walkDiary.getUser().getUsername().equals(username)) {
             throw new IllegalArgumentException("본인 산책 일지만 수정할 수 있습니다.");
         }
 
+        // 기존 산책 일지 내용 업데이트
         walkDiary.updateWalkDiary(
                 walkDiaryUpdateRequestDto.getWalkDiaryWeather(),
                 walkDiaryUpdateRequestDto.getBeginTime(),
@@ -205,35 +209,46 @@ public class WalkDiaryService {
                 walkDiaryUpdateRequestDto.getContent()
         );
 
-        // 이미지 수정
-        List<ImageResponseDto> images = new ArrayList<>();
-        if (walkDiaryUpdateRequestDto.getImages() != null && !walkDiaryUpdateRequestDto.getImages().isEmpty()) {
+        // 이미지 처리
+        List<ImageResponseDto> updatedImages = new ArrayList<>();
+
+        if (newImages != null && !newImages.isEmpty()) {
             User user = walkDiary.getUser();
-            TableType tableType = tableTypeRepository.findById(4L).orElseThrow(() -> new IllegalArgumentException("TableType가 존재하지않습니다."));
+            TableType tableType = tableTypeRepository.findById(4L)
+                    .orElseThrow(() -> new IllegalArgumentException("TableType가 존재하지 않습니다."));
 
-             List<Image> imageEntities = walkDiaryUpdateRequestDto.getImages().stream().map(imageRequestDto -> {
+            // 새 이미지 저장
+            List<Image> savedImages = new ArrayList<>();
+            for (MultipartFile file : newImages) {
+                String filePath = fileUploadService.saveFile(file); // 파일 저장 후 URL 반환
+                String uuid = UUID.randomUUID().toString();
 
-                 String uuid = UUID.randomUUID().toString();
-                 return Image.builder()
-                         .uuid(uuid)
-                         .filePath(imageRequestDto.getFilePath())
-                         .fileSize(imageRequestDto.getFileSize())
-                         .postsId(walkDiary.getId())
-                         .usersId(user)
-                         .tableTypeId(tableType)
-                         .build();
-             }).toList();
+                Image img = Image.builder()
+                        .uuid(uuid)
+                        .filePath(filePath)
+                        .fileSize(String.valueOf(file.getSize()))
+                        .postsId(walkDiary.getId())
+                        .usersId(user)
+                        .tableTypeId(tableType)
+                        .build();
 
-             imageRepository.saveAll(imageEntities);
+                savedImages.add(img);
+            }
 
-             images = imageEntities.stream().map(img -> ImageResponseDto.from(img, baseUrl)) // 여기서 baseUrl 전달
-                     .toList();
+            imageRepository.saveAll(savedImages);
+
+            updatedImages = savedImages.stream()
+                    .map(img -> ImageResponseDto.from(img, baseUrl))
+                    .toList();
         } else {
-            // 기존 이미지 조회만
-            images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(img -> ImageResponseDto.from(img, baseUrl)).toList();
+            // 기존 이미지 유지
+            updatedImages = imageRepository.findByPostsId(walkDiary.getId())
+                    .stream()
+                    .map(img -> ImageResponseDto.from(img, baseUrl))
+                    .toList();
         }
 
-        return WalkDiaryDetailResponseDto.from(walkDiary, images);
+        return WalkDiaryDetailResponseDto.from(walkDiary, updatedImages);
     }
 
     /**

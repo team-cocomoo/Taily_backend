@@ -4,6 +4,7 @@ import com.cocomoo.taily.entity.WalkDiary;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -12,6 +13,7 @@ public class WalkDiaryListResponseDto {
     private Long id;
     private String content;
     private String username;
+    private LocalDate date;
     private LocalDateTime createdAt;
 
     public static WalkDiaryListResponseDto from(WalkDiary walkDiary) {
@@ -19,6 +21,7 @@ public class WalkDiaryListResponseDto {
                 .id(walkDiary.getId())
                 .content(walkDiary.getContent())
                 .username(walkDiary.getUser().getUsername())
+                .date(walkDiary.getDate())
                 .createdAt(walkDiary.getCreatedAt())
                 .build();
     }

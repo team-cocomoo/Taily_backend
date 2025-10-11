@@ -2,6 +2,8 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.walkDiary.*;
+import com.cocomoo.taily.entity.WalkDiaryEmotion;
+import com.cocomoo.taily.entity.WalkDiaryWeather;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.WalkDiaryService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -90,38 +93,61 @@ public class WalkDiaryController {
     }
 
     // 산책 일지 상세 조회
-    @GetMapping("/{date}")
-    public ResponseEntity<?> getWalkDiaryByDate(@PathVariable LocalDate date) {
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getWalkDiaryByDate(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName();
 
-        WalkDiaryDetailResponseDto walkDiary = walkDiaryService.getWalkDiaryById(date, username);
+        WalkDiaryDetailResponseDto walkDiary = walkDiaryService.getWalkDiaryById(id, username);
 
-        log.info("산책 일지 상세 조회 성공: date={}", walkDiary.getDate());
+        log.info("산책 일지 상세 조회 성공: id={}", walkDiary.getWalkDiaryId());
+        log.info("산책 일지 상세 조회 성공: walkDairyId={}", walkDiary.getWalkDiaryId());
         return ResponseEntity.ok(ApiResponseDto.success(walkDiary, "산책 일지 상세 조회 성공"));
     }
 
-    // 추후 date로 변경
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateWalkDiary(@PathVariable Long id, @RequestBody WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto) {
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateWalkDiary(
+            @PathVariable Long id,
+            @RequestPart("walkDiaryWeather") String walkDiaryWeather,
+            @RequestPart("beginTime") String beginTime,
+            @RequestPart("endTime") String endTime,
+            @RequestPart("walkDiaryEmotion") String walkDiaryEmotion,
+            @RequestPart("content") String content,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) throws IOException {
+        log.info("walkDiaryWeather : {}", walkDiaryWeather);
+        log.info("beginTime : {}", beginTime);
+        log.info("endTime : {}", endTime);
+        log.info("walkDiaryEmotion : {}", walkDiaryEmotion);
+        log.info("content : {}", content);
+        log.info("id : {}", id);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName();
         log.info("산책 일지 수정, 작성자: username={}",username);
 
-        WalkDiaryDetailResponseDto updatedWalkDiary = walkDiaryService.updateWalkDiary(id, walkDiaryUpdateRequestDto, username);
+        // DTO 생성
+        WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto = WalkDiaryUpdateRequestDto.builder()
+                .walkDiaryWeather(WalkDiaryWeather.valueOf(walkDiaryWeather))
+                .beginTime(LocalTime.parse(beginTime))
+                .endTime(LocalTime.parse(endTime))
+                .walkDiaryEmotion(WalkDiaryEmotion.valueOf(walkDiaryEmotion))
+                .content(content)
+                .build();
+
+        WalkDiaryDetailResponseDto updatedWalkDiary = walkDiaryService.updateWalkDiary(id, walkDiaryUpdateRequestDto, username, images);
 
         return ResponseEntity.ok(ApiResponseDto.success(updatedWalkDiary, "산책 일지 수정 성공"));
     }
 
-    // 추후 date로 변경
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteWalkDiary(@PathVariable Long id) {
+        log.info("삭제 요청 id: {}", id);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName();
-
+        log.info("삭제 요청 id: {}, username: {}", id, username);
         log.info("산책 일지 삭제, 작성자 {}", username);
 
         walkDiaryService.deleteWalkDiary(id, username);
