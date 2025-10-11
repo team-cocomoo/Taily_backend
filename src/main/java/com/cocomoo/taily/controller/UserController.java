@@ -29,7 +29,6 @@ public class UserController {
 
     private final UserService userService;
 
-
     /**
      * 1. 회원가입
      */

@@ -4,7 +4,6 @@ import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.repository.TailyFriendRepository;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
-import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
@@ -32,7 +31,6 @@ public class TailyFriendService {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final ImageRepository imageRepository;
-
     // 게시글 작성
     @Transactional
     public TailyFriendDetailResponseDto createTailyFriend(TailyFriendCreateRequestDto requestDto, String username) {
