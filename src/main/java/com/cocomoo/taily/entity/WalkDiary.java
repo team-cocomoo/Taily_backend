@@ -96,7 +96,7 @@ public class WalkDiary {
         }
 
         if (endTime != null) {
-            this.beginTime = beginTime;
+            this.endTime = endTime;
         }
 
         // 시간 검증: 종료 시간이 시작 시간 이전이면 예외 처리
