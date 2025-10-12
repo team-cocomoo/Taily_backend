@@ -222,6 +222,20 @@ public class UserService {
         return UserProfileResponseDto.from(user);
     }
 
+    public User findAdminByUsername(String username) {
+        log.info("관리자 조회: username={}", username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    log.error("관리자 조회 실패: username={}", username);
+                    return new IllegalArgumentException("존재하지 않는 관리자 계정입니다.");
+                });
+        if (user.getRole() != UserRole.ROLE_ADMIN) {
+            throw new IllegalArgumentException("관리자 권한이 없습니다.");
+        }
+        return user;
+    }
+
 //    public UserProfileResponseDto updateMyProfile(String username, UserUpdateRequestDto requestDto) {
 //    }
 }
