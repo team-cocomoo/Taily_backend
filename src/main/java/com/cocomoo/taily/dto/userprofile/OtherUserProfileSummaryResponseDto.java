@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OtherUserProfileSummaryResponseDto {
     private Long id;                // 사용자 ID
+    private String publicId;        // public ID
     private String nickname;        // 닉네임
     private Long followerCount;     // 팔로워 수
     private Long followingCount;    // 팔로잉 수
@@ -28,6 +29,7 @@ public class OtherUserProfileSummaryResponseDto {
                                                      Long postCount) {
         return OtherUserProfileSummaryResponseDto.builder()
                 .id(user.getId())
+                .publicId(user.getPublicId())
                 .nickname(user.getNickname())
                 .followerCount(followerCount)
                 .followingCount(followingCount)

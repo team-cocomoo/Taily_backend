@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -15,7 +16,10 @@ import java.time.LocalDateTime;
 public class PetInfoResponseDto {
     private String name;
     private PetGender gender;
+    private String imageUrl;
     private String preference;
     private String introduction;
     private LocalDateTime createdAt;
+
+
 }

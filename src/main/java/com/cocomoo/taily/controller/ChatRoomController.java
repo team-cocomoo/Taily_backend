@@ -1,10 +1,8 @@
 package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
-import com.cocomoo.taily.dto.chat.ChatRoomListResponseDto;
-import com.cocomoo.taily.dto.chat.ChatRoomResponseDto;
-import com.cocomoo.taily.dto.chat.MessageCreateRequestDto;
-import com.cocomoo.taily.dto.chat.MessageDataResponseDto;
+import com.cocomoo.taily.dto.chat.*;
+import com.cocomoo.taily.entity.MessageRoom;
 import com.cocomoo.taily.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +39,23 @@ public class ChatRoomController {
 
     // 채팅방 생성
     @PostMapping
-    public ResponseEntity<?> createRoom(@RequestParam Long user1Id, @RequestParam Long user2Id) {
-        ChatRoomResponseDto room = chatService.createRoom(user1Id, user2Id);
+    public ResponseEntity<?> createRoomByPublicId(@RequestParam String senderPublicId,
+                                                  @RequestParam String receiverPublicId) {
+        ChatRoomResponseDto room = chatService.createRoomByPublicId(senderPublicId, receiverPublicId);
         log.info("채팅방 생성: {} - {}", room.getUser1Name(), room.getUser2Name());
         return ResponseEntity.ok(ApiResponseDto.success(room, "채팅방 생성 성공"));
+    }
+
+    // 채팅방 존재 여부 확인
+    @GetMapping("/exists")
+    public ResponseEntity<?> existsRoom(@RequestParam String senderPublicId,
+                                        @RequestParam String receiverPublicId) {
+        ChatRoomExistsResponseDto dto = chatService.getRoomExists(senderPublicId, receiverPublicId);
+        if (dto != null) {
+            return ResponseEntity.ok(ApiResponseDto.success(dto, "채팅방 존재 여부 확인"));
+        } else {
+            return ResponseEntity.ok(ApiResponseDto.success(null, "채팅방 존재하지 않음"));
+        }
     }
 
     // 메시지 전송
