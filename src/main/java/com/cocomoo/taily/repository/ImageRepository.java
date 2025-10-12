@@ -19,4 +19,7 @@ public interface ImageRepository extends JpaRepository<Image,Long> {
     Optional<Image> findProfileImageByUser(@Param("user") User user);
 
     Optional<Image> findTopByUsersId_IdAndTableTypeId_Id(Long userId, Long tableTypeId);
+
+    @Query("SELECT i FROM Image i WHERE i.usersId.id = :userId AND i.tableTypeId.id = 3")
+    List<Image> findFeedImagesByUserId(Long userId);
 }

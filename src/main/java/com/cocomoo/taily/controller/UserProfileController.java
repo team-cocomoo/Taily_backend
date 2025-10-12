@@ -1,6 +1,7 @@
 package com.cocomoo.taily.controller;
 
-import com.cocomoo.taily.dto.userprofile.UserProfileSummaryResponseDto;
+import com.cocomoo.taily.dto.userprofile.OtherUserProfileResponseDto;
+import com.cocomoo.taily.dto.userprofile.OtherUserProfileSummaryResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.repository.FeedRepository;
 import com.cocomoo.taily.repository.FollowRepository;
@@ -23,8 +24,14 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserProfileSummaryResponseDto> getUserProfileSummary(@PathVariable Long id) {
-        UserProfileSummaryResponseDto summary = userProfileService.getUserProfileSummary(id);
+    public ResponseEntity<OtherUserProfileSummaryResponseDto> getUserProfileSummary(@PathVariable Long id) {
+        OtherUserProfileSummaryResponseDto summary = userProfileService.getUserProfileSummary(id);
         return ResponseEntity.ok(summary);
+    }
+
+    @GetMapping("/{id}/profile")
+    public ResponseEntity<OtherUserProfileResponseDto> getOtherUserProfile(@PathVariable Long id) {
+        OtherUserProfileResponseDto profile = userProfileService.getOtherUserProfile(id);
+        return ResponseEntity.ok(profile);
     }
 }
