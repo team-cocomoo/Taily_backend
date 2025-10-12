@@ -1,17 +1,21 @@
 package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
+import com.cocomoo.taily.dto.admin.AdminLoginRequestDto;
+import com.cocomoo.taily.dto.admin.AdminLoginResponseDto;
 import com.cocomoo.taily.dto.admin.UserPageResponseDto;
+import com.cocomoo.taily.entity.User;
+import com.cocomoo.taily.entity.UserRole;
+import com.cocomoo.taily.security.jwt.JwtUtil;
 import com.cocomoo.taily.service.AdminService;
+import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -19,6 +23,37 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AdminController {
     public final AdminService adminService;
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
+
+    // 로그인
+    @PostMapping("/login")
+    public ResponseEntity<?> adminLogin(@RequestBody AdminLoginRequestDto adminLoginRequestDto) {
+        log.info("관리자 로그인 요청: username={}", adminLoginRequestDto.getUsername());
+
+        User user = userService.findAdminByUsername(adminLoginRequestDto.getUsername());
+
+        if (!userService.validatePassword(adminLoginRequestDto.getUsername(), adminLoginRequestDto.getPassword())) {
+            log.warn("관리자 로그인 실패 - 비밀번호 불일치: {}", adminLoginRequestDto.getUsername());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponseDto.error("관리자 비밀번호 에러","비밀번호가 올바르지 않습니다."));
+        }
+
+        // 관리자 권한 확인
+        if (user.getRole() != UserRole.ROLE_ADMIN) {
+            log.warn("관리자 로그인 실패 - 권한 없음: {}", user.getUsername());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponseDto.error("관리자 권한 에러","관리자 계정이 아닙니다."));
+        }
+        // JWT 발급
+        String token = jwtUtil.createJwt(user, 1000L * 60 * 60);
+
+        // DTO 생성 후 반환
+        AdminLoginResponseDto response = AdminLoginResponseDto.from(user, token);
+
+        log.info("관리자 로그인 성공: {}", user.getUsername());
+        return ResponseEntity.ok(ApiResponseDto.success(response, "관리자 로그인 성공"));
+    }
 
     // 전체 회원 출력
     @GetMapping
