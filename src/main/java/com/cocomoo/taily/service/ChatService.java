@@ -1,9 +1,6 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.chat.ChatRoomListResponseDto;
-import com.cocomoo.taily.dto.chat.ChatRoomResponseDto;
-import com.cocomoo.taily.dto.chat.MessageCreateRequestDto;
-import com.cocomoo.taily.dto.chat.MessageDataResponseDto;
+import com.cocomoo.taily.dto.chat.*;
 import com.cocomoo.taily.entity.Image;
 import com.cocomoo.taily.entity.MessageData;
 import com.cocomoo.taily.entity.MessageRoom;
@@ -62,15 +59,14 @@ public class ChatService {
 
     // 채팅방 생성
     @Transactional
-    public ChatRoomResponseDto createRoom(Long user1Id, Long user2Id) {
-        User user1 = userRepository.findById(user1Id)
+    public ChatRoomResponseDto createRoomByPublicId(String senderPublicId, String receiverPublicId) {
+        User user1 = userRepository.findByPublicId(senderPublicId)
                 .orElseThrow(() -> new IllegalArgumentException("user1 없음"));
-        User user2 = userRepository.findById(user2Id)
+        User user2 = userRepository.findByPublicId(receiverPublicId)
                 .orElseThrow(() -> new IllegalArgumentException("user2 없음"));
 
-        // 이미 두 사용자가 같은 방을 가지고 있는지 검사
+        // 기존 로직 그대로 재사용
         MessageRoom existingRoom = messageRoomRepository.findByUsers(user1, user2).orElse(null);
-
         if (existingRoom != null) {
             String user1Profile = imageRepository.findTopByUsersId_IdAndTableTypeId_Id(existingRoom.getUser1().getId(), 1L)
                     .map(Image::getFilePath).orElse(null);
@@ -80,20 +76,32 @@ public class ChatService {
         }
 
         MessageRoom room = messageRoomRepository.save(
-                MessageRoom.builder()
-                        .user1(user1)
-                        .user2(user2)
-                        .build()
+                MessageRoom.builder().user1(user1).user2(user2).build()
         );
-        // 새로 생성한 방의 프로필 이미지 조회
+
         String user1Profile = imageRepository.findTopByUsersId_IdAndTableTypeId_Id(user1.getId(), 1L)
                 .map(Image::getFilePath).orElse(null);
         String user2Profile = imageRepository.findTopByUsersId_IdAndTableTypeId_Id(user2.getId(), 1L)
                 .map(Image::getFilePath).orElse(null);
 
-        log.info("채팅방 생성: id={}, user1={}, user2={}", room.getId(), user1.getUsername(), user2.getUsername());
-
         return ChatRoomResponseDto.from(room, user1Profile, user2Profile);
+    }
+
+    public ChatRoomExistsResponseDto getRoomExists(String senderPublicId, String receiverPublicId) {
+        User user1 = userRepository.findByPublicId(senderPublicId).orElse(null);
+        User user2 = userRepository.findByPublicId(receiverPublicId).orElse(null);
+
+        if (user1 == null || user2 == null) return null;
+
+        return messageRoomRepository.findByUsers(user1, user2)
+                .map(ChatRoomExistsResponseDto::from)
+                .orElse(null);
+    }
+
+    public MessageRoom getRoomByPublicId(String senderPublicId, String receiverPublicId) {
+        User user1 = userRepository.findByPublicId(senderPublicId).orElseThrow();
+        User user2 = userRepository.findByPublicId(receiverPublicId).orElseThrow();
+        return messageRoomRepository.findByUsers(user1, user2).orElse(null);
     }
 
     // 특정 채팅방의 이전 메시지 조회

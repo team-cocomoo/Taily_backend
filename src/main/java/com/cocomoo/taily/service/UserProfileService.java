@@ -49,11 +49,9 @@ public class UserProfileService {
 
     // 다른 회원 정보(상세)
     public OtherUserProfileResponseDto getOtherUserProfile(Long userId) {
-        // 1️⃣ 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다. id=" + userId));
 
-        // 2️⃣ 통계 정보
         Long followerCount = followRepository.countFollowers(userId);
         Long followingCount = followRepository.countFollowings(userId);
         Long feedCount = feedRepository.countFeedsByUserId(userId);
@@ -69,7 +67,9 @@ public class UserProfileService {
         List<Feed> feeds = feedRepository.findByUserId(userId);
 
         // 피드 이미지 목록
-        List<Image> images = imageRepository.findFeedImagesByUserId(userId);
+        List<Image> feedImages = imageRepository.findFeedImagesByUserId(userId);
+
+        List<Image> petImages = imageRepository.findPetImagesByUserId(userId);
 
         // DTO 변환
         return OtherUserProfileResponseDto.from(
@@ -79,7 +79,8 @@ public class UserProfileService {
                 postCount,
                 pets,
                 feeds,
-                images
+                feedImages,
+                petImages
         );
     }
 }
