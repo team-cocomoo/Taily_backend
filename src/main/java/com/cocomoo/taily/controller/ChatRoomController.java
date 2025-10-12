@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chats")
@@ -31,7 +32,11 @@ public class ChatRoomController {
         String username = authentication.getName();
 
         List<ChatRoomListResponseDto> rooms = chatService.getMyRoomsWithLastMessage(username);
-        return ResponseEntity.ok(ApiResponseDto.success(rooms, "참여한 채팅방 조회 성공"));
+        int count = rooms.size();
+        return ResponseEntity.ok(ApiResponseDto.success(Map.of(
+                "count", count,
+                "rooms", rooms
+        ), "참여한 채팅방 조회 성공"));
     }
 
     // 채팅방 생성
