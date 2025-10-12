@@ -1,7 +1,11 @@
 package com.cocomoo.taily.repository;
 
 import com.cocomoo.taily.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -35,4 +39,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // publicId로 회원 모든 정보 조회
     Optional<User> findByPublicId(String publicId);
+
+    @Query("SELECT u FROM User u " +
+            "WHERE (:keyword IS NULL OR u.username LIKE %:keyword% OR u.nickname LIKE %:keyword% OR u.email LIKE %:keyword%) " +
+            "ORDER BY u.createdAt DESC")
+    Page<User> findAndSearchUser(@Param("keyword") String keyword, Pageable pageable);
 }
