@@ -85,6 +85,7 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/api/users/login",
                         "/api/users/register",
+                        "/api/admin/login",
                         "/api/auth/**",
                         "/api/facilities/**",         // 동물 관련 시설 조회
                         "/api/events/public/**",      // 이벤트 조회용 (목록/배너)

@@ -42,10 +42,10 @@ public class Image {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
-    private User usersId;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false)
-    private TableType tableTypeId;
+    private TableType tableType;
 
 }
