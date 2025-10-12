@@ -55,6 +55,9 @@ public class User {
     @Builder.Default
     private UserState state = UserState.ACTIVE;
 
+//    @Column(name = "sanction_count", nullable = false)
+//    private Long sanctionCount;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -112,6 +115,7 @@ public class User {
         if (state != null) {
             this.state = state;
         }
+        // 제재 추가
     }
 
 
