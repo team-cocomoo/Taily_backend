@@ -162,6 +162,7 @@ public class WalkDiaryController {
         String username = authentication.getName();
 
         WalkDiaryStatsResponseDto statsDto = walkDiaryService.getMonthlyStats(username);
+        log.info("statsDto : {}", statsDto);
         return ResponseEntity.ok(ApiResponseDto.success(statsDto, "월간 산책 통계 조회 성공"));
     }
 }

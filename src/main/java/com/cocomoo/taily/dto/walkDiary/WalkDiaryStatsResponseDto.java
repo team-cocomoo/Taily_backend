@@ -17,12 +17,19 @@ public class WalkDiaryStatsResponseDto {
     private double avgDurationMinutes;
     private long streakDays;
     private List<DailyStat> dailyStat;
+    private List<HourlyStat> hourlyStat;
     private String reminderMessage;
 
     @Getter
     @AllArgsConstructor
     public static class DailyStat {
         private LocalDate date;
+        private Long durationMinutes;
+    }
+    @Getter
+    @AllArgsConstructor
+    public static class HourlyStat {
+        private int hour;
         private Long durationMinutes;
     }
 
@@ -32,6 +39,7 @@ public class WalkDiaryStatsResponseDto {
                 .avgDurationMinutes(0)
                 .streakDays(0)
                 .dailyStat(List.of())
+                .hourlyStat(List.of())
                 .reminderMessage("이번 달에는 아직 산책 기록이 없어요 🐾")
                 .build();
     }
