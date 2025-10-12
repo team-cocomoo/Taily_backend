@@ -110,7 +110,8 @@ public class SecurityConfig {
                         "/api/chats/**",              // 채팅
                         "/api/events/**",             // 이벤트 참여
                         "/api/notices/**",            // 공지사항 상세
-                        "/api/qna/**"                 // 1:1 문의
+                        "/api/qna/**",                 // 1:1 문의
+                        "/api/user-profile/**"        // 다른 회원 페이지
                 ).hasRole("USER")
 
                 // 관리자만 접근 가능 (ROLE_ADMIN)

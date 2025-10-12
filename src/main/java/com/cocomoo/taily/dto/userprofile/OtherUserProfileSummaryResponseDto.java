@@ -15,18 +15,18 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserProfileSummaryResponseDto {
+public class OtherUserProfileSummaryResponseDto {
     private Long id;                // 사용자 ID
     private String nickname;        // 닉네임
     private Long followerCount;     // 팔로워 수
     private Long followingCount;    // 팔로잉 수
-    private Long postCount;         // 작성 피드 수
+    private Long postCount;         // 작성 게시글 수
 
-    public static UserProfileSummaryResponseDto from(User user,
+    public static OtherUserProfileSummaryResponseDto from(User user,
                                                      Long followerCount,
                                                      Long followingCount,
                                                      Long postCount) {
-        return UserProfileSummaryResponseDto.builder()
+        return OtherUserProfileSummaryResponseDto.builder()
                 .id(user.getId())
                 .nickname(user.getNickname())
                 .followerCount(followerCount)
