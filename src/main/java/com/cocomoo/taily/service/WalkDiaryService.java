@@ -2,21 +2,26 @@ package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.dto.walkDiary.*;
-import com.cocomoo.taily.entity.Image;
-import com.cocomoo.taily.entity.TableType;
-import com.cocomoo.taily.entity.User;
-import com.cocomoo.taily.entity.WalkDiary;
+import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.ImageRepository;
 import com.cocomoo.taily.repository.TableTypeRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.repository.WalkDiaryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +37,10 @@ public class WalkDiaryService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final ImageRepository imageRepository;
+    private final FileUploadService fileUploadService;
+
+    @Value("${app.base-url}")
+    private String baseUrl; // application.properties 값 주입
 
     /**
      * 현재 년도, 월 별로 작성한 산책 일지 조회
@@ -77,7 +86,7 @@ public class WalkDiaryService {
      * @return 생성된 산책 일지 상세 정보
      */
     @Transactional
-    public WalkDiaryDetailResponseDto createWalkDiary(WalkDiaryCreateRequestDto walkDiaryCreateRequestDto, String username) {
+    public WalkDiaryDetailResponseDto createWalkDiary(WalkDiaryCreateRequestDto walkDiaryCreateRequestDto, LocalDate date, String username) throws IOException {
         log.info("=== 산책 일지 작성 시작 : username={} ===", username);
 
         // 작성자 조회
@@ -87,11 +96,11 @@ public class WalkDiaryService {
 
         // WalkDiary entity 생성
         WalkDiary walkDiary = WalkDiary.builder()
-                .date(walkDiaryCreateRequestDto.getDate())
-                .walkDiaryWeather(walkDiaryCreateRequestDto.getWalkDiaryWeather())
-                .beginTime(walkDiaryCreateRequestDto.getBeginTime())
-                .endTime(walkDiaryCreateRequestDto.getEndTime())
-                .walkDiaryEmotion(walkDiaryCreateRequestDto.getWalkDiaryEmotion())
+                .date(date)
+                .walkDiaryWeather(WalkDiaryWeather.valueOf(walkDiaryCreateRequestDto.getWalkDiaryWeather()))
+                .beginTime(LocalTime.parse(walkDiaryCreateRequestDto.getBeginTime()))
+                .endTime(LocalTime.parse(walkDiaryCreateRequestDto.getEndTime()))
+                .walkDiaryEmotion(WalkDiaryEmotion.valueOf(walkDiaryCreateRequestDto.getWalkDiaryEmotion()))
                 .content(walkDiaryCreateRequestDto.getContent())
                 .user(user)
                 .build();
@@ -102,20 +111,31 @@ public class WalkDiaryService {
         // 이미지 저장
         List<ImageResponseDto> images = new ArrayList<>();
         if (walkDiaryCreateRequestDto.getImages() != null && !walkDiaryCreateRequestDto.getImages().isEmpty()) {
-            List<Image> imageEntities = walkDiaryCreateRequestDto.getImages().stream().map(imageRequestDto -> {
+            Files.createDirectories(Paths.get("uploads/")); // 폴더 없을 경우 생성
+            List<Image> imageEntities = new ArrayList<>();
+
+            for (MultipartFile file : walkDiaryCreateRequestDto.getImages()) {
                 String uuid = UUID.randomUUID().toString();
-                return Image.builder()
+                String filename = uuid + "_" + file.getOriginalFilename();
+                Path path = Paths.get("uploads/", filename);
+                Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+                String fileUrl = "/uploads/" + filename;
+
+                Image image = Image.builder()
                         .uuid(uuid)
-                        .filePath(imageRequestDto.getFilePath())
-                        .fileSize(imageRequestDto.getFileSize())
+                        .filePath(fileUrl)
+                        .fileSize(String.valueOf(file.getSize()))
                         .postsId(savedWalkDiary.getId())
                         .usersId(user)
                         .tableTypeId(tableType)
                         .build();
-            }).toList();
-            imageRepository.saveAll(imageEntities);
+                imageEntities.add(image);
 
-            images = imageEntities.stream().map(ImageResponseDto::from).toList();
+            }
+                imageRepository.saveAll(imageEntities);
+                images = imageEntities.stream().map(img -> ImageResponseDto.from(img, baseUrl)) // 여기서 baseUrl 전달
+                        .toList();
         }
 
         log.info("산책 일지 작성 완료: id={}, title={}", savedWalkDiary.getId(), savedWalkDiary.getContent());
@@ -133,20 +153,20 @@ public class WalkDiaryService {
      * @return
      */
     @Transactional
-    public WalkDiaryDetailResponseDto getWalkDiaryById(LocalDate date, String username) {
-        log.info("산책 일지 상세 조회 : username = {}, date = {}", username, date);
+    public WalkDiaryDetailResponseDto getWalkDiaryById(Long walkDiaryId, String username) {
+        log.info("산책 일지 상세 조회 : username = {}, date = {}", username, walkDiaryId);
 
         // 작성자 조회
         User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 입니다."));
 
         // 작성자 + 날짜로 산책 일지 찾기
-        WalkDiary walkDiary = walkDairyRepository.findByUserAndDate(user, date).orElseThrow(() -> {
-            log.warn("산책 일지 조회 실패 : username={}, date={}", username, date);
+        WalkDiary walkDiary = walkDairyRepository.findByIdAndUser(walkDiaryId, user.getUsername()).orElseThrow(() -> {
+            log.warn("산책 일지 조회 실패 : username={}, walkDiaryId={}", username, walkDiaryId);
             return new IllegalArgumentException("존재하지 않는 산책 일지입니다.");
         });
 
-        // 이미지 조회
-        List<ImageResponseDto> images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(ImageResponseDto::from).toList();
+        // 이미지 조회 + url 완성
+        List<ImageResponseDto> images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(img -> ImageResponseDto.from(img, baseUrl)).toList();
 
         log.info("산책 일지 조회 성공: content={}", walkDiary.getContent());
 
@@ -171,13 +191,16 @@ public class WalkDiaryService {
      * @return
      */
     @Transactional
-    public WalkDiaryDetailResponseDto updateWalkDiary(Long walkDiaryId, WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto, String username) {
+    public WalkDiaryDetailResponseDto updateWalkDiary(Long walkDiaryId, WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto, String username, List<MultipartFile> newImages) throws IOException {
+        // 기존 산책 일지 조회
         WalkDiary walkDiary = walkDairyRepository.findById(walkDiaryId).orElseThrow(() -> new IllegalArgumentException("산책 일지가 존재하지 않습니다."));
 
+        // 작성자 검증
         if (!walkDiary.getUser().getUsername().equals(username)) {
             throw new IllegalArgumentException("본인 산책 일지만 수정할 수 있습니다.");
         }
 
+        // 기존 산책 일지 내용 업데이트
         walkDiary.updateWalkDiary(
                 walkDiaryUpdateRequestDto.getWalkDiaryWeather(),
                 walkDiaryUpdateRequestDto.getBeginTime(),
@@ -186,34 +209,46 @@ public class WalkDiaryService {
                 walkDiaryUpdateRequestDto.getContent()
         );
 
-        // 이미지 수정
-        List<ImageResponseDto> images = new ArrayList<>();
-        if (walkDiaryUpdateRequestDto.getImages() != null && !walkDiaryUpdateRequestDto.getImages().isEmpty()) {
+        // 이미지 처리
+        List<ImageResponseDto> updatedImages = new ArrayList<>();
+
+        if (newImages != null && !newImages.isEmpty()) {
             User user = walkDiary.getUser();
-            TableType tableType = tableTypeRepository.findById(4L).orElseThrow(() -> new IllegalArgumentException("TableType가 존재하지않습니다."));
+            TableType tableType = tableTypeRepository.findById(4L)
+                    .orElseThrow(() -> new IllegalArgumentException("TableType가 존재하지 않습니다."));
 
-             List<Image> imageEntities = walkDiaryUpdateRequestDto.getImages().stream().map(imageRequestDto -> {
+            // 새 이미지 저장
+            List<Image> savedImages = new ArrayList<>();
+            for (MultipartFile file : newImages) {
+                String filePath = fileUploadService.saveFile(file); // 파일 저장 후 URL 반환
+                String uuid = UUID.randomUUID().toString();
 
-                 String uuid = UUID.randomUUID().toString();
-                 return Image.builder()
-                         .uuid(uuid)
-                         .filePath(imageRequestDto.getFilePath())
-                         .fileSize(imageRequestDto.getFileSize())
-                         .postsId(walkDiary.getId())
-                         .usersId(user)
-                         .tableTypeId(tableType)
-                         .build();
-             }).toList();
+                Image img = Image.builder()
+                        .uuid(uuid)
+                        .filePath(filePath)
+                        .fileSize(String.valueOf(file.getSize()))
+                        .postsId(walkDiary.getId())
+                        .usersId(user)
+                        .tableTypeId(tableType)
+                        .build();
 
-             imageRepository.saveAll(imageEntities);
+                savedImages.add(img);
+            }
 
-             images = imageEntities.stream().map(ImageResponseDto::from).toList();
+            imageRepository.saveAll(savedImages);
+
+            updatedImages = savedImages.stream()
+                    .map(img -> ImageResponseDto.from(img, baseUrl))
+                    .toList();
         } else {
-            // 기존 이미지 조회만
-            images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(ImageResponseDto::from).toList();
+            // 기존 이미지 유지
+            updatedImages = imageRepository.findByPostsId(walkDiary.getId())
+                    .stream()
+                    .map(img -> ImageResponseDto.from(img, baseUrl))
+                    .toList();
         }
 
-        return WalkDiaryDetailResponseDto.from(walkDiary, images);
+        return WalkDiaryDetailResponseDto.from(walkDiary, updatedImages);
     }
 
     /**

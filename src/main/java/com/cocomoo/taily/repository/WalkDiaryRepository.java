@@ -32,5 +32,7 @@ public interface WalkDiaryRepository extends JpaRepository<WalkDiary, Long> {
 
     boolean existsByUserAndDate(User user, LocalDate date);
 
-    Optional<WalkDiary> findByUserAndDate(User user, LocalDate date);
+    @Query("SELECT w FROM WalkDiary w JOIN FETCH w.user WHERE w.id = :id AND w.user.username = :username")
+    Optional<WalkDiary> findByIdAndUser(@Param("id") Long walkDiaryId,
+                                        @Param("username") String username);
 }

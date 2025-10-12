@@ -3,7 +3,6 @@ package com.cocomoo.taily.dto.walkDiary;
 import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.entity.WalkDiaryEmotion;
 import com.cocomoo.taily.entity.WalkDiaryWeather;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,9 +22,7 @@ import java.util.List;
 @Builder
 public class WalkDiaryUpdateRequestDto {
     private WalkDiaryWeather walkDiaryWeather;
-    @JsonFormat(pattern = "HH:mm")
     private LocalTime beginTime;
-    @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
     private WalkDiaryEmotion walkDiaryEmotion;
     private String content;
