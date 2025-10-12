@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/feeds")
+@RequestMapping("/api/petstory/feed")
 @RequiredArgsConstructor
 public class FeedController {
 
