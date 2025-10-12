@@ -23,9 +23,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -269,6 +267,11 @@ public class WalkDiaryService {
         walkDairyRepository.delete(walkDiary);
     }
 
+    /**
+     * 산책 일지 월별 통계
+     * @param username
+     * @return
+     */
     public WalkDiaryStatsResponseDto getMonthlyStats(String username) {
         // 작성자 조회
         User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. "));
@@ -293,16 +296,45 @@ public class WalkDiaryService {
                 d.getDate(),
                 Duration.between(d.getBeginTime(), d.getEndTime()).toMinutes()
         )).toList();
+        // 시간별 산책 시간 (0~23시)
+        Map<Integer, Long> hourlyMap = new HashMap<>();
+        for (int i = 0; i < 24; i++) {
+            hourlyMap.put(i, 0L);
+        }
+
+        for (WalkDiary d : walkDiaries) {
+            LocalTime begin = d.getBeginTime();
+            LocalTime end = d.getEndTime();
+
+            int startHour = begin.getHour();
+            int endHour = end.getHour();
+
+            for (int h = startHour; h <= endHour; h++) {
+                long minutesInHour = Math.min(60, Duration.between(
+                        LocalTime.of(h, 0),
+                        h == endHour ? end : LocalTime.of(h + 1, 0)
+                ).toMinutes());
+
+                hourlyMap.put(h, hourlyMap.get(h) + minutesInHour);
+            }
+        }
+
+        List<WalkDiaryStatsResponseDto.HourlyStat> hourlyStats = hourlyMap.entrySet().stream()
+                .map(e -> new WalkDiaryStatsResponseDto.HourlyStat(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparingInt(WalkDiaryStatsResponseDto.HourlyStat::getHour))
+                .toList();
+
         // 알림 문구
         String reminderMessage = createReminderMessage(walkDiaries);
 
-        return new WalkDiaryStatsResponseDto(
-                totalWalks,
-                avgMinutes,
-                streakDays,
-                dailyStats,
-                reminderMessage
-        );
+        return WalkDiaryStatsResponseDto.builder()
+                .totalWalks(totalWalks)
+                .avgDurationMinutes(avgMinutes)
+                .streakDays(streakDays)
+                .dailyStat(dailyStats)
+                .hourlyStat(hourlyStats)
+                .reminderMessage(reminderMessage)
+                .build();
     }
 
     // 통계 도와주는 메서드 - 추후 entity로 이동
@@ -323,15 +355,38 @@ public class WalkDiaryService {
     }
 
     private String createReminderMessage(List<WalkDiary> diaries) {
-        LocalDate lastDate = diaries.stream()
-                .map(WalkDiary::getDate)
-                .max(LocalDate::compareTo)
-                .orElse(LocalDate.now());
-
-        if (lastDate.isBefore(LocalDate.now().minusDays(7))) {
-            return "이번 주는 아직 산책을 안했어요 😢";
+        if (diaries == null || diaries.isEmpty()) {
+            return "이번 달에는 아직 산책 기록이 없어요 🐾";
         }
-        return "저번 주보다 산책 시간이 더 늘었어요! 👏";
+
+        LocalDate now = LocalDate.now();
+        // 이번 주 월요일 계산
+        LocalDate startOfThisWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
+        // 저번 주 월요일 계산
+        LocalDate startOfLastWeek = startOfThisWeek.minusWeeks(1);
+        LocalDate endOfLastWeek = startOfThisWeek.minusDays(1);
+
+        // 이번 주 총 산책 시간
+        long thisWeekMinutes = diaries.stream()
+                .filter(d -> !d.getDate().isBefore(startOfThisWeek)) // startOfThisWeek ~ now
+                .mapToLong(d -> Duration.between(d.getBeginTime(), d.getEndTime()).toMinutes())
+                .sum();
+
+        // 저번 주 총 산책 시간
+        long lastWeekMinutes = diaries.stream()
+                .filter(d -> !d.getDate().isBefore(startOfLastWeek) && !d.getDate().isAfter(endOfLastWeek))
+                .mapToLong(d -> Duration.between(d.getBeginTime(), d.getEndTime()).toMinutes())
+                .sum();
+
+        if (thisWeekMinutes == 0) {
+            return "이번 주는 아직 산책을 안했어요 😢";
+        } else if (thisWeekMinutes > lastWeekMinutes) {
+            return "저번 주보다 산책 시간이 더 늘었어요! 👏";
+        } else if (thisWeekMinutes < lastWeekMinutes) {
+            return "이번 주 산책 시간이 조금 줄었네요 🐾 주말에 한 번 더 걸어볼까요?";
+        } else {
+            return "꾸준히 산책 중이에요! 👏";
+        }
     }
 
     public boolean existsByUserAndDate(User user, LocalDate date) {
