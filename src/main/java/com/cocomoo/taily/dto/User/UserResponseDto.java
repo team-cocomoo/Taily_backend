@@ -22,6 +22,7 @@ public class UserResponseDto {
     private String introduction; // 자기 소개
     private UserRole role; // 회원 종류
     private String state; // 회원 상태
+    private Long sanctionCount;
     private LocalDateTime createdAt; // 회원 생성일
     private LocalDateTime updatedAt; // 회원 정보 업데이트 날짜
     private TableType tableTypeId; // 테이블 아이디
@@ -37,6 +38,7 @@ public class UserResponseDto {
                 .address(user.getAddress())
                 .introduction(user.getIntroduction())
                 .role(user.getRole())
+                .sanctionCount(user.getSanctionCount())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .tableTypeId(user.getTableType())
