@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 public class TailyFriendService {
     private final TailyFriendRepository tailyFriendRepository;
     private final UserService userService;
+    private final LikeService likeService;
     private final TableTypeRepository tableTypeRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
@@ -165,7 +166,7 @@ public class TailyFriendService {
         TableType tableType = tableTypeRepository.findById(5L)
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
-        boolean liked = likeRepository.existsByPostsIdAndTableTypesIdAndUsersIdAndState(
+        boolean liked = likeRepository.existsByPostsIdAndTableTypeAndUserAndState(
                 post.getId(), tableType, user, true
         );
 
@@ -203,35 +204,18 @@ public class TailyFriendService {
     // 좋아요 상태 변화
     @Transactional
     public void toggleLike(Long postId, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
-
         TailyFriend post = tailyFriendRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
         TableType tableType = tableTypeRepository.findById(5L)
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
-        Like like = likeRepository.findByPostsIdAndTableTypesIdAndUsersIdAndState(
-                post.getId(), tableType, user, true
-        ).orElse(null);
+        boolean isLiked = likeService.toggleLike(postId, username, 5L); // 5L = TableType ID
 
-        if (like == null) {
-            // 좋아요 생성
-            likeRepository.save(
-                    Like.builder()
-                            .postsId(post.getId())
-                            .usersId(user)
-                            .tableTypesId(tableType)
-                            .state(true)
-                            .build()
-            );
-            post.increaseLike();
-        } else {
-            // 좋아요 취소
-            like.toggle();
-            post.decreaseLike();
-        }
+        if (isLiked) post.increaseLike();
+        else post.decreaseLike();
     }
 
     // 댓글 작성

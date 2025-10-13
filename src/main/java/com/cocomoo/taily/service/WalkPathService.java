@@ -31,6 +31,7 @@ public class WalkPathService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final UserService userService;
+    private final LikeService likeService;
     private final ImageRepository imageRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
@@ -48,18 +49,23 @@ public class WalkPathService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        TableType tableType = tableTypeRepository.findById(5L)
+        TableType tableType = tableTypeRepository.findById(6L)
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
         log.info("게시글 조회 성공: title={}", post.getTitle());
 
+        post.increaseView();
+
+        boolean liked = likeRepository.existsByPostsIdAndTableTypeAndUserAndState(
+                post.getId(), tableType, user, true
+        );
         // 게시글에 연결된 이미지 조회
         List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
                 .stream()
                 .map(ImageResponseDto::from)
                 .toList();
 
-        return WalkPathDetailResponseDto.from(post,false,images);
+        return WalkPathDetailResponseDto.from(post,liked,images);
     }
 
     //게시물 생성
@@ -143,7 +149,7 @@ public class WalkPathService {
         List<ImageResponseDto> images = new ArrayList<>();
         if (dto.getImages() != null && !dto.getImages().isEmpty()) {
             User user = post.getUser();
-            TableType tableType = tableTypeRepository.findById(5L)
+            TableType tableType = tableTypeRepository.findById(6L)
                     .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
             List<Image> imageEntities = dto.getImages().stream()
@@ -190,36 +196,20 @@ public class WalkPathService {
     }
 
     //좋아요 상태 변화
-    public void toggleLike(Long id, String username) {
+    public void toggleLike(Long postId, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        WalkPath post = walkPathRepository.findById(id)
+        WalkPath post = walkPathRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
-        TableType tableType = tableTypeRepository.findById(5L)
+        TableType tableType = tableTypeRepository.findById(6L)
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
-        Like like = likeRepository.findByPostsIdAndTableTypesIdAndUsersIdAndState(
-                post.getId(), tableType, user, true
-        ).orElse(null);
+        boolean isLiked = likeService.toggleLike(postId, username, 6L);
 
-        if (like == null) {
-            // 좋아요 생성
-            likeRepository.save(
-                    Like.builder()
-                            .postsId(post.getId())
-                            .usersId(user)
-                            .tableTypesId(tableType)
-                            .state(true)
-                            .build()
-            );
-            post.increaseLike();
-        } else {
-            // 좋아요 취소
-            like.toggle();
-            post.decreaseLike();
-        }
+        if (isLiked) post.increaseLike();
+        else post.decreaseLike();
     }
     //댓글 작성
     @Transactional

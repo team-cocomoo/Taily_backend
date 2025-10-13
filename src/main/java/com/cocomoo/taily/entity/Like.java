@@ -19,17 +19,18 @@ public class Like {
     private Long id;
 
     @Column(nullable = false)
-    private Boolean state;
+    private boolean state;
+
     @Column(name = "posts_id", nullable = false)
     private Long postsId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
-    private User usersId;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false)
-    private TableType tableTypesId;
+    private TableType tableType;
 
     public void toggle() {
         this.state = !this.state;

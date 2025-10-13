@@ -78,17 +78,6 @@ public class WalkPathController {
         return ResponseEntity.ok(ApiResponseDto.success(null, "게시글 삭제 성공"));
     }
 
-    // 좋아요 상태 변경
-    @PostMapping("/{id}/like")
-    public ResponseEntity<?> toggleLike(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        log.info("좋아요 상태 변경 , 작성자 {}", username);
-
-        walkPathService.toggleLike(id, username);
-        return ResponseEntity.ok(ApiResponseDto.success(null, "좋아요 상태 변경"));
-    }
-
     // 댓글 작성
     @PostMapping("/{id}/comments")
     public ResponseEntity<?> createComment(@PathVariable Long id,
