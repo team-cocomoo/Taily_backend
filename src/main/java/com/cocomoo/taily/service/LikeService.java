@@ -47,13 +47,17 @@ public class LikeService {
         return isLiked;
     }
 
+    public Long getLikeCount(Long postId, Long tableTypeId) {
+        TableType tableType = tableTypeRepository.findById(tableTypeId)
+                .orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
+        return likeRepository.countByPostsIdAndTableTypeAndState(postId, tableType, true);
+    }
+
     public boolean isLiked(Long postId, String username, Long tableTypeId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
-
         TableType tableType = tableTypeRepository.findById(tableTypeId)
                 .orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
-
         return likeRepository.findByPostsIdAndTableTypeAndUser(postId, tableType, user)
                 .map(Like::isState)
                 .orElse(false);

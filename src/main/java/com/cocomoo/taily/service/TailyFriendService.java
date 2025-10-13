@@ -1,5 +1,6 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.common.like.LikeResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.repository.TailyFriendRepository;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
@@ -203,20 +204,25 @@ public class TailyFriendService {
 
     // 좋아요 상태 변화
     @Transactional
-    public void toggleLike(Long postId, String username) {
+    public LikeResponseDto toggleLike(Long postId, String username) {
+        Long tableTypeId = 5L; // TailyFriend
+
+        // 1. Like 테이블 상태 토글
+        boolean liked = likeService.toggleLike(postId, username, tableTypeId);
+
+        // 2. 최신 좋아요 수 가져오기
+        Long likeCount = likeService.getLikeCount(postId, tableTypeId);
+
+        // 3. TailyFriend 엔티티에 반영
         TailyFriend post = tailyFriendRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+        post.refreshLikeCount(likeCount);
+        tailyFriendRepository.save(post);
 
-        TableType tableType = tableTypeRepository.findById(5L)
-                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
-
-        boolean isLiked = likeService.toggleLike(postId, username, 5L); // 5L = TableType ID
-
-        if (isLiked) post.increaseLike();
-        else post.decreaseLike();
+        // 4. DTO 반환
+        return new LikeResponseDto(liked, likeCount);
     }
+
 
     // 댓글 작성
     @Transactional

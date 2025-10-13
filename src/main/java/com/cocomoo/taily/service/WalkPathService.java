@@ -3,6 +3,7 @@ package com.cocomoo.taily.service;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
+import com.cocomoo.taily.dto.common.like.LikeResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathCreateRequestDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathDetailResponseDto;
@@ -196,21 +197,26 @@ public class WalkPathService {
     }
 
     //좋아요 상태 변화
-    public void toggleLike(Long postId, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+    @Transactional
+    public LikeResponseDto toggleLike(Long postId, String username) {
+        Long tableTypeId = 6L; // TailyFriend
 
+        // 1. Like 테이블 상태 토글
+        boolean liked = likeService.toggleLike(postId, username, tableTypeId);
+
+        // 2. 최신 좋아요 수 가져오기
+        Long likeCount = likeService.getLikeCount(postId, tableTypeId);
+
+        // 3. TailyFriend 엔티티에 반영
         WalkPath post = walkPathRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+        post.refreshLikeCount(likeCount);
+        walkPathRepository.save(post);
 
-        TableType tableType = tableTypeRepository.findById(6L)
-                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
-
-        boolean isLiked = likeService.toggleLike(postId, username, 6L);
-
-        if (isLiked) post.increaseLike();
-        else post.decreaseLike();
+        // 4. DTO 반환
+        return new LikeResponseDto(liked, likeCount);
     }
+
     //댓글 작성
     @Transactional
     public CommentResponseDto createComment(Long id, String username, CommentCreateRequestDto dto) {

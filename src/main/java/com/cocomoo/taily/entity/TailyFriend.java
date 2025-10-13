@@ -86,14 +86,8 @@ public class TailyFriend {
         this.view = this.view + 1;
     }
 
-    public void increaseLike() {
-        this.likeCount = this.likeCount + 1;
-    }
-
-    public void decreaseLike() {
-        if (this.likeCount > 0) {
-            this.likeCount = this.likeCount - 1;
-        }
+    public void refreshLikeCount(long count) {
+        this.likeCount = count;
     }
 
 }
