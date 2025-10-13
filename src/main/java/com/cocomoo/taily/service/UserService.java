@@ -1,6 +1,8 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.*;
+import com.cocomoo.taily.dto.admin.AdminUserResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserRole;
@@ -9,6 +11,7 @@ import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -218,6 +221,7 @@ public class UserService {
         return UserProfileResponseDto.from(user);
     }
 
+    // 관리자 로그인
     public User findAdminByUsername(String username) {
         log.info("관리자 조회: username={}", username);
 
@@ -231,6 +235,21 @@ public class UserService {
         }
         return user;
     }
+
+    // 관리자가 하는 회원 정보 조회
+    @Transactional
+    public AdminUserResponseDto findUserInfoById(Long id) {
+        log.info("관리자 조회: id={}", id);
+        User user = userRepository.findById(id).orElseThrow(() -> {
+            log.error("관리자 조회 실패: id={}", id);
+            return new IllegalArgumentException("존재하지 않는 관리자 계정입니다.");
+        });
+
+        log.info("산책 일지 상세 조회 성공: userId={}", user.getId());
+
+        return AdminUserResponseDto.from(user);
+    }
+
 
 //    public UserProfileResponseDto updateMyProfile(String username, UserUpdateRequestDto requestDto) {
 //    }

@@ -117,8 +117,9 @@ public class WalkPathController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        List<CommentResponseDto> comments = walkPathService.getCommentsPage(id, page-1, size);
-        return ResponseEntity.ok(ApiResponseDto.success(comments, "댓글 목록 조회 성공"));
+        // page - 1 → 0 기반으로 Service에 전달
+        Map<String, Object> response = walkPathService.getCommentsPage(id, page - 1, size);
+        return ResponseEntity.ok(ApiResponseDto.success(response, "댓글 목록 조회 성공"));
     }
 
     // 댓글 수정

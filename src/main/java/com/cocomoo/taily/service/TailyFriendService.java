@@ -1,5 +1,6 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.common.comment.CommentPageResponseDto;
 import com.cocomoo.taily.dto.common.like.LikeResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.repository.TailyFriendRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -256,16 +258,22 @@ public class TailyFriendService {
     }
 
     // 댓글 조회
-    public List<CommentResponseDto> getCommentsPage(Long postId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size); // page: 0부터 시작
-        Page<Comment> parentComments = commentRepository.findByPostsIdAndParentCommentsIdIsNull(postId, pageable);
+    public Map<String, Object> getCommentsPage(Long postId, int page, int size) {
+        Page<Comment> parentComments = commentRepository.findByPostsIdAndParentCommentsIdIsNullWithUser(postId, PageRequest.of(page, size));
+        List<Comment> allComments = commentRepository.findByPostsIdWithUser(postId);
 
-        List<Comment> allComments = commentRepository.findByPostsId(postId); // 전체 댓글 (대댓글 포함)
-
-        return parentComments.getContent().stream()
+        List<CommentResponseDto> comments = parentComments.getContent().stream()
                 .map(root -> CommentResponseDto.fromWithReplies(root, allComments))
                 .collect(Collectors.toList());
+
+        Map<String, Object> result = Map.of(
+                "content", comments,
+                "page", page + 1,                 // 프론트에서는 1부터 시작
+                "totalPages", parentComments.getTotalPages()
+        );
+        return result;
     }
+
 
     // 댓글 수정
     @Transactional
