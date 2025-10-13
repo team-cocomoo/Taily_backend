@@ -2,11 +2,15 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
+import com.cocomoo.taily.dto.common.comment.CommentPageResponseDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.*;
+import com.cocomoo.taily.entity.Comment;
 import com.cocomoo.taily.service.TailyFriendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/taily-friends")
@@ -118,9 +123,11 @@ public class TailyFriendController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        List<CommentResponseDto> comments = tailyFriendService.getCommentsPage(id, page-1, size);
-        return ResponseEntity.ok(ApiResponseDto.success(comments, "댓글 목록 조회 성공"));
+        // page - 1 → 0 기반으로 Service에 전달
+        Map<String, Object> response = tailyFriendService.getCommentsPage(id, page - 1, size);
+        return ResponseEntity.ok(ApiResponseDto.success(response, "댓글 목록 조회 성공"));
     }
+
 
     // 댓글 수정
     @PatchMapping("/{id}/comments/{commentId}")

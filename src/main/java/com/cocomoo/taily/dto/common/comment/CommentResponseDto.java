@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class CommentResponseDto {
     private Long id;
     private String content;
-    private String username;
+    private String nickname;
     private LocalDateTime createdAt;
     private List<CommentResponseDto> replies;
 
@@ -28,7 +28,7 @@ public class CommentResponseDto {
         return CommentResponseDto.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
-                .username(comment.getUsersId().getUsername())
+                .nickname(comment.getUsersId().getNickname())
                 .createdAt(comment.getCreatedAt())
                 .replies(new ArrayList<>())
                 .build();
@@ -43,7 +43,7 @@ public class CommentResponseDto {
         return CommentResponseDto.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
-                .username(comment.getUsersId().getUsername())
+                .nickname(comment.getUsersId().getNickname())
                 .createdAt(comment.getCreatedAt())
                 .replies(childReplies)
                 .build();
