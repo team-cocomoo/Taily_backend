@@ -1,4 +1,3 @@
-/*
 package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
@@ -89,4 +88,3 @@ public class ChatRoomController {
         log.info("WebSocket 메시지 전송: {}", messageCreateRequestDto.getContent());
     }
 }
-*/

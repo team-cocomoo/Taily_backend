@@ -1,5 +1,6 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.common.like.LikeResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.repository.TailyFriendRepository;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class TailyFriendService {
     private final TailyFriendRepository tailyFriendRepository;
     private final UserService userService;
+    private final LikeService likeService;
     private final TableTypeRepository tableTypeRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
@@ -165,7 +167,7 @@ public class TailyFriendService {
         TableType tableType = tableTypeRepository.findById(5L)
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
-        boolean liked = likeRepository.existsByPostsIdAndTableTypesIdAndUsersIdAndState(
+        boolean liked = likeRepository.existsByPostsIdAndTableTypeAndUserAndState(
                 post.getId(), tableType, user, true
         );
 
@@ -202,37 +204,25 @@ public class TailyFriendService {
 
     // 좋아요 상태 변화
     @Transactional
-    public void toggleLike(Long postId, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+    public LikeResponseDto toggleLike(Long postId, String username) {
+        Long tableTypeId = 5L; // TailyFriend
 
+        // 1. Like 테이블 상태 토글
+        boolean liked = likeService.toggleLike(postId, username, tableTypeId);
+
+        // 2. 최신 좋아요 수 가져오기
+        Long likeCount = likeService.getLikeCount(postId, tableTypeId);
+
+        // 3. TailyFriend 엔티티에 반영
         TailyFriend post = tailyFriendRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+        post.refreshLikeCount(likeCount);
+        tailyFriendRepository.save(post);
 
-        TableType tableType = tableTypeRepository.findById(5L)
-                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
-
-        Like like = likeRepository.findByPostsIdAndTableTypesIdAndUsersIdAndState(
-                post.getId(), tableType, user, true
-        ).orElse(null);
-
-        if (like == null) {
-            // 좋아요 생성
-            likeRepository.save(
-                    Like.builder()
-                            .postsId(post.getId())
-                            .usersId(user)
-                            .tableTypesId(tableType)
-                            .state(true)
-                            .build()
-            );
-            post.increaseLike();
-        } else {
-            // 좋아요 취소
-            like.toggle();
-            post.decreaseLike();
-        }
+        // 4. DTO 반환
+        return new LikeResponseDto(liked, likeCount);
     }
+
 
     // 댓글 작성
     @Transactional
