@@ -1,61 +1,46 @@
 package com.cocomoo.taily.controller;
 
-import com.cocomoo.taily.entity.Feed;
+import com.cocomoo.taily.dto.petstory.FeedRequestDto;
+import com.cocomoo.taily.dto.petstory.FeedResponseDto;
 import com.cocomoo.taily.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/petstory/feed")
-
+@RequestMapping("/api/feeds")
 @RequiredArgsConstructor
 public class FeedController {
 
     private final FeedService feedService;
 
     @PostMapping
-    public ResponseEntity<Feed> createFeed(
-            @RequestParam Long userId,
-            @RequestParam String content,
-            @RequestParam(required = false) List<MultipartFile> images
+    public ResponseEntity<FeedResponseDto> createFeed(
+            @AuthenticationPrincipal UserDetails user,
+            @RequestPart("feed") FeedRequestDto dto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-        Feed feed = feedService.createFeed(userId, content, images);
-        return ResponseEntity.ok(feed);
+        dto.setImages(images);
+        Long userId = Long.parseLong(user.getUsername());
+        return ResponseEntity.ok(feedService.createFeed(userId, dto));
     }
 
-    @GetMapping("/{feedId}")
-    public ResponseEntity<Feed> getFeed(@PathVariable Long feedId) {
-        Feed feed = feedService.getFeed(feedId);
-        return ResponseEntity.ok(feed);
+    @GetMapping("/{id}")
+    public ResponseEntity<FeedResponseDto> getFeed(@PathVariable Long id) {
+        return ResponseEntity.ok(feedService.getFeed(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<Feed>> getAllFeeds() {
-        List<Feed> feeds = feedService.getAllFeeds();
-        return ResponseEntity.ok(feeds);
-    }
-
-    @PutMapping("/{feedId}")
-    public ResponseEntity<Feed> updateFeed(
-            @PathVariable Long feedId,
-            @RequestParam Long userId,
-            @RequestParam String content,
-            @RequestParam(required = false) List<MultipartFile> images
-    ) {
-        Feed feed = feedService.updateFeed(feedId, userId, content, images);
-        return ResponseEntity.ok(feed);
-    }
-
-    @DeleteMapping("/{feedId}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFeed(
-            @PathVariable Long feedId,
-            @RequestParam Long userId
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user
     ) {
-        feedService.deleteFeed(feedId, userId);
-        return ResponseEntity.ok().build();
+        Long userId = Long.parseLong(user.getUsername());
+        feedService.deleteFeed(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }
