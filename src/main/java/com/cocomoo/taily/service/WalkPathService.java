@@ -62,7 +62,7 @@ public class WalkPathService {
                 post.getId(), tableType, user, true
         );
         // 게시글에 연결된 이미지 조회
-        List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+        List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
                 .stream()
                 .map(ImageResponseDto::from)
                 .toList();
@@ -101,7 +101,7 @@ public class WalkPathService {
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(savedWalkPath.getId())
                                 .user(author)
-                                .tableType(tableType)
+                                .tableTypesId(6L)
                                 .build();
                     })
                     .toList();
@@ -127,7 +127,7 @@ public class WalkPathService {
 
         return posts.stream()
                 .map(post -> {
-                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                    List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();
@@ -163,7 +163,7 @@ public class WalkPathService {
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(post.getId())
                                 .user(user)
-                                .tableType(tableType)
+                                .tableTypesId(6L)
                                 .build();
                     })
                     .toList();
@@ -175,7 +175,7 @@ public class WalkPathService {
                     .toList();
         } else {
             // 기존 이미지 조회만
-            images = imageRepository.findByPostsId(post.getId())
+            images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
                     .stream()
                     .map(ImageResponseDto::from)
                     .toList();
@@ -297,7 +297,7 @@ public class WalkPathService {
         Page<WalkPath> posts = walkPathRepository.searchByKeyword(keyword, PageRequest.of(page, size));
         return posts.stream()
                 .map(post -> {
-                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                    List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();

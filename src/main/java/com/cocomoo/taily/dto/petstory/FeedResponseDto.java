@@ -18,4 +18,5 @@ public class FeedResponseDto {
     private LocalDateTime createdAt; // 작성 시간
     private LocalDateTime updatedAt; // 수정 시간
     private List<String> images;  // 이미지 경로 리스트
+    private List<String> tags;    // 태그 이름 리스트
 }

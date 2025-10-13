@@ -45,18 +45,20 @@ public class User {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String introduction;
 
+    @Column(name = "sanction_count", nullable = false)
+    @Builder.Default
+    private Long sanctionCount = 0L;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserRole role = UserRole.ROLE_USER;
+    // (추후 구현)관리자 유저 객체 생성시 ROLE_ADMIN 되게 처리해야됨
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserState state = UserState.ACTIVE;
-
-    @Column(name = "sanction_count", nullable = false)
-    private Long sanctionCount;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

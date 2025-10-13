@@ -32,16 +32,19 @@ public class Image {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "posts_id", nullable = false)
-    private Long postsId;          // 연관된 Feed ID (유저 사진에서 사용시 0)
+    @Column(name = "posts_id")
+    private Long postsId;          // 연관된 Feed ID (유저 사진에서 사용시 null)
+    // 외래키 아님, 여러개 테이블과 연결되어 있다. 백엔드에서 직접 관련된 기능 id 저장
 
-    @Column(name = "users_id", nullable = false)
-    private Long usersId;          // 업로더 ID (글 작성에서 사용 시 0)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "users_id")
+    private User user;      // 업로더 ID (글 작성에서 사용 시 null)
+
 
     @Column(name = "table_types_id", nullable = false)
     private Long tableTypesId;
-    // 테이블 구분 (유저는 1, 펫은 2, 피드는 3, 산책 다이어리 4, 테일리 프렌드는 5, 산책 경로는 6, 이벤트는 7 사용)
-
+    // 외래키, 관계된 기능의 id 값이 들어감(유저는 1, 펫은 2, 피드는 3, 산책 다이어리 4, 테일리 프렌드는 5, 산책 경로는 6, 이벤트는 7 사용)
+    
     @PrePersist
     protected void prePersist() {
         if (createdAt == null) createdAt = LocalDateTime.now();
