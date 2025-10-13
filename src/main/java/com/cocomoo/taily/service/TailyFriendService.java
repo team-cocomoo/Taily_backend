@@ -61,8 +61,8 @@ public class TailyFriendService {
                                 .filePath(imgDto.getFilePath())
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(savedPost.getId())
-                                .usersId(user)
-                                .tableTypeId(tableType)
+                                .user(user)
+                                .tableType(tableType)
                                 .build();
                     })
                     .toList();
@@ -109,8 +109,8 @@ public class TailyFriendService {
                                 .filePath(imgDto.getFilePath())
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(post.getId())
-                                .usersId(user)
-                                .tableTypeId(tableType)
+                                .user(user)
+                                .tableType(tableType)
                                 .build();
                     })
                     .toList();

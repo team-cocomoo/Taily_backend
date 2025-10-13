@@ -12,6 +12,7 @@ import java.util.List;
 @Entity
 @Table(name = "feeds")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

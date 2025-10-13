@@ -1,3 +1,4 @@
+/*
 package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.service.FileStorageService;
@@ -6,9 +7,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+*/
 /**
  * 아마존 S3에 이미지 파일 저장시 사용
- */
+ *//*
+
 @Service
 @Profile("prod")
 @RequiredArgsConstructor
@@ -37,3 +40,4 @@ public class S3FileStorageService implements FileStorageService {
         amazonS3.deleteObject(bucketName, key);
     }
 }
+*/

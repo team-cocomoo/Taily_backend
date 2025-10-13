@@ -16,7 +16,7 @@ import java.nio.file.StandardCopyOption;
  * 로컬 서버에 파일 저장
  */
 @Service
-@Profile("dev")
+@Profile({"dev", "local"})
 public class LocalFileStorageService implements FileStorageService {
 
     private final String uploadDir = "C:/taily/uploads/images";

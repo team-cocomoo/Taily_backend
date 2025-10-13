@@ -1,5 +1,6 @@
 package com.cocomoo.taily.entity;
 
+import com.cocomoo.taily.security.jwt.JwtUtil;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

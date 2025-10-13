@@ -37,7 +37,7 @@ public class FeedServiceImpl implements FeedService {
         feedRepository.save(feed);
 
         if (images != null && !images.isEmpty()) {
-            imageService.uploadImages(userId, TableType.FEED, feed.getId(), images);
+            imageService.uploadImages(userId, 3L, feed.getId(), images);
         }
 
         return feed;
@@ -74,7 +74,7 @@ public class FeedServiceImpl implements FeedService {
         feedRepository.save(feed);
 
         if (images != null && !images.isEmpty()) {
-            imageService.uploadImages(userId, TableType.FEED, feed.getId(), images);
+            imageService.uploadImages(userId, 3L, feed.getId(), images);
         }
 
         return feed;
@@ -91,7 +91,7 @@ public class FeedServiceImpl implements FeedService {
         }
 
         // 이미지 삭제
-        List<Image> images = imageService.getImagesByTableAndPost(TableType.FEED, feedId);
+        List<Image> images = imageService.getImagesByTableAndPost(3L, feedId);
         for (Image img : images) {
             imageService.deleteImage(img.getId());
         }
