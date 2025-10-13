@@ -22,8 +22,8 @@ public class ReportResponseDto {
                 .id(report.getId())
                 .path(report.getPath())
                 .content(report.getContent())
-                .reporterId(report.getReporter_id().getId())
-                .reportedId(report.getReported_id().getId())
+                .reporterId(report.getReporter().getId())
+                .reportedId(report.getReported().getId())
                 .build();
     }
 }

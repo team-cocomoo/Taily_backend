@@ -10,7 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "report")
+@Table(name = "reports")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,20 +38,20 @@ public class Report {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false, foreignKey = @ForeignKey(name="fk_reports_reporter_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User reporter_id;
+    private User reporter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reported_id", nullable = false, foreignKey = @ForeignKey(name="fk_reports_reported_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User reported_id;
+    private User reported;
 
     // 작성자인지 확인
     public boolean isReporter(User user) {
-        return this.reporter_id.getId().equals(user.getId());
+        return this.reporter.getId().equals(user.getId());
     }
 
     // 신고 대상 확인
     public boolean isReported(User user) {
-        return this.reported_id.getId().equals(user.getId());
+        return this.reported.getId().equals(user.getId());
     }
 }
