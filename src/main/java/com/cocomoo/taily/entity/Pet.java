@@ -24,6 +24,10 @@ public class Pet {
     @Column(nullable = false, length = 50)
     private String name;
 
+    // 반려동물 나이
+    @Column(nullable = false)
+    private int age;
+
     // 성별 (ENUM → EnumType.STRING 매핑)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
