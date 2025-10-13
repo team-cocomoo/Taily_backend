@@ -101,7 +101,6 @@ public class WalkDiaryController {
 
         WalkDiaryDetailResponseDto walkDiary = walkDiaryService.getWalkDiaryById(id, username);
 
-        log.info("산책 일지 상세 조회 성공: id={}", walkDiary.getWalkDiaryId());
         log.info("산책 일지 상세 조회 성공: walkDairyId={}", walkDiary.getWalkDiaryId());
         return ResponseEntity.ok(ApiResponseDto.success(walkDiary, "산책 일지 상세 조회 성공"));
     }

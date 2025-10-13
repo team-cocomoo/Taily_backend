@@ -2,35 +2,41 @@ package com.cocomoo.taily.dto.admin;
 
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserState;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 관리자가 회원 정보 조회할 Dto
+ */
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class UserListResponseDto {
+public class AdminUserResponseDto {
     private Long id;
     private String username;
     private String nickname;
+    private String tel;
     private String email;
-    private LocalDateTime createdAt;
+    private String address;
+    private String introduction;
     private UserState state;
     private Long sanctionCount;
+    private LocalDateTime createdAt;
 
-    public static UserListResponseDto from(User user) {
-        return UserListResponseDto.builder()
+    public static AdminUserResponseDto from(User user) {
+        return AdminUserResponseDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .nickname(user.getNickname())
+                .tel(user.getTel())
                 .email(user.getEmail())
-                .createdAt(user.getCreatedAt())
+                .address(user.getAddress())
+                .introduction(user.getIntroduction())
                 .state(user.getState())
                 .sanctionCount(user.getSanctionCount())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
+
 }
