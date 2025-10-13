@@ -24,24 +24,34 @@ public class ReportService {
 
     // 신고하기
     @Transactional
-    public ReportResponseDto createReport(Long reporterId, ReportCreateRequestDto requestDto) {
-        User reporter = userRepository.findById(reporterId)
-                .orElseThrow(() -> new IllegalArgumentException("Reporter not found"));
-
+    public ReportResponseDto createReport(ReportCreateRequestDto requestDto) {
+        // publicId → User 조회
+        User reporter = userRepository.findByPublicId(requestDto.getReporterPublicId())
+                .orElseThrow(() -> new RuntimeException("신고자 없음"));
         User reported = userRepository.findById(requestDto.getReportedId())
-                .orElseThrow(() -> new IllegalArgumentException("Reported user not found"));
+                .orElseThrow(() -> new RuntimeException("신고 대상 없음"));
 
+        // 중복 신고 확인
+        boolean exists = reportRepository.existsByReporterAndReportedAndPath(
+                reporter, reported, requestDto.getPath()
+        );
+
+        if (exists) {
+            throw new IllegalArgumentException("이미 신고한 게시글입니다.");
+        }
+
+        // 신고 저장
         Report report = Report.builder()
-                .reporter_id(reporter)
-                .reported_id(reported)
+                .reporter(reporter)
+                .reported(reported)
                 .path(requestDto.getPath())
                 .content(requestDto.getContent())
                 .build();
-
         reportRepository.save(report);
 
         return ReportResponseDto.from(report);
     }
+
 
     // 모든 신고 조회
     public List<ReportResponseDto> getAllReports() {

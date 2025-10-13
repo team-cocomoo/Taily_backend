@@ -18,11 +18,12 @@ public class ReportController {
     // 신고 생성
     @PostMapping
     public ResponseEntity<ReportResponseDto> createReport(
-            @RequestParam Long reporterId,
             @RequestBody ReportCreateRequestDto requestDto) {
-        ReportResponseDto response = reportService.createReport(reporterId, requestDto);
+
+        ReportResponseDto response = reportService.createReport(requestDto);
         return ResponseEntity.ok(response);
     }
+
 
     // 모든 신고 조회
     @GetMapping
