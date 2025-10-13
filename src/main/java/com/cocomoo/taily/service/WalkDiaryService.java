@@ -125,8 +125,8 @@ public class WalkDiaryService {
                         .filePath(fileUrl)
                         .fileSize(String.valueOf(file.getSize()))
                         .postsId(savedWalkDiary.getId())
-                        .usersId(user)
-                        .tableTypeId(tableType)
+                        .user(user)
+                        .tableType(tableType)
                         .build();
                 imageEntities.add(image);
 
@@ -226,8 +226,8 @@ public class WalkDiaryService {
                         .filePath(filePath)
                         .fileSize(String.valueOf(file.getSize()))
                         .postsId(walkDiary.getId())
-                        .usersId(user)
-                        .tableTypeId(tableType)
+                        .user(user)
+                        .tableType(tableType)
                         .build();
 
                 savedImages.add(img);

@@ -92,8 +92,8 @@ public class WalkPathService {
                                 .filePath(imgDto.getFilePath())
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(savedWalkPath.getId())
-                                .usersId(author)
-                                .tableTypeId(tableType)
+                                .user(author)
+                                .tableType(tableType)
                                 .build();
                     })
                     .toList();
@@ -154,8 +154,8 @@ public class WalkPathService {
                                 .filePath(imgDto.getFilePath())
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(post.getId())
-                                .usersId(user)
-                                .tableTypeId(tableType)
+                                .user(user)
+                                .tableType(tableType)
                                 .build();
                     })
                     .toList();

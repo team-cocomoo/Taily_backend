@@ -2,7 +2,10 @@ package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.entity.Image;
 import com.cocomoo.taily.entity.TableType;
+import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.repository.ImageRepository;
+import com.cocomoo.taily.repository.TableTypeRepository;
+import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.service.FileStorageService;
 import com.cocomoo.taily.service.ImageService;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +22,17 @@ public class ImageServiceImpl implements ImageService {
 
     private final ImageRepository imageRepository;
     private final FileStorageService fileStorageService;
+    private final UserRepository userRepository;
+    private final TableTypeRepository tableTypeRepository;
 
     @Override
-    public List<Image> uploadImages(Long userId, TableType tableType, Long postsId, List<MultipartFile> files) {
+    public List<Image> uploadImages(Long userId, Long tableTypeId, Long postsId, List<MultipartFile> files) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + userId));
+
+        TableType tableType = tableTypeRepository.findById(tableTypeId)
+                .orElseThrow(() -> new IllegalArgumentException("TableType 없음: " + tableTypeId));
+
         List<Image> images = new ArrayList<>();
         if (files != null) {
             for (MultipartFile file : files) {
@@ -33,8 +44,8 @@ public class ImageServiceImpl implements ImageService {
                         .filePath(path)
                         .fileSize(String.valueOf(file.getSize()))
                         .postsId(postsId)
-                        .userId(userId)
-                        .tableTypeId(tableType)
+                        .user(user)
+                        .tableType(tableType)
                         .build();
 
                 imageRepository.save(image);
@@ -53,7 +64,9 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public List<Image> getImagesByTableAndPost(TableType tableType, Long postsId) {
-        return imageRepository.findByTableTypeIdAndPostsId(tableType, postsId);
+    public List<Image> getImagesByTableAndPost(Long tableTypeId, Long postsId) {
+        TableType tableType = tableTypeRepository.findById(tableTypeId)
+                .orElseThrow(() -> new IllegalArgumentException("TableType 없음: " + tableTypeId));
+        return imageRepository.findByTableTypeAndPostsId(tableType, postsId);
     }
 }
