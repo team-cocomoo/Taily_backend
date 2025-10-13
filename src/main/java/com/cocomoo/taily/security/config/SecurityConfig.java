@@ -135,14 +135,26 @@ public class SecurityConfig {
         // JWT를 사용하기 때문에 서버에 사용자 상태(세션)를 저장하지 않습니다.
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
+        // JsonLoginFilter 생성 (분기 처리)
+        // User 로그인 필터
+        JsonLoginFilter userLoginFilter = new JsonLoginFilter(
+                authenticationManager(authenticationConfiguration),
+                jwtUtil,
+                "/api/users/login"
+        );
+        http.addFilterBefore(userLoginFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // Admin 로그인 필터
+        JsonLoginFilter adminLoginFilter = new JsonLoginFilter(
+                authenticationManager(authenticationConfiguration),
+                jwtUtil,
+                "/api/admin/login"
+        );
+        http.addFilterBefore(adminLoginFilter, UsernamePasswordAuthenticationFilter.class);
+
         // JWTFilter를 LoginFilter 이전에 추가합니다.
         // 이 필터가 먼저 실행되어 요청 헤더의 JWT 토큰을 검증하고 인증 정보를 설정합니다.
         http.addFilterBefore(new JwtFilter(jwtUtil), JsonLoginFilter.class);
-
-        // Spring Security의 UsernamePasswordAuthenticationFilter 자리에 커스텀 JsonLoginFilter 추가합니다.
-        // 이 필터가 로그인 요청을 가로채서 로그인 검증 및 JWT 토큰을 생성하고 응답 헤더에 담아 보냅니다.
-        http.addFilterAt(new JsonLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil),
-                UsernamePasswordAuthenticationFilter.class);
 
         // 설정된 HttpSecurity 객체를 기반으로 SecurityFilterChain을 빌드하여 반환합니다.
         return http.build();
