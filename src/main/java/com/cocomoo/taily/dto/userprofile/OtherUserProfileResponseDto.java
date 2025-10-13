@@ -49,7 +49,7 @@ public class OtherUserProfileResponseDto {
                 .map(pet -> {
                     // 해당 반려동물의 이미지 찾기 (imageList에서 tableTypeId == 2 && postsId == pet.id 등 조건)
                     String petImageUrl = petImageList.stream()
-                            .filter(img -> img.getTableType().getId() == 2 && img.getPostsId().equals(pet.getId()))
+                            .filter(img -> img.getTableTypesId() == 2 && img.getPostsId().equals(pet.getId()))
                             .map(Image::getFilePath)
                             .findFirst()
                             .orElse(null);

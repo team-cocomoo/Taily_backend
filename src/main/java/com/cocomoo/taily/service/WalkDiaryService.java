@@ -126,7 +126,7 @@ public class WalkDiaryService {
                         .fileSize(String.valueOf(file.getSize()))
                         .postsId(savedWalkDiary.getId())
                         .user(user)
-                        .tableType(tableType)
+                        .tableTypesId(4L)
                         .build();
                 imageEntities.add(image);
 
@@ -164,7 +164,7 @@ public class WalkDiaryService {
         });
 
         // 이미지 조회 + url 완성
-        List<ImageResponseDto> images = imageRepository.findByPostsId(walkDiary.getId()).stream().map(img -> ImageResponseDto.from(img, baseUrl)).toList();
+        List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L).stream().map(img -> ImageResponseDto.from(img, baseUrl)).toList();
 
         log.info("산책 일지 조회 성공: content={}", walkDiary.getContent());
 
@@ -227,7 +227,7 @@ public class WalkDiaryService {
                         .fileSize(String.valueOf(file.getSize()))
                         .postsId(walkDiary.getId())
                         .user(user)
-                        .tableType(tableType)
+                        .tableTypesId(4L)
                         .build();
 
                 savedImages.add(img);
@@ -240,7 +240,7 @@ public class WalkDiaryService {
                     .toList();
         } else {
             // 기존 이미지 유지
-            updatedImages = imageRepository.findByPostsId(walkDiary.getId())
+            updatedImages = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L)
                     .stream()
                     .map(img -> ImageResponseDto.from(img, baseUrl))
                     .toList();

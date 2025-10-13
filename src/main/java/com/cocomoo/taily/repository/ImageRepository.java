@@ -14,22 +14,23 @@ import java.util.Optional;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image,Long> {
-    List<Image> findByPostsId(Long id);
 
-/*    @Query("SELECT i FROM Image i WHERE i.usersId = :user AND i.tableTypeId.id = 1")
-    Optional<Image> findProfileImageByUser(@Param("user") User user);*/
+    // 특정 사용자(User) 기준 모든 이미지 조회
+    List<Image> findByUser(User user);
 
-    // 사용자 기준 프로필 이미지 조회
-    Optional<Image> findByUserAndTableType_Id(User user, Long tableTypeId);
+    // 특정 사용자(User) 기준, 가장 최신의 단일 이미지 조회 (예: 프로필 이미지)
+    Optional<Image> findFirstByUserOrderByCreatedAtDesc(User user);
 
-    // Feed 이미지
-    @Query("SELECT i FROM Image i WHERE i.user.id = :userId AND i.tableType.id = 3")
-    List<Image> findFeedImagesByUserId(@Param("userId") Long userId);
+    // 특정 사용자의 특정 기능에 해당하는 모든 이미지 목록
+    @Query("SELECT i FROM Image i WHERE i.user.id = :userId AND i.tableTypesId = :tableTypesId")
+    // i.user.id : Image 엔티티의 user 필드안 id 속성 호출
+    // i.tableTypesId : Image 엔티티의 tableTypesId 필드 호출
+    List<Image> findByUserIdAndTableTypesId(@Param("userId") Long userId, @Param("tableTypesId") Long tableTypesId);
+    // user.id를 사용하기 위해서 JPQL로 작성
 
-    @Query("SELECT i FROM Image i WHERE i.user.id = :userId AND i.tableType.id = 2")
-    List<Image> findPetImagesByUserId(@Param("userId") Long userId);
+    // 특정 게시글(postsId)와 테이블 타입(tableTypesId)에 해당하는 모든 이미지 조회
+    List<Image> findByPostsIdAndTableTypesId(Long postsId, Long tableTypesId);
 
-    List<Image> findByTableTypeAndPostsId(TableType tableType, Long postsId);
-
-
+    // 특정 게시글과 테이블 타입에 해당하는 단일 이미지 조회 (Optional)
+    Optional<Image> findFirstByPostsIdAndTableTypesId(Long postsId, Long tableTypesId);
 }

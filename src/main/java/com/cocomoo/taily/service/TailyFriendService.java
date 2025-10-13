@@ -66,7 +66,7 @@ public class TailyFriendService {
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(savedPost.getId())
                                 .user(user)
-                                .tableType(tableType)
+                                .tableTypesId(5L)
                                 .build();
                     })
                     .toList();
@@ -114,7 +114,7 @@ public class TailyFriendService {
                                 .fileSize(imgDto.getFileSize())
                                 .postsId(post.getId())
                                 .user(user)
-                                .tableType(tableType)
+                                .tableTypesId(5L)
                                 .build();
                     })
                     .toList();
@@ -126,7 +126,7 @@ public class TailyFriendService {
                     .toList();
         } else {
             // 기존 이미지 조회만
-            images = imageRepository.findByPostsId(post.getId())
+            images = imageRepository.findByPostsIdAndTableTypesId(post.getId(),5L)
                     .stream()
                     .map(ImageResponseDto::from)
                     .toList();
@@ -174,7 +174,7 @@ public class TailyFriendService {
         );
 
         // 게시글에 연결된 이미지 조회
-        List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+        List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(),5L)
                 .stream()
                 .map(ImageResponseDto::from)
                 .toList();
@@ -190,7 +190,7 @@ public class TailyFriendService {
 
         List<TailyFriendListResponseDto> posts = postsPage.stream()
                 .map(post -> {
-                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                    List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(),5L)
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();
@@ -310,7 +310,7 @@ public class TailyFriendService {
         Page<TailyFriend> posts = tailyFriendRepository.searchByKeyword(keyword, PageRequest.of(page, size));
         return posts.stream()
                 .map(post -> {
-                    List<ImageResponseDto> images = imageRepository.findByPostsId(post.getId())
+                    List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(),5L)
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();

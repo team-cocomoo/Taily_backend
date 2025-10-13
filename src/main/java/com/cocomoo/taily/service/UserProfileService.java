@@ -67,9 +67,9 @@ public class UserProfileService {
         List<Feed> feeds = feedRepository.findByUserId(userId);
 
         // 피드 이미지 목록
-        List<Image> feedImages = imageRepository.findFeedImagesByUserId(userId);
+        List<Image> feedImages = imageRepository.findByUserIdAndTableTypesId(userId, 3L);
 
-        List<Image> petImages = imageRepository.findPetImagesByUserId(userId);
+        List<Image> petImages = imageRepository.findByUserIdAndTableTypesId(userId, 2L);
 
         // DTO 변환
         return OtherUserProfileResponseDto.from(

@@ -43,7 +43,7 @@ public class ChatService {
 
                     // 상대방 프로필 이미지 조회
                     String otherProfileImage = imageRepository
-                            .findByUserAndTableType_Id(otherUser, 1L)
+                            .findFirstByUserOrderByCreatedAtDesc(otherUser)
                             .map(Image::getFilePath)
                             .orElse(null);
 
@@ -68,9 +68,9 @@ public class ChatService {
         // 기존 로직 그대로 재사용
         MessageRoom existingRoom = messageRoomRepository.findByUsers(user1, user2).orElse(null);
         if (existingRoom != null) {
-            String user1Profile = imageRepository.findByUserAndTableType_Id(existingRoom.getUser1(), 1L)
+            String user1Profile = imageRepository.findFirstByUserOrderByCreatedAtDesc(existingRoom.getUser1())
                     .map(Image::getFilePath).orElse(null);
-            String user2Profile = imageRepository.findByUserAndTableType_Id(existingRoom.getUser2(), 1L)
+            String user2Profile = imageRepository.findFirstByUserOrderByCreatedAtDesc(existingRoom.getUser2())
                     .map(Image::getFilePath).orElse(null);
             return ChatRoomResponseDto.from(existingRoom, user1Profile, user2Profile);
         }
@@ -79,9 +79,9 @@ public class ChatService {
                 MessageRoom.builder().user1(user1).user2(user2).build()
         );
 
-        String user1Profile = imageRepository.findByUserAndTableType_Id(user1, 1L)
+        String user1Profile = imageRepository.findFirstByUserOrderByCreatedAtDesc(user1)
                 .map(Image::getFilePath).orElse(null);
-        String user2Profile = imageRepository.findByUserAndTableType_Id(user2, 1L)
+        String user2Profile = imageRepository.findFirstByUserOrderByCreatedAtDesc(user2)
                 .map(Image::getFilePath).orElse(null);
 
         return ChatRoomResponseDto.from(room, user1Profile, user2Profile);
