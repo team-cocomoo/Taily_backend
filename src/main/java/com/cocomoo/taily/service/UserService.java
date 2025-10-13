@@ -90,10 +90,6 @@ public class UserService {
         return UserResponseDto.from(user);
     }
 
-    /**
-     *
-     */
-
 
     /**
      * 4. 현재 로그인한 회원 정보 조회

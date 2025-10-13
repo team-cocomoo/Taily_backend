@@ -40,11 +40,11 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);  // ISO-8601 형식으로 출력
     ;
 
-    public JsonLoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    public JsonLoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil,String loginUrl) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         // 로그인 엔드포인트 설정
-        setFilterProcessesUrl("/api/users/login");
+        setFilterProcessesUrl(loginUrl);
         // 이 경로일 때 필터가 처리
     }
 

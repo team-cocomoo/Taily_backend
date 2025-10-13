@@ -26,34 +26,8 @@ public class AdminController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    // 로그인
-    @PostMapping("/login")
-    public ResponseEntity<?> adminLogin(@RequestBody AdminLoginRequestDto adminLoginRequestDto) {
-        log.info("관리자 로그인 요청: username={}", adminLoginRequestDto.getUsername());
+    // 로그인 : JsonLoginFilter에서 구현
 
-        User user = userService.findAdminByUsername(adminLoginRequestDto.getUsername());
-
-        if (!userService.validatePassword(adminLoginRequestDto.getUsername(), adminLoginRequestDto.getPassword())) {
-            log.warn("관리자 로그인 실패 - 비밀번호 불일치: {}", adminLoginRequestDto.getUsername());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponseDto.error("관리자 비밀번호 에러","비밀번호가 올바르지 않습니다."));
-        }
-
-        // 관리자 권한 확인
-        if (user.getRole() != UserRole.ROLE_ADMIN) {
-            log.warn("관리자 로그인 실패 - 권한 없음: {}", user.getUsername());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponseDto.error("관리자 권한 에러","관리자 계정이 아닙니다."));
-        }
-        // JWT 발급
-        String token = jwtUtil.createJwt(user, 1000L * 60 * 60);
-
-        // DTO 생성 후 반환
-        AdminLoginResponseDto response = AdminLoginResponseDto.from(user, token);
-
-        log.info("관리자 로그인 성공: {}", user.getUsername());
-        return ResponseEntity.ok(ApiResponseDto.success(response, "관리자 로그인 성공"));
-    }
 
     // 전체 회원 출력
     @GetMapping
