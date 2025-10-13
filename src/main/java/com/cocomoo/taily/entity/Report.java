@@ -24,6 +24,9 @@ public class Report {
     @Column(nullable = false, length = 300)
     private String path;
 
+    @Column(nullable = false, length = 500)
+    private String content;
+
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)
     private LocalDateTime createdAt;
