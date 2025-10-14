@@ -30,7 +30,7 @@ public class FeedController {
     ) {
         dto.setImages(images); // images가 null일 수도 있음
         Long userId = userDetails.getUserId();
-        return ResponseEntity.ok(feedService.createFeed(userId, dto));
+        return ResponseEntity.ok(feedService.registerFeed(userId, dto));
     }
 
     // Feed id를 기준으로 feed 객체 반환
