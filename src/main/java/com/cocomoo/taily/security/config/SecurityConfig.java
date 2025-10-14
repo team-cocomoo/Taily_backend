@@ -80,6 +80,7 @@ public class SecurityConfig {
         http.httpBasic(auth -> auth.disable());
 
         ///////////////////////인증 인가에 대한 설정(개발자가 주로 확인)//////////////////////
+        // !주의! 주소 중복 선언하면 오류 첫번째로 매칭된 rule만 적용 ###//
         http.authorizeHttpRequests(auth -> auth
                 // 비회원 가능 (permitAll)
                 .requestMatchers(
@@ -124,7 +125,11 @@ public class SecurityConfig {
 
                 // 유저와 관리자 모두 접근 가능 (ROLE_USER, ROLE_ADMIN)
                 .requestMatchers(
-                        "/api/faq/**" // faq
+                        "/api/faq/**", // faq
+                        "/api/notice/**", // 공지사항
+                        "/api/report/**", // 신고
+                        "/api/inquiry/**", // 1대1 문의
+                        "/api/event/**" // 이벤트
                 ).hasAnyRole("USER","ADMIN")
 
                 // 나머지 모든 요청은 인증 필요
@@ -182,7 +187,7 @@ public class SecurityConfig {
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
-        //이 부분을 추가하면 브라우저 콘솔창에 토큰 정보를 직접 확인할 있다
+        //이 부분을 추가하면 브라우저 콘솔창에 토큰 정보를 직접 확인할 수 있다
         config.addExposedHeader("Authorization");
 
         source.registerCorsConfiguration("/**", config);
