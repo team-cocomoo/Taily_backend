@@ -2,16 +2,14 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
-import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
-import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
-import com.cocomoo.taily.dto.myPage.MyPetProfileUpdateRequestDto;
-import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
+import com.cocomoo.taily.dto.myPage.*;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.MyPageService;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -132,6 +130,17 @@ public class MyPageController {
         myPageService.deleteMyPetProfile(id, username);
 
         return ResponseEntity.ok(ApiResponseDto.success(null, "내 반려동물 프로필 삭제 성공"));
+    }
+
+    @GetMapping("/mytaily-friends")
+    public ResponseEntity<?> getMyTailyFriends(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<MyTailyFriendListResponseDto> postsPage = myPageService.getMyTailyFriends(
+                SecurityContextHolder.getContext().getAuthentication().getName(), page, size);
+
+        return ResponseEntity.ok(ApiResponseDto.success(postsPage, "내가 작성한 게시글 조회 성공"));
     }
 
 }

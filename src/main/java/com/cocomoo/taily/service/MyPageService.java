@@ -1,16 +1,20 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
 import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
 import com.cocomoo.taily.dto.myPage.MyPetProfileUpdateRequestDto;
+import com.cocomoo.taily.dto.myPage.MyTailyFriendListResponseDto;
 import com.cocomoo.taily.entity.Pet;
 import com.cocomoo.taily.entity.TableType;
+import com.cocomoo.taily.entity.TailyFriend;
 import com.cocomoo.taily.entity.User;
-import com.cocomoo.taily.repository.MyPetRepository;
-import com.cocomoo.taily.repository.TableTypeRepository;
-import com.cocomoo.taily.repository.UserRepository;
+import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +29,7 @@ public class MyPageService {
     public final MyPetRepository myPetRepository;
     public final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
+    private final TailyFriendRepository tailyFriendRepository;
 
     @Transactional
     public MyPetProfileResponseDto createMyPetProfile(MyPetProfileCreateRequestDto myPetProfileCreateRequestDto, String username) {
@@ -91,5 +96,15 @@ public class MyPageService {
             throw new IllegalArgumentException("본인 반려동물 프로필만 삭제할 수 있습니다.");
         }
         myPetRepository.delete(pet);
+    }
+
+    public Page<MyTailyFriendListResponseDto> getMyTailyFriends(String username, int page, int size) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<TailyFriend> postsPage = tailyFriendRepository.findByUserId(user.getId(), pageable);
+
+        return postsPage.map(MyTailyFriendListResponseDto::from); // DTO로 변환
     }
 }
