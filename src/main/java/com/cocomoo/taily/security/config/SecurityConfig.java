@@ -119,7 +119,8 @@ public class SecurityConfig {
                 // 관리자만 접근 가능 (ROLE_ADMIN)
                 .requestMatchers(
                         "/api/admin/**",              // 관리자 기능 전체
-                        "/api/manage/**"              // (회원관리, 신고처리, 공지, 이벤트)
+                        "/api/manage/**",              // (회원관리, 신고처리, 공지, 이벤트)
+                        "/api/faq/**"                   // faq
                 ).hasRole("ADMIN")
 
                 // 나머지 모든 요청은 인증 필요
