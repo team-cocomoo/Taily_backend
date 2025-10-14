@@ -26,7 +26,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 피드와 이미지를 저장하고 이미지 URL 가져오기 테스트
+ * BDD 기반 테스트
+ * 피드와 이미지를 저장하고 피드와 이미지 URL 정보 가져오기
  */
 @Slf4j
 @SpringBootTest
@@ -64,31 +65,19 @@ public class FeedServiceGetFeedTest {
                 .build();
 
         userRepository.save(user);
-        log.info("저장된 userId = " + user.getId());
-        log.info("저장된 username = " + user.getUsername());
+        log.info("테스트용 사용자 생성 완료 = " + user.getId() + user.getUsername());
 
         userId = user.getId();
     }
 
     /**
-     * 피드 등록 후 피드와 이미지 조회
-     * BDD
-     * Given : 사용자가 존재하고
-     * And : 이미지 2개가 준비되어 있을 때
-     * When : 사용자가 피드를 업로드 하면
-     * Then : 피드 내용이 저장되고
-     * And : 이미지 2개의 URL이 반환된다.
-     * And : 태그도 저장된다.
+     * 피드 등록 후 피드와 이미지 조회 BDD 테스트
      * @throws IOException
      */
     @Test
     void registerFeedandImageUploadAndGetImage() throws IOException {
-        /** given : Mock 이미지 2개 생성
+        /** given : Mock 이미지 2개 준비
         테스트에 필요한 데이터를 준비하는 단계
-        MockMultipartFile : 테스트용으로 가짜 이미지 파일 생성
-        이미지 업로드 로직 테스트에 필요
-        FeedRequestDto : Feed 등록에 필요한 정보 객체
-        피드 내용(content), 이미지(images), 태그(tags), 테이블 타입(tableTypeId) 포함
         **/
         MockMultipartFile img1 = new MockMultipartFile(
                 "images",
@@ -104,26 +93,35 @@ public class FeedServiceGetFeedTest {
         );
 
         FeedRequestDto dto = FeedRequestDto.builder()
-                .content("테스트 피드 내용입니다.")
+                .content("BDD 기반 피드 업로드 테스트")
                 .images(List.of(img1, img2))
-                .tags(List.of("dog", "cute"))
+                .tags(List.of("dog", "smile"))
                 .tableTypeId(3L)
                 .build();
 
-        /** when : 실제 메서드 호출
-         registerFeed(userId, dto)
-         사용자 ID와 DTO를 기반으로 피드 등록
-         이미지 업로드 및 태그 처리까지 수행
-         최종적으로 FeedResponseDto 반환
-        */
-        FeedResponseDto registedFeed = feedService.registerFeed(userId, dto);
+        // When : 피드 등록 및 DB 저장
+        FeedResponseDto savedFeed = feedService.registerFeed(userId, dto);
 
-        // And: getFeed() 호출하여 피드와 연결된 모든 이미지 가져오기
-        FeedResponseDto fetchedFeed = feedService.getFeed(registedFeed.getId());
+        // Then : 등록된 피드가 존재하는지 확인
+        assertThat(savedFeed).isNotNull();
+        assertThat(savedFeed.getId()).isNotNull();
+        assertThat(savedFeed.getContent()).isEqualTo("BDD 기반 피드 업로드 테스트");
 
-        // Then : 피드 정보와 이미지 확인
+        log.info("피드 등록 완료: feedId={}, content={}", savedFeed.getId(), savedFeed.getContent());
+
+        // When : 저장된 피드를 다시 조회
+        FeedResponseDto fetchedFeed = feedService.getFeed(savedFeed.getId());
+
+        // Then : 이미지 및 태그 확인
+        assertThat(fetchedFeed).isNotNull();
+        assertThat(fetchedFeed.getImages()).hasSize(2);
+        assertThat(fetchedFeed.getImages().get(0)).contains("/uploads/feed/");
+        assertThat(fetchedFeed.getImages().get(1)).contains("/uploads/feed/");
+        assertThat(fetchedFeed.getTags()).containsExactlyInAnyOrder("dog", "smile");
 
         // 로그 출력
-
+        log.info("조회된 피드 ID: {}", fetchedFeed.getId());
+        log.info("조회된 이미지 경로: {}", fetchedFeed.getImages());
+        log.info("조회된 태그: {}", fetchedFeed.getTags());
     }
 }
