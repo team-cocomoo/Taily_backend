@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -44,4 +45,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE (:keyword IS NULL OR u.username LIKE %:keyword% OR u.nickname LIKE %:keyword% OR u.email LIKE %:keyword%) " +
             "ORDER BY u.createdAt DESC")
     Page<User> findAndSearchUser(@Param("keyword") String keyword, Pageable pageable);
+
+    List<User> findByUsernameContainingIgnoreCase(String nickname);
 }
