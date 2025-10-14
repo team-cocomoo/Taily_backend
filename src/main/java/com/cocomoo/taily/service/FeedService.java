@@ -41,7 +41,7 @@ public class FeedService {
      * @return
      */
     @Transactional
-    public FeedResponseDto createFeed(Long userId, FeedRequestDto dto) {
+    public FeedResponseDto registerFeed(Long userId, FeedRequestDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
@@ -206,6 +206,13 @@ public class FeedService {
                 .map(tagList -> tagList.getTag().getName())
                 .toList();
 
+        // 이미지 경로 리스트: 공통 테이블 구조를 고려하여 repository에서 직접 조회
+        List<String> imagePaths = imageRepository
+                .findByPostsIdAndTableTypesId(feed.getId(),3L) // 3L은 feed 테이블 타입
+                .stream()
+                .map(Image::getFilePath)
+                .toList();
+
         return FeedResponseDto.builder()
                 .id(feed.getId())
                 .userId(feed.getUser().getId())
@@ -214,7 +221,7 @@ public class FeedService {
                 .likeCount(feed.getLikeCount())
                 .createdAt(feed.getCreatedAt())
                 .updatedAt(feed.getUpdatedAt())
-                .images(feed.getImages().stream().map(Image::getFilePath).toList())
+                .images(imagePaths)
                 .tags(tagNames)
                 .build();
     }
