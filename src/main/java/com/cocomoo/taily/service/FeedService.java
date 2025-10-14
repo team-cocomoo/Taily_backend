@@ -21,6 +21,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class FeedService {
 
     private final FeedRepository feedRepository;
@@ -116,6 +117,7 @@ public class FeedService {
      * @param files
      * @throws IOException
      */
+    @Transactional
     private void saveFilesWithLog(List<String> savedFileNames, List<MultipartFile> files) throws IOException {
         if (files == null || files.isEmpty()) return;
 
@@ -143,10 +145,8 @@ public class FeedService {
             }
         }
     }
-
-
-
-    @Transactional(readOnly = true)
+    
+    // 피드 하나 반환
     public FeedResponseDto getFeed(Long feedId) {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new RuntimeException("피드 없음"));
@@ -159,6 +159,29 @@ public class FeedService {
         feed.getImages().addAll(images);
 
         return mapToDto(feed);
+    }
+
+    /**
+     * 전체 피드 조회 메서드
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public List<FeedResponseDto> getAllFeeds() {
+        // 최신순으로 전체 Feed 조회
+        List<Feed> feeds = feedRepository.findAllByOrderByCreatedAtDesc();
+
+        // 각 피드에 이미지와 태그 매핑
+        for (Feed feed : feeds) {
+            // 이미지 조회
+            List<Image> images = imageRepository.findByPostsIdAndTableTypesId(feed.getId(), 3L);
+            feed.getImages().clear();
+            feed.getImages().addAll(images);
+        }
+
+        // DTO 변환
+        return feeds.stream()
+                .map(this::mapToDto)
+                .toList();
     }
 
     @Transactional
@@ -176,6 +199,7 @@ public class FeedService {
         feedRepository.delete(feed);
     }
 
+    @Transactional
     // [] feed와 연결된 모든 TagList 객체를 가져와서 리스트로 만든다.
     private FeedResponseDto mapToDto(Feed feed) {
         List<String> tagNames = feed.getTagLists().stream()
