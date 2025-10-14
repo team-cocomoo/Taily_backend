@@ -78,7 +78,7 @@ public class ChatRoomController {
         List<MessageDataResponseDto> messages = chatService.getMessagesByRoom(roomId,username);
         return ResponseEntity.ok(ApiResponseDto.success(messages, "이전 메시지 조회 성공"));
     }
-
+    // 채팅 전송(웹소켓)
     @MessageMapping("/chat.send")
     public void sendWebSocket(MessageCreateRequestDto messageCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -86,5 +86,11 @@ public class ChatRoomController {
 
         chatService.saveAndBroadcastMessage(messageCreateRequestDto, username);
         log.info("WebSocket 메시지 전송: {}", messageCreateRequestDto.getContent());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(@RequestParam String nickname) {
+        List<UserChatSearchResponseDto> users = chatService.searchUsersByNickname(nickname);
+        return ResponseEntity.ok(ApiResponseDto.success(users, "검색 결과"));
     }
 }

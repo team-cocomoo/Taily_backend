@@ -150,4 +150,17 @@ public class ChatService {
         log.info("메시지 저장 및 전송 완료: roomId={}, sender={}, content={}",
                 dto.getRoomId(), sender.getUsername(), dto.getContent());
     }
+
+    public List<UserChatSearchResponseDto> searchUsersByNickname(String nickname) {
+        List<User> users = userRepository.findByUsernameContainingIgnoreCase(nickname);
+
+        return users.stream()
+                .map(user -> {
+                    String profileImage = imageRepository.findFirstByUserOrderByCreatedAtDesc(user)
+                            .map(Image::getFilePath)
+                            .orElse(null);
+                    return UserChatSearchResponseDto.from(user, profileImage);
+                })
+                .collect(Collectors.toList());
+    }
 }
