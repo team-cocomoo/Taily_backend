@@ -92,6 +92,11 @@ public class WalkDiaryService {
 
         TableType tableType = tableTypeRepository.findById(4L).orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
 
+        // 오늘 날짜 이후의 글을 작성할 경우 예외 처리
+        if (walkDiaryCreateRequestDto.getDate().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("오늘 이후 날짜에는 산책 일지를 작성할 수 없습니다.");
+        }
+
         // WalkDiary entity 생성
         WalkDiary walkDiary = WalkDiary.builder()
                 .date(date)
