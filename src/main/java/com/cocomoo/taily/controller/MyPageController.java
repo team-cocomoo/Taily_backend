@@ -101,7 +101,7 @@ public class MyPageController {
         String username = authentication.getName();
 
         List<MyPetProfileResponseDto> myPetProfiles = myPageService.getMyPetProfiles(username);
-        log.info("산책 일지 리스트 조회 완료 {} 건", myPetProfiles.size());
+        log.info("내 반려동물 리스트 조회 완료 {} 건", myPetProfiles.size());
 
         return ResponseEntity.ok(ApiResponseDto.success(myPetProfiles, "나의 반려동물 프로필 리스트 조회 성공"));
     }
@@ -180,5 +180,20 @@ public class MyPageController {
         }
 
         return ResponseEntity.ok(ApiResponseDto.success(followerList, "나를 팔로우한 유저 목록 조회 성공"));
+    }
+
+    @GetMapping("/myLikes")
+    public ResponseEntity<?> getMyLikes() {
+        log.info("내 좋아요 리스트 조회");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        List<MyLikesResponseDto> myLikes = myPageService.getMyLikes(username);
+        log.info("내 좋아요 리스트 조회 완료 {} 건", myLikes.size());
+
+        return ResponseEntity.ok(ApiResponseDto.success(myLikes, "내 좋아요 리스트 조회 성공"));
+
     }
 }

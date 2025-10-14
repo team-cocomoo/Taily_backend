@@ -11,7 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +26,10 @@ public class MyPageService {
     public final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final TailyFriendRepository tailyFriendRepository;
+    private final WalkPathRepository walkPathRepository;
+    private final FeedRepository feedRepository;
     private final FollowRepository followRepository;
+    private final MyLikesRepository myLikesRepository;
     private final ImageRepository imageRepository;
 
     @Transactional
@@ -164,4 +170,26 @@ public class MyPageService {
                 .collect(Collectors.toList());
     }
 
+
+    public List<MyLikesResponseDto> getMyLikes(String username) {
+        log.info("=== 내 좋아요 리스트 조회 시작 ===");
+
+        List<Like> myLikes = myLikesRepository.findByUserUsernameAndState(username, true);
+
+        List<MyLikesResponseDto> result = new ArrayList<>();
+
+        // 테이블 별 id 분리
+        Map<TableTypeCategory, List<Long>> idsByCategory = myLikes.stream()
+                .collect(Collectors.groupingBy(
+                        like -> like.getTableType().getCategory(),
+                        Collectors.mapping(Like::getPostsId, Collectors.toList())
+        ));
+
+        // taily friends
+        List<Long> tailyFriendsIds = idsByCategory.getOrDefault(TableTypeCategory.TAILY_FRIENDS, Collections.emptyList());
+
+        log.info("조회된 내 좋아요 리스트 수 : {}", myLikes.size());
+
+        return myLikes.stream().map(MyLikesResponseDto::from).collect(Collectors.toList());
+    }
 }
