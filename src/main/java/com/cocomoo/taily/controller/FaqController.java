@@ -30,8 +30,8 @@ public class FaqController {
         return ResponseEntity.ok(ApiResponseDto.success(result, "전체 faq 리스트 조회 성공"));
     }
 
-    @PutMapping
-    public ResponseEntity<?> createFaq(FaqRequestDto faqRequestDto) {
+    @PostMapping
+    public ResponseEntity<?> createFaq(@RequestBody FaqRequestDto faqRequestDto) {
         log.info("Faq 작성 시작");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
