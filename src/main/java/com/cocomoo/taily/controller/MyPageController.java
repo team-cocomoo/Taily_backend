@@ -2,7 +2,6 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
-import com.cocomoo.taily.dto.follow.FollowUserResponseDto;
 import com.cocomoo.taily.dto.myPage.*;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.user.CustomUserDetails;
@@ -195,5 +194,23 @@ public class MyPageController {
 
         return ResponseEntity.ok(ApiResponseDto.success(myLikes, "내 좋아요 리스트 조회 성공"));
 
+    }
+
+    // 좋아요 토글 API
+    @PostMapping("/toggle")
+    public ResponseEntity<?> toggleLike(
+            @RequestParam Long postsId,
+            @RequestParam Long tableTypeId
+    ) {
+        log.info("좋아요 토글 요청: postsId={}, tableTypeId={}", postsId, tableTypeId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // 토글 처리
+        boolean newState = myPageService.toggleLike(username, postsId, tableTypeId);
+        log.info("좋아요 토글 완료: postsId={}, tableTypeId={}, 상태={}", postsId, tableTypeId, newState);
+
+        return ResponseEntity.ok(ApiResponseDto.success(newState, "토글 상태 변화 성공"));
     }
 }
