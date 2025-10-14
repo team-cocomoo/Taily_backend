@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class FaqDetailResponseDto {
+    private Long id;
     private String title;
     private String content;
     private LocalDateTime createdAt;
@@ -19,6 +20,7 @@ public class FaqDetailResponseDto {
         User user = faq.getUser();
 
         return FaqDetailResponseDto.builder()
+                .id(faq.getId())
                 .title(faq.getTitle())
                 .content(faq.getContent())
                 .createdAt(faq.getCreatedAt())
