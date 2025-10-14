@@ -3,10 +3,8 @@ package com.cocomoo.taily.dto.myPage;
 import com.cocomoo.taily.entity.Like;
 import com.cocomoo.taily.entity.TableType;
 import com.cocomoo.taily.entity.User;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
@@ -16,8 +14,8 @@ public class MyLikesResponseDto {
     private String username;
     private Long tableTypeId;
     private String tableTypeCategory;
+    private String targetName;  // 내가 좋아요를 누른 게시글의 작성자
 
-    // tailyFriends
     public static MyLikesResponseDto from(Like like) {
         User user = like.getUser();
         TableType tableType = like.getTableType();
@@ -28,6 +26,7 @@ public class MyLikesResponseDto {
                 .username(user.getUsername())
                 .tableTypeId(tableType.getId())
                 .tableTypeCategory(String.valueOf(tableType.getCategory()))
+                .targetName(user.getUsername())
                 .build();
     }
 }
