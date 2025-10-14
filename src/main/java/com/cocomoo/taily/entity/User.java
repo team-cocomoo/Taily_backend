@@ -26,6 +26,7 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 50)
     private String username;
+    // id
 
     @Column(nullable = false, length = 50)
     private String nickname;
