@@ -5,6 +5,7 @@ import com.cocomoo.taily.entity.FollowState;
 import com.cocomoo.taily.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,4 +31,9 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     @Query("SELECT COUNT(f) FROM Follow f WHERE f.follower.id = :userId AND f.state = 'ACTIVE'")
     Long countFollowings(Long userId);
 
+    @Query("SELECT f FROM Follow f WHERE f.follower.id = :userId AND f.state = 'ACTIVE'")
+    List<Follow> findActiveByFollowerId(@Param("userId") Long userId);
+
+    @Query("SELECT f FROM Follow f WHERE f.following.id = :userId AND f.state = 'ACTIVE'")
+    List<Follow> findActiveByFollowingId(@Param("userId") Long userId);
 }
