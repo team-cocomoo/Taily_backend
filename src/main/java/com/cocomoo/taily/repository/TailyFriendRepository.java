@@ -19,7 +19,10 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
     @Query("SELECT t FROM TailyFriend t WHERE " +
             "LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(t.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(t.address) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "LOWER(t.address) LIKE LOWER(CONCAT('%'345" +
+            "4536" +
+            "+21g" +
+            ", :keyword, '%')) " +
             "ORDER BY t.createdAt DESC")
     Page<TailyFriend> searchByKeyword(String keyword, Pageable pageable);
 
