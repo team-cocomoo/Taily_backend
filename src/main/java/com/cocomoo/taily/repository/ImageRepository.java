@@ -33,4 +33,6 @@ public interface ImageRepository extends JpaRepository<Image,Long> {
 
     // 특정 게시글과 테이블 타입에 해당하는 단일 이미지 조회 (Optional)
     Optional<Image> findFirstByPostsIdAndTableTypesId(Long postsId, Long tableTypesId);
+
+    List<Image> findAllByTableTypesId(long l);
 }

@@ -31,4 +31,6 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
 
     @Query("SELECT COUNT(t) FROM TailyFriend t JOIN t.user u WHERE u.id = :userId")
     Long countTailyFriendsByUserId(@Param("userId") Long userId);
+
+    Page<TailyFriend> findByUserId(Long userId, Pageable pageable);
 }

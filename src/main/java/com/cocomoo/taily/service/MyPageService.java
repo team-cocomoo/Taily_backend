@@ -1,16 +1,13 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.myPage.MyPetProfileCreateRequestDto;
-import com.cocomoo.taily.dto.myPage.MyPetProfileResponseDto;
-import com.cocomoo.taily.dto.myPage.MyPetProfileUpdateRequestDto;
-import com.cocomoo.taily.entity.Pet;
-import com.cocomoo.taily.entity.TableType;
-import com.cocomoo.taily.entity.User;
-import com.cocomoo.taily.repository.MyPetRepository;
-import com.cocomoo.taily.repository.TableTypeRepository;
-import com.cocomoo.taily.repository.UserRepository;
+import com.cocomoo.taily.dto.myPage.*;
+import com.cocomoo.taily.entity.*;
+import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +22,9 @@ public class MyPageService {
     public final MyPetRepository myPetRepository;
     public final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
+    private final TailyFriendRepository tailyFriendRepository;
+    private final FollowRepository followRepository;
+    private final ImageRepository imageRepository;
 
     @Transactional
     public MyPetProfileResponseDto createMyPetProfile(MyPetProfileCreateRequestDto myPetProfileCreateRequestDto, String username) {
@@ -92,4 +92,76 @@ public class MyPageService {
         }
         myPetRepository.delete(pet);
     }
+
+    // 내 테일리프렌즈 게시글들 조회
+    public Page<MyTailyFriendListResponseDto> getMyTailyFriends(String username, int page, int size) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<TailyFriend> postsPage = tailyFriendRepository.findByUserId(user.getId(), pageable);
+
+        return postsPage.map(MyTailyFriendListResponseDto::from); // DTO로 변환
+    }
+
+    // 내가 팔로잉하는 유저
+    public List<MyFollowUserResponseDto> getFollowingUsers(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<Follow> followings = followRepository.findActiveByFollowerId(user.getId());
+        List<Image> allImages = imageRepository.findAllByTableTypesId(1L); // 모든 프로필 이미지 가져오기
+
+        return followings.stream()
+                .map(f -> MyFollowUserResponseDto.from(f.getFollowing(), allImages))
+                .collect(Collectors.toList());
+    }
+
+    // 나를 팔로우한 유저
+    public List<MyFollowUserResponseDto> getFollowerUsers(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<Follow> followers = followRepository.findActiveByFollowingId(user.getId());
+        List<Image> allImages = imageRepository.findAllByTableTypesId(1L);
+
+        return followers.stream()
+                .map(f -> MyFollowUserResponseDto.from(f.getFollower(), allImages))
+                .collect(Collectors.toList());
+    }
+
+    // 팔로잉에서 nickname 검색
+    public List<MyFollowUserResponseDto> searchFollowingUsers(String username, String nickname) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<Follow> followings = followRepository.findActiveByFollowerId(user.getId())
+                .stream()
+                .filter(f -> f.getFollowing().getNickname().toLowerCase().contains(nickname.toLowerCase()))
+                .collect(Collectors.toList());
+
+        List<Image> allImages = imageRepository.findAllByTableTypesId(1L);
+
+        return followings.stream()
+                .map(f -> MyFollowUserResponseDto.from(f.getFollowing(), allImages))
+                .collect(Collectors.toList());
+    }
+
+    // 팔로워에서 nickname 검색
+    public List<MyFollowUserResponseDto> searchFollowerUsers(String username, String nickname) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<Follow> followers = followRepository.findActiveByFollowingId(user.getId())
+                .stream()
+                .filter(f -> f.getFollower().getNickname().toLowerCase().contains(nickname.toLowerCase()))
+                .collect(Collectors.toList());
+
+        List<Image> allImages = imageRepository.findAllByTableTypesId(1L);
+
+        return followers.stream()
+                .map(f -> MyFollowUserResponseDto.from(f.getFollower(), allImages))
+                .collect(Collectors.toList());
+    }
+
 }
