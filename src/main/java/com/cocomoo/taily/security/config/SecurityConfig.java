@@ -112,16 +112,20 @@ public class SecurityConfig {
                         "/api/events/**",             // 이벤트 참여
                         "/api/notices/**",            // 공지사항 상세
                         "/api/qna/**",                 // 1:1 문의
-                        "/api/user-profile/**",        // 다른 회원 페이지
-                        "/api/faq/**"                   // faq
+                        "/api/user-profile/**"        // 다른 회원 페이지
                 ).hasRole("USER")
 
                 // 관리자만 접근 가능 (ROLE_ADMIN)
                 .requestMatchers(
                         "/api/admin/**",              // 관리자 기능 전체
-                        "/api/manage/**",              // (회원관리, 신고처리, 공지, 이벤트)
-                        "/api/faq/**"                   // faq
+                        "/api/manage/**"                   // (회원관리, 신고처리, 공지, 이벤트)
+                                        // faq
                 ).hasRole("ADMIN")
+
+                // 유저와 관리자 모두 접근 가능 (ROLE_USER, ROLE_ADMIN)
+                .requestMatchers(
+                        "/api/faq/**" // faq
+                ).hasAnyRole("USER","ADMIN")
 
                 // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated()
