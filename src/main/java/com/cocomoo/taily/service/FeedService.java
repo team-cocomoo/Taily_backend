@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,7 +42,7 @@ public class FeedService {
      * @return
      */
     @Transactional
-    public FeedResponseDto createFeed(Long userId, FeedRequestDto dto) {
+    public FeedResponseDto registerFeed(Long userId, FeedRequestDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
@@ -146,19 +147,32 @@ public class FeedService {
         }
     }
     
-    // 피드 하나 반환
+    // 피드와 피드에 연결된 모든 이미지를 리스트로 반환
     public FeedResponseDto getFeed(Long feedId) {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new RuntimeException("피드 없음"));
 
         feed.setView(feed.getView() + 1);
         feedRepository.save(feed);
-
+        
+        // 특정 피드에 해당되는 모든 이미지 반환
         List<Image> images = imageRepository.findByPostsIdAndTableTypesId(feed.getId(), 3L);
         feed.getImages().clear();
         feed.getImages().addAll(images);
 
         return mapToDto(feed);
+    }
+
+    /**
+     * 특정 게시글에 연결된 모든 이미지만 조회
+     */
+    public List<String> getImageByPost(Long postId, Long tableTypeId) {
+        List<Image> images = imageRepository.findByPostsIdAndTableTypesId(postId, tableTypeId);
+
+        //Image 엔티티에서 filePath만 추출하여 리스트로 반환
+        return images.stream()
+                .map(Image::getFilePath)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -206,6 +220,13 @@ public class FeedService {
                 .map(tagList -> tagList.getTag().getName())
                 .toList();
 
+        // 이미지 경로 리스트: 공통 테이블 구조를 고려하여 repository에서 직접 조회
+        List<String> imagePaths = imageRepository
+                .findByPostsIdAndTableTypesId(feed.getId(),3L) // 3L은 feed 테이블 타입
+                .stream()
+                .map(Image::getFilePath)
+                .toList();
+
         return FeedResponseDto.builder()
                 .id(feed.getId())
                 .userId(feed.getUser().getId())
@@ -214,7 +235,7 @@ public class FeedService {
                 .likeCount(feed.getLikeCount())
                 .createdAt(feed.getCreatedAt())
                 .updatedAt(feed.getUpdatedAt())
-                .images(feed.getImages().stream().map(Image::getFilePath).toList())
+                .images(imagePaths)
                 .tags(tagNames)
                 .build();
     }
