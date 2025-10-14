@@ -1,5 +1,6 @@
 package com.cocomoo.taily.repository;
 
+import com.cocomoo.taily.entity.Like;
 import com.cocomoo.taily.entity.Pet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
