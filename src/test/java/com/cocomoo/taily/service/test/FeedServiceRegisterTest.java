@@ -38,7 +38,6 @@ class FeedServiceRegisterTest {
     private PasswordEncoder passwordEncoder;
     private Long userId;
 
-
     /**
      * 각 테스트 메서드 실행 전에 반드시 한 번씩 실행된다.
      * 테스트 환경을 초기화 하거나 공통 데이터를 세팅할 때 사용한다.
