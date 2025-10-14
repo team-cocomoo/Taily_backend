@@ -49,7 +49,7 @@ public class OtherUserProfileResponseDto {
                 .map(pet -> {
                     // 해당 반려동물의 이미지 찾기 (imageList에서 tableTypeId == 2 && postsId == pet.id 등 조건)
                     String petImageUrl = petImageList.stream()
-                            .filter(img -> img.getTableTypesId() == 2 && img.getPostsId().equals(pet.getId()))
+                            .filter(img -> img.getTableTypesId() == 2L && img.getPostsId().equals(pet.getId()))
                             .map(Image::getFilePath)
                             .findFirst()
                             .orElse(null);
@@ -71,7 +71,7 @@ public class OtherUserProfileResponseDto {
                         .createdAt(feed.getCreatedAt())
                         .imageUrls(
                                 feedImageList.stream()
-                                        .filter(img -> img.getPostsId().equals(feed.getId())) // feed.id == image.posts_id
+                                        .filter(img -> img.getTableTypesId() == 3L &&  img.getPostsId().equals(feed.getId())) // feed.id == image.posts_id
                                         .map(Image::getFilePath)
                                         .collect(Collectors.toList())
                         )

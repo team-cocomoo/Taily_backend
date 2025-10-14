@@ -43,24 +43,26 @@ public class FollowService {
         Follow follow;
         if (existing.isPresent()) {
             follow = existing.get();
-            if (follow.getState() == FollowState.ACTIVE) {
-                // 이미 팔로우 중이면 예외 발생
-                throw new IllegalStateException("이미 팔로우한 사용자입니다.");
+            if (follow.getState() == FollowState.INACTIVE) {
+                follow.activate(); // INACTIVE -> ACTIVE
+                followRepository.save(follow);
+            } else {
+                throw new IllegalStateException("이미 팔로우한 사용자입니다."); // ACTIVE
             }
-            // 이전에 언팔로우(INACTIVE) 했다면 다시 ACTIVE로 변경
-            follow.activate();
         } else {
+            // 새로운 팔로우 생성
             follow = Follow.builder()
                     .follower(follower)
                     .following(following)
                     .state(FollowState.ACTIVE)
                     .build();
+            followRepository.save(follow);
         }
 
-        followRepository.save(follow);
-        log.info("팔로우 완료: {} -> {}", follower.getUsername(), following.getUsername());
         return FollowResponseDto.from(follow);
     }
+
+
 
     // 언팔로우
     @Transactional
