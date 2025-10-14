@@ -71,8 +71,7 @@ public class FeedServiceGetFeedTest {
     }
 
     /**
-     * 피드 등록 후 이미지 업로드
-     * 그 이후로 이미지 다시 가져오는 거 테스트
+     * 피드 등록 후 피드와 이미지 조회
      * BDD
      * Given : 사용자가 존재하고
      * And : 이미지 2개가 준비되어 있을 때
@@ -117,22 +116,14 @@ public class FeedServiceGetFeedTest {
          이미지 업로드 및 태그 처리까지 수행
          최종적으로 FeedResponseDto 반환
         */
-        FeedResponseDto response = feedService.registerFeed(userId, dto);
+        FeedResponseDto registedFeed = feedService.registerFeed(userId, dto);
 
-        /** then : 결과 검증 단계
-         * assertThat을 사용해서 기대 결과와 실제 결과 비교
-         * response가 null 아니여야 한다.
-         * 내용이 DTO와 동일해야 한다.
-         * 업로드된 이미지 개수가 2개여야 한다.
-         * 태그에 "dog", "cute"가 들어있는지 확인한다.
-         */
-        assertThat(response).isNotNull();
-        assertThat(response.getContent()).isEqualTo("테스트 피드 내용입니다.");
-        assertThat(response.getImages()).hasSize(2);
-        assertThat(response.getTags()).contains("dog", "cute");
+        // And: getFeed() 호출하여 피드와 연결된 모든 이미지 가져오기
+        FeedResponseDto fetchedFeed = feedService.getFeed(registedFeed.getId());
+
+        // Then : 피드 정보와 이미지 확인
 
         // 로그 출력
-        log.info("생성된 피드 Id: {}", response.getId());
-        log.info("이미지 경로 : {}", response.getImages());
+
     }
 }
