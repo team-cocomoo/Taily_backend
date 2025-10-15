@@ -182,18 +182,20 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponseDto.success(followerList, "나를 팔로우한 유저 목록 조회 성공"));
     }
 
+    // 내 좋아요 리스트
     @GetMapping("/myLikes")
-    public ResponseEntity<?> getMyLikes() {
+    public ResponseEntity<?> getMyLikes(@RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "5") int size) {
         log.info("내 좋아요 리스트 조회");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         String username = authentication.getName();
 
-        List<MyLikesResponseDto> myLikes = myPageService.getMyLikes(username);
-        log.info("내 좋아요 리스트 조회 완료 {} 건", myLikes.size());
+//        List<MyLikesResponseDto> myLikes = myPageService.getMyLikes(username);
+        MyLikesPageResponseDto myLikesPage = myPageService.getMyLikesPage(username, page - 1, size);
+        log.info("내 좋아요 리스트 조회 완료 {} 건", myLikesPage .getTotalCount());
 
-        return ResponseEntity.ok(ApiResponseDto.success(myLikes, "내 좋아요 리스트 조회 성공"));
+        return ResponseEntity.ok(ApiResponseDto.success(myLikesPage, "내 좋아요 리스트 조회 성공"));
 
     }
 
