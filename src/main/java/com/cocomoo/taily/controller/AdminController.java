@@ -40,11 +40,10 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size
     ) {
         log.info("전체 회원 리스트 조회 요청, keyword={}, page={}, size={}", keyword, page, size);
-        Pageable pageable = PageRequest.of(page - 1, size);
+//        Pageable pageable = PageRequest.of(page - 1, size);
 
         UserPageResponseDto result = adminService.getUsersPage(keyword, page - 1, size);
         log.info("전체 회원 리스트 조회 요청 {}", result.getTotalCount());
-
 
         return ResponseEntity.ok(ApiResponseDto.success(result, "전체 회원 리스트 조회 성공"));
     }
