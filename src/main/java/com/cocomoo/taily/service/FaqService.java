@@ -91,4 +91,12 @@ public class FaqService {
         faqRepository.delete(faq);
     }
 
+    @Transactional
+    public FaqDetailResponseDto getFaqById(Long id, String username) {
+        User use = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 입니다."));
+
+        Faq faq = faqRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 faq 입니다."));
+
+        return FaqDetailResponseDto.from(faq);
+    }
 }
