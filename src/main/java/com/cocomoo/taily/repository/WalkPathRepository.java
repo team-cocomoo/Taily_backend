@@ -14,18 +14,23 @@ import java.util.Optional;
 
 @Repository
 public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
+
+    //전체 게시글 조회
     @Query("SELECT w FROM WalkPath w JOIN FETCH w.user")
     List<WalkPath> findAllWithUser();
 
+    //특정 게시글 조회
     @Query("SELECT w FROM WalkPath w JOIN FETCH w.user WHERE w.id = :id")
     Optional<WalkPath> findByIdWithUser(Long id);
 
+    //키워드로 게시글 조회
     @Query("SELECT w FROM WalkPath w WHERE " +
             "LOWER(w.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(w.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "ORDER BY w.createdAt DESC")
     Page<WalkPath> searchByKeyword(String keyword, PageRequest of);
 
+    //
     @Query("SELECT w FROM WalkPath w ORDER BY w.createdAt DESC")
     Page<WalkPath> findAllWithUser(Pageable pageable);
 
