@@ -15,6 +15,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WalkPathRoutesRepository extends JpaRepository<WalkPathRoute,Long> {
-   List<WalkPathRoute> findByWalkPathId();
 
 }

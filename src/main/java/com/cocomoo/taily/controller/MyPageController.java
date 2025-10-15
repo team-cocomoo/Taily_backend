@@ -2,6 +2,7 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
+import com.cocomoo.taily.dto.follow.FollowUserResponseDto;
 import com.cocomoo.taily.dto.myPage.*;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.user.CustomUserDetails;

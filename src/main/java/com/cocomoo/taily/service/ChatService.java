@@ -65,6 +65,10 @@ public class ChatService {
         User user2 = userRepository.findByPublicId(receiverPublicId)
                 .orElseThrow(() -> new IllegalArgumentException("user2 없음"));
 
+        if (user1.getId().equals(user2.getId())) {
+            throw new IllegalArgumentException("자기 자신과는 채팅방을 생성할 수 없습니다.");
+        }
+
         // 기존 로직 그대로 재사용
         MessageRoom existingRoom = messageRoomRepository.findByUsers(user1, user2).orElse(null);
         if (existingRoom != null) {
