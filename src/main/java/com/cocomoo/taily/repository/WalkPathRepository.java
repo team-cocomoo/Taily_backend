@@ -31,4 +31,6 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
 
     @Query("SELECT COUNT(w) FROM WalkPath w JOIN w.user u WHERE u.id = :userId")
     Long countWalkPathsByUserId(@Param("userId") Long userId);
+
+    List<WalkPath> findAllByIdIn(List<Long> walkPathIds);
 }

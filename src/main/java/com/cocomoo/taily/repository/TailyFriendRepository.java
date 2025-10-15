@@ -36,4 +36,6 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
     Long countTailyFriendsByUserId(@Param("userId") Long userId);
 
     Page<TailyFriend> findByUserId(Long userId, Pageable pageable);
+
+    List<TailyFriend> findAllByIdIn(List<Long> tailyFriendsIds);
 }
