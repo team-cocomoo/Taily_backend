@@ -27,6 +27,12 @@ public class Report {
     @Column(nullable = false, length = 500)
     private String content;
 
+    // 상태 ENUM
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "state")
+    @Builder.Default
+    private ReportState state = ReportState.PENDING;
+
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -36,12 +42,12 @@ public class Report {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id", nullable = false, foreignKey = @ForeignKey(name="fk_reports_reporter_id"))
+    @JoinColumn(name = "reporter_id", nullable = false, foreignKey = @ForeignKey(name = "fk_reports_reporter_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User reporter;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reported_id", nullable = false, foreignKey = @ForeignKey(name="fk_reports_reported_id"))
+    @JoinColumn(name = "reported_id", nullable = false, foreignKey = @ForeignKey(name = "fk_reports_reported_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User reported;
 
@@ -53,5 +59,10 @@ public class Report {
     // 신고 대상 확인
     public boolean isReported(User user) {
         return this.reported.getId().equals(user.getId());
+    }
+
+    public void updateState(ReportState newState) {
+        this.state = newState;
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -51,4 +51,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByUsernameContainingIgnoreCase(String nickname);
 
     List<User> findByStateAndPenaltyEndDateBefore(UserState state, LocalDateTime dateTime);
+
+
+
 }

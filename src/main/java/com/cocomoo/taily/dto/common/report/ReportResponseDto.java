@@ -1,11 +1,14 @@
 package com.cocomoo.taily.dto.common.report;
 
 import com.cocomoo.taily.entity.Report;
+import com.cocomoo.taily.entity.ReportState;
 import com.cocomoo.taily.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +23,8 @@ public class ReportResponseDto {
     private String reportedNickname;
     private String reporterNickname;
     private Long reportedUserId;
+    private LocalDateTime createdAt;
+    private ReportState state;
 
     public static ReportResponseDto from(Report report) {
         return ReportResponseDto.builder()
@@ -31,6 +36,8 @@ public class ReportResponseDto {
                 .reportedNickname(report.getReported().getNickname())
                 .reporterNickname(report.getReporter().getNickname())
                 .reportedUserId(report.getReported().getId())
+                .createdAt(report.getCreatedAt())
+                .state(report.getState())
                 .build();
     }
 }

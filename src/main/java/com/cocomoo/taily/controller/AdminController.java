@@ -10,6 +10,7 @@ import com.cocomoo.taily.service.AdminService;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -57,35 +59,51 @@ public class AdminController {
 
     // 모든 신고 조회
     @GetMapping("/reports")
-    public ResponseEntity<List<ReportResponseDto>> getAllReports() {
-        List<ReportResponseDto> reports = adminService.getAllReports();
-        return ResponseEntity.ok(reports);
+    public ResponseEntity<?> getReports(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ReportResponseDto> reportsPage = adminService.getReportsPage(keyword, page - 1, size);
+
+        long totalCount = reportsPage.getTotalElements();
+
+        List<ReportResponseDto> content = reportsPage.getContent();
+
+        return ResponseEntity.ok(ApiResponseDto.success(
+                Map.of(
+                        "reports", reportsPage.getContent(),
+                        "totalCount", reportsPage.getTotalElements()
+                ),
+                "신고 리스트 조회 성공"
+        ));
     }
+
 
     // 특정 신고 조회
     @GetMapping("/reports/{id}")
-    public ResponseEntity<ReportResponseDto> getReport(@PathVariable Long id) {
+    public ResponseEntity<?> getReport(@PathVariable Long id) {
         ReportResponseDto report = adminService.getReportById(id);
-        return ResponseEntity.ok(report);
+        return ResponseEntity.ok(ApiResponseDto.success(report, "특정 신고 조회 성공"));
     }
 
-    // 특정 유저 제재 API
+    // 특정 유저 제재
     @PostMapping("/{id}/suspend")
-    public ResponseEntity<UserPenaltyResponseDto> suspendUser(
+    public ResponseEntity<?> suspendUser(
             @PathVariable("id") Long userId,
             @RequestParam("days") int days
     ) {
         UserPenaltyResponseDto dto = adminService.suspendUser(userId, days);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponseDto.success(dto, "특정 유저 제재 성공"));
     }
 
     // 신고에서 제재
     @PostMapping("/reports/{reportId}/suspend")
-    public ResponseEntity<UserPenaltyResponseDto> suspendReportedUser(
+    public ResponseEntity<?> suspendReportedUser(
             @PathVariable("reportId") Long reportId,
             @RequestParam("days") int days
     ) {
         UserPenaltyResponseDto dto = adminService.suspendUserByReport(reportId, days);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponseDto.success(dto, "신고에서 특정 유저 제재 성공"));
     }
 }
