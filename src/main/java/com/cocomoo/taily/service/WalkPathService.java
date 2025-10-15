@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WalkPathService {
     private final WalkPathRepository walkPathRepository;
+    private final WalkPathRoutesRepository walkPathRoutesRepository;
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final UserService userService;
@@ -76,7 +77,7 @@ public class WalkPathService {
         //작성자 조회
         User author = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
-        //tabletype 명시
+        //Tabletype 명시
         TableType tableType = tableTypeRepository.findById(6L) // WalkPath = 6
                 .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
 
@@ -84,10 +85,27 @@ public class WalkPathService {
         WalkPath walkPath = WalkPath.builder()
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
+                .tableType(tableType)
                 .user(author) // ManyToOne 관계 설정
                 .build();
+
         //db에 저장
         WalkPath savedWalkPath = walkPathRepository.save(walkPath);
+
+        //경로 지점들 저장
+        List <WalkPathRoute>savedRoutes = new ArrayList<>();
+        if (requestDto.getRoute() != null && !requestDto.getRoute().isEmpty()) {
+            List<WalkPathRoute> routeEntities = requestDto.getRoute().stream()
+                    .map(routeDto -> WalkPathRoute.builder()
+                            .address(routeDto.getAddress())
+                            .orderNo(routeDto.getOrderNo())
+                            .walkPath(savedWalkPath)   // 부모 엔티티 지정
+                            .build())
+                    .toList();
+
+            savedRoutes = walkPathRoutesRepository.saveAll(routeEntities);
+            log.info("총 {}개의 경로 지점이 저장되었습니다.", savedRoutes.size());
+        }
 
         // 이미지 저장
         List<ImageResponseDto> images = new ArrayList<>();

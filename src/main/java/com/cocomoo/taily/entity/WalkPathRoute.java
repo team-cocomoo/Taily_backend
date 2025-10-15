@@ -6,8 +6,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.context.annotation.DependsOn;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "walk_paths_routes")
+@Table(name = "walk_path_routes")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,11 +28,11 @@ public class WalkPathRoute {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private String updateAt;
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "walk_paths_id", nullable = false)
