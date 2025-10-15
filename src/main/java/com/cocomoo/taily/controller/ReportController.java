@@ -25,17 +25,5 @@ public class ReportController {
     }
 
 
-    // 모든 신고 조회
-    @GetMapping
-    public ResponseEntity<List<ReportResponseDto>> getAllReports() {
-        List<ReportResponseDto> reports = reportService.getAllReports();
-        return ResponseEntity.ok(reports);
-    }
 
-    // 특정 신고 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<ReportResponseDto> getReport(@PathVariable Long id) {
-        ReportResponseDto report = reportService.getReportById(id);
-        return ResponseEntity.ok(report);
-    }
 }
