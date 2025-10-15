@@ -15,5 +15,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WalkPathRoutesRepository extends JpaRepository<WalkPathRoute,Long> {
-
+    //산책경로 게시물 중 특정 게시물의 산책경로 지점들을 list 형태로 가져옴
+    @Query("SELECT r FROM WalkPathRoute r " +
+            "JOIN r.walkPath w " +
+            "WHERE w.id = :walkPathId " +
+            "ORDER BY r.orderNo ASC")
+    List<WalkPathRoute> findAllByWalkPathId(@Param("walkPathId") Long walkPathId);
 }

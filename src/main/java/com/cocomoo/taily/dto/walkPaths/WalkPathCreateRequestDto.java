@@ -19,7 +19,6 @@ public class WalkPathCreateRequestDto {
     private String title;
     private String content;
     private List<WalkPathRouteRequestDto> route;
-    //private Long userId;
     private List<ImageRequestDto> images;
 
 }
