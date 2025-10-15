@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/faq")
+@RequestMapping("/api/faqs")
 @RequiredArgsConstructor
 @Slf4j
 public class FaqController {
@@ -22,12 +22,21 @@ public class FaqController {
 
     @GetMapping
     public ResponseEntity<?> getAllFaqs(@RequestParam(defaultValue = "1") int page,
-                                        @RequestParam(defaultValue = "5") int size) {
+                                        @RequestParam(defaultValue = "10") int size) {
         log.info("faq 리스트 조회 시작");
         FaqPageResponseDto result = faqService.getFaqPage(page - 1, size);
         log.info("faq 리스트 조회 요청 {}", result.getTotalCount());
 
         return ResponseEntity.ok(ApiResponseDto.success(result, "전체 faq 리스트 조회 성공"));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getFaqById(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        FaqDetailResponseDto faq = faqService.getFaqById(id, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(faq, "faq 상세 조회 성공"));
     }
 
     @PostMapping
