@@ -16,15 +16,12 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
     @Query("SELECT t FROM TailyFriend t JOIN FETCH t.user WHERE t.id = :id")
     Optional<TailyFriend> findByIdWithUser(Long id);
 
-    @Query("SELECT t FROM TailyFriend t WHERE " +
-            "LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(t.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(t.address) LIKE LOWER(CONCAT('%'345" +
-            "4536" +
-            "+21g" +
-            ", :keyword, '%')) " +
+    @Query("SELECT t FROM TailyFriend t " +
+            "WHERE LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(t.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(t.address) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "ORDER BY t.createdAt DESC")
-    Page<TailyFriend> searchByKeyword(String keyword, Pageable pageable);
+    Page<TailyFriend> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     @Query("SELECT t FROM TailyFriend t ORDER BY t.createdAt DESC")
     Page<TailyFriend> findAllWithUser(Pageable pageable);
