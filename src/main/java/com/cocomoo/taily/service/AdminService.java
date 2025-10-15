@@ -2,9 +2,11 @@ package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.dto.admin.UserListResponseDto;
 import com.cocomoo.taily.dto.admin.UserPageResponseDto;
+import com.cocomoo.taily.dto.admin.UserPenaltyResponseDto;
 import com.cocomoo.taily.dto.common.report.ReportResponseDto;
 import com.cocomoo.taily.entity.Report;
 import com.cocomoo.taily.entity.User;
+import com.cocomoo.taily.entity.UserState;
 import com.cocomoo.taily.repository.ReportRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,4 +64,61 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Report not found with id: " + reportId));
         return ReportResponseDto.from(report);
     }
+
+    // 유저 제재
+    @Transactional
+    public UserPenaltyResponseDto suspendUser(Long userId, int days) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+        user.applyPenalty(days);
+        log.info("{}일 제재 적용: {}, 종료일 {}", days, user.getUsername(), user.getPenaltyEndDate());
+
+        return UserPenaltyResponseDto.from(user);
+    }
+    // 제재 해제 (스케줄러용)
+    @Transactional
+    public void restoreSuspendedUsers() {
+        LocalDateTime now = LocalDateTime.now();
+        List<User> expired = userRepository.findByStateAndPenaltyEndDateBefore(UserState.SUSPENDED, now);
+
+        for (User user : expired) {
+            user.liftPenalty();
+        }
+
+        if (!expired.isEmpty()) {
+            log.info("{}명의 유저가 자동으로 ACTIVE 상태로 복구되었습니다.", expired.size());
+        }
+    }
+
+    @Transactional
+    public UserPenaltyResponseDto suspendUserByReport(Long reportId, int days) {
+        // 신고 정보 가져오기
+        ReportResponseDto report = getReportById(reportId);
+        Long reportedUserId = report.getReportedId();
+
+        // 유저 조회
+        User user = userRepository.findById(reportedUserId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+        // 이미 제재 중이면 안내 후 종료
+        if (user.getState() == UserState.SUSPENDED) {
+            log.info("이미 제재 중인 유저: {}", user.getUsername());
+            return UserPenaltyResponseDto.builder()
+                    .userId(user.getId())
+                    .username(user.getUsername())
+                    .nickname(user.getNickname())
+                    .state(user.getState())
+                    .penaltyStartDate(user.getPenaltyStartDate())
+                    .penaltyEndDate(user.getPenaltyEndDate())
+                    .build();
+        }
+
+        // 제재 적용
+        user.applyPenalty(days);
+        log.info("{}일 제재 적용: {}, 종료일 {}", days, user.getUsername(), user.getPenaltyEndDate());
+
+        return UserPenaltyResponseDto.from(user);
+    }
+
 }

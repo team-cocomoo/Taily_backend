@@ -69,6 +69,12 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "penalty_start_date")
+    private LocalDateTime penaltyStartDate;
+
+    @Column(name = "penalty_end_date")
+    private LocalDateTime penaltyEndDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name = "fk_users_table_type"))
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -120,5 +126,19 @@ public class User {
         }
     }
 
+    // 사용자 제재 메서드
+    public void applyPenalty(int days) {
+        this.state = UserState.SUSPENDED;
+        this.penaltyStartDate = LocalDateTime.now();
+        this.penaltyEndDate = LocalDateTime.now().plusDays(days);
+        this.sanctionCount++;
+    }
+
+    // 제재 해제 메서드
+    public void liftPenalty() {
+        this.state = UserState.ACTIVE;
+        this.penaltyStartDate = null;
+        this.penaltyEndDate = null;
+    }
 
 }

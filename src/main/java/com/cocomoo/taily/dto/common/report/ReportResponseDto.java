@@ -19,6 +19,7 @@ public class ReportResponseDto {
     private Long reportedId;
     private String reportedNickname;
     private String reporterNickname;
+    private Long reportedUserId;
 
     public static ReportResponseDto from(Report report) {
         return ReportResponseDto.builder()
@@ -29,6 +30,7 @@ public class ReportResponseDto {
                 .reportedId(report.getReported().getId())
                 .reportedNickname(report.getReported().getNickname())
                 .reporterNickname(report.getReporter().getNickname())
+                .reportedUserId(report.getReported().getId())
                 .build();
     }
 }
