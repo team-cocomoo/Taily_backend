@@ -5,6 +5,7 @@ import com.cocomoo.taily.dto.admin.UserPageResponseDto;
 import com.cocomoo.taily.dto.admin.UserPenaltyResponseDto;
 import com.cocomoo.taily.dto.common.report.ReportResponseDto;
 import com.cocomoo.taily.entity.Report;
+import com.cocomoo.taily.entity.ReportState;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserState;
 import com.cocomoo.taily.repository.ReportRepository;
@@ -52,10 +53,11 @@ public class AdminService {
     }
 
     // 모든 신고 조회
-    public List<ReportResponseDto> getAllReports() {
-        return reportRepository.findAll().stream()
-                .map(ReportResponseDto::from)
-                .collect(Collectors.toList());
+    public Page<ReportResponseDto> getReportsPage(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Report> reportsPage = reportRepository.findByKeyword(keyword, pageable);
+
+        return reportsPage.map(ReportResponseDto::from);
     }
 
     // 신고 ID당 조회
@@ -91,34 +93,37 @@ public class AdminService {
         }
     }
 
+    // 신고에서 유저 제재
     @Transactional
     public UserPenaltyResponseDto suspendUserByReport(Long reportId, int days) {
         // 신고 정보 가져오기
-        ReportResponseDto report = getReportById(reportId);
-        Long reportedUserId = report.getReportedId();
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("신고를 찾을 수 없습니다."));
 
-        // 유저 조회
-        User user = userRepository.findById(reportedUserId)
+        User user = userRepository.findById(report.getReported().getId())
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
-        // 이미 제재 중이면 안내 후 종료
-        if (user.getState() == UserState.SUSPENDED) {
-            log.info("이미 제재 중인 유저: {}", user.getUsername());
-            return UserPenaltyResponseDto.builder()
-                    .userId(user.getId())
-                    .username(user.getUsername())
-                    .nickname(user.getNickname())
-                    .state(user.getState())
-                    .penaltyStartDate(user.getPenaltyStartDate())
-                    .penaltyEndDate(user.getPenaltyEndDate())
-                    .build();
+        // 제재 적용 (days <= 0이면 내부에서 생략됨)
+        if (days > 0) {
+            if (user.getState() == UserState.SUSPENDED) {
+                log.info("이미 제재 중인 유저: {}", user.getUsername());
+            } else {
+                user.applyPenalty(days);
+                log.info("{}일 제재 적용: {}, 종료일 {}", days, user.getUsername(), user.getPenaltyEndDate());
+            }
+        } else {
+            log.info("제재 없이 신고만 처리: reportId={}", report.getId());
         }
 
-        // 제재 적용
-        user.applyPenalty(days);
-        log.info("{}일 제재 적용: {}, 종료일 {}", days, user.getUsername(), user.getPenaltyEndDate());
+        // 신고 상태를 RESOLVED 로 변경 + updatedAt 갱신
+        report.updateState(ReportState.RESOLVED);
+        log.info("신고 처리 완료: reportId={}, state={}, updatedAt={}",
+                report.getId(), report.getState(), report.getUpdatedAt());
 
         return UserPenaltyResponseDto.from(user);
     }
+
+
+
 
 }
