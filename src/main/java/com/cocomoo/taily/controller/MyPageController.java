@@ -2,7 +2,6 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
-import com.cocomoo.taily.dto.follow.FollowUserResponseDto;
 import com.cocomoo.taily.dto.myPage.*;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.user.CustomUserDetails;
@@ -101,7 +100,7 @@ public class MyPageController {
         String username = authentication.getName();
 
         List<MyPetProfileResponseDto> myPetProfiles = myPageService.getMyPetProfiles(username);
-        log.info("산책 일지 리스트 조회 완료 {} 건", myPetProfiles.size());
+        log.info("내 반려동물 리스트 조회 완료 {} 건", myPetProfiles.size());
 
         return ResponseEntity.ok(ApiResponseDto.success(myPetProfiles, "나의 반려동물 프로필 리스트 조회 성공"));
     }
@@ -180,5 +179,38 @@ public class MyPageController {
         }
 
         return ResponseEntity.ok(ApiResponseDto.success(followerList, "나를 팔로우한 유저 목록 조회 성공"));
+    }
+
+    @GetMapping("/myLikes")
+    public ResponseEntity<?> getMyLikes() {
+        log.info("내 좋아요 리스트 조회");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        List<MyLikesResponseDto> myLikes = myPageService.getMyLikes(username);
+        log.info("내 좋아요 리스트 조회 완료 {} 건", myLikes.size());
+
+        return ResponseEntity.ok(ApiResponseDto.success(myLikes, "내 좋아요 리스트 조회 성공"));
+
+    }
+
+    // 좋아요 토글 API
+    @PostMapping("/toggle")
+    public ResponseEntity<?> toggleLike(
+            @RequestParam Long postsId,
+            @RequestParam Long tableTypeId
+    ) {
+        log.info("좋아요 토글 요청: postsId={}, tableTypeId={}", postsId, tableTypeId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // 토글 처리
+        boolean newState = myPageService.toggleLike(username, postsId, tableTypeId);
+        log.info("좋아요 토글 완료: postsId={}, tableTypeId={}, 상태={}", postsId, tableTypeId, newState);
+
+        return ResponseEntity.ok(ApiResponseDto.success(newState, "토글 상태 변화 성공"));
     }
 }

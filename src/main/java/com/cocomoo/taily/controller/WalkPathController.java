@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/walkpaths")
+@RequestMapping("/api/walk-paths")
 @RequiredArgsConstructor
 @Slf4j
 public class WalkPathController {

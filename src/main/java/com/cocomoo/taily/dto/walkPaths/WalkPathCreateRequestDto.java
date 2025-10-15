@@ -1,11 +1,11 @@
 package com.cocomoo.taily.dto.walkPaths;
 
 import com.cocomoo.taily.dto.common.image.ImageRequestDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 /**
@@ -18,6 +18,7 @@ import java.util.List;
 public class WalkPathCreateRequestDto {
     private String title;
     private String content;
+    private List<WalkPathRouteRequestDto> route;
     //private Long userId;
     private List<ImageRequestDto> images;
 

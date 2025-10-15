@@ -11,7 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +26,10 @@ public class MyPageService {
     public final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final TailyFriendRepository tailyFriendRepository;
+    private final WalkPathRepository walkPathRepository;
+    private final FeedRepository feedRepository;
     private final FollowRepository followRepository;
+    private final MyLikesRepository myLikesRepository;
     private final ImageRepository imageRepository;
 
     @Transactional
@@ -49,17 +55,12 @@ public class MyPageService {
 
         // 이미지 추후 추가
 
-        log.info("내 반려동물 프로필 작성 완료: id={}, title={}", savedMyPetProfile.getId(), savedMyPetProfile.getName());
 
         return MyPetProfileResponseDto.from(savedMyPetProfile);
     }
     @Transactional
     public List<MyPetProfileResponseDto> getMyPetProfiles(String username) {
-        log.info("=== 내 반려동물 프로필 리스트 조회 시작 ===");
-
         List<Pet> myPetProfiles = myPetRepository.findMyPetProfilesByPetOwner(username);
-
-        log.info("조회된 산책 내 반려동물 프로필 리스트 수 : {}", myPetProfiles.size());
 
         return myPetProfiles.stream().map(MyPetProfileResponseDto::from).collect(Collectors.toList());
     }
@@ -162,6 +163,110 @@ public class MyPageService {
         return followers.stream()
                 .map(f -> MyFollowUserResponseDto.from(f.getFollower(), allImages))
                 .collect(Collectors.toList());
+    }
+
+
+    public List<MyLikesResponseDto> getMyLikes(String username) {
+        log.info("=== 내 좋아요 리스트 조회 시작 ===");
+
+        List<Like> myLikes = myLikesRepository.findByUserUsernameAndState(username, true);
+
+        List<MyLikesResponseDto> result = new ArrayList<>();
+
+        // 테이블 별 id 분리
+        Map<TableTypeCategory, List<Long>> idsByCategory = myLikes.stream()
+                .collect(Collectors.groupingBy(
+                        like -> like.getTableType().getCategory(),
+                        Collectors.mapping(Like::getPostsId, Collectors.toList())
+                ));
+
+        // taily friends
+        List<Long> tailyFriendsIds = idsByCategory.getOrDefault(TableTypeCategory.TAILY_FRIENDS, Collections.emptyList());
+        if (!tailyFriendsIds.isEmpty()) {
+            List<TailyFriend> friends = tailyFriendRepository.findAllByIdIn(tailyFriendsIds);
+            friends.forEach(f -> {
+                Like like = myLikes.stream().filter(l -> l.getPostsId().equals(f.getId()))
+                        .findFirst().orElse(null);
+                if (like != null) {
+                    result.add(
+                            MyLikesResponseDto.builder()
+                                    .likeId(like.getId())
+                                    .postId(like.getPostsId())
+                                    .username(like.getUser().getUsername())
+                                    .tableTypeId(like.getTableType().getId())
+                                    .tableTypeCategory(like.getTableType().getCategory().name())
+                                    .targetName(f.getUser().getUsername())
+                                    .build());
+                }
+            });
+        }
+
+        // Feed
+        List<Long> feedIds = idsByCategory.getOrDefault(TableTypeCategory.FEEDS, Collections.emptyList());
+        if (!feedIds.isEmpty()) {
+            List<Feed> feeds = feedRepository.findAllByIdIn(feedIds);
+            feeds.forEach(feed -> {
+                Like like = myLikes.stream()
+                        .filter(l -> l.getPostsId().equals(feed.getId()))
+                        .findFirst()
+                        .orElse(null);
+                if (like != null) {
+                    result.add(MyLikesResponseDto.builder()
+                            .likeId(like.getId())
+                            .postId(like.getPostsId())
+                            .username(like.getUser().getUsername())
+                            .tableTypeId(like.getTableType().getId())
+                            .tableTypeCategory(like.getTableType().getCategory().name())
+                            .targetName(feed.getUser().getUsername())
+                            .build()
+                    );
+                }
+            });
+        }
+
+        // walkPath
+        List<Long> walkPathIds = idsByCategory.getOrDefault(TableTypeCategory.WALK_PATHS, Collections.emptyList());
+        if (!walkPathIds.isEmpty()) {
+            List<WalkPath> walks = walkPathRepository.findAllByIdIn(walkPathIds);
+            walks.forEach(walkPath -> {
+                Like like = myLikes.stream()
+                        .filter(l -> l.getPostsId().equals(walkPath.getId()))
+                        .findFirst()
+                        .orElse(null);
+                if (like != null) {
+                    result.add(MyLikesResponseDto.builder()
+                            .likeId(like.getId())
+                            .postId(like.getPostsId())
+                            .username(like.getUser().getUsername())
+                            .tableTypeId(like.getTableType().getId())
+                            .tableTypeCategory(like.getTableType().getCategory().name())
+                            .targetName(walkPath.getUser().getUsername())
+                            .build());
+                }
+            });
+        }
+
+        log.info("조회된 내 좋아요 리스트 수 : {}", myLikes.size());
+
+        return result;
+    }
+    @Transactional
+    public boolean toggleLike(String username, Long postsId, Long tableTypeId) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        TableType tableType = tableTypeRepository.findById(tableTypeId).orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
+
+        Like like = myLikesRepository.findByUserAndPostsIdAndTableType(user, postsId, tableType).orElseGet(() -> Like.builder()
+                .user(user)
+                .postsId(postsId)
+                .tableType(tableType)
+                .state(false)
+                .build());
+
+        like.toggle();   // 기존 state 반전
+        myLikesRepository.save(like);
+
+        return like.isState();  // 토글 후 상태 반환
     }
 
 }
