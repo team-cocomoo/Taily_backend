@@ -128,10 +128,14 @@ public class User {
 
     // 사용자 제재 메서드
     public void applyPenalty(int days) {
+        if (days <= 0) {
+            return;
+        }
+
         this.state = UserState.SUSPENDED;
         this.penaltyStartDate = LocalDateTime.now();
-        this.penaltyEndDate = LocalDateTime.now().plusDays(days);
-        this.sanctionCount++;
+        this.penaltyEndDate = this.penaltyStartDate.plusDays(days);
+        this.sanctionCount += 1;
     }
 
     // 제재 해제 메서드

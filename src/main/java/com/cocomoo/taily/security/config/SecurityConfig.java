@@ -106,8 +106,6 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/api/mypage/**",             // 마이페이지
                         "/api/walk-diaries/**",              // 신책 일일 일지
-                        "/api/taily-friends/**",      // 테일리 프렌드
-                        "/api/feeds/**",              // 피드, 좋아요
                         "/api/follows/**",            // 팔로우/팔로잉
                         "/api/chats/**",              // 채팅
                         "/api/events/**",             // 이벤트 참여
@@ -129,11 +127,15 @@ public class SecurityConfig {
                         "/api/notice/**", // 공지사항
                         "/api/report/**", // 신고
                         "/api/inquiry/**", // 1대1 문의
-                        "/api/event/**" // 이벤트
+                        "/api/event/**", // 이벤트
+                        "/api/taily-friends/**", // 테일리 프렌드
+                        "/api/feeds/**",  // 피드
+                        "/api/api/walk-paths/**" // 산책경로
                 ).hasAnyRole("USER","ADMIN")
 
                 // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated()
+
         );
 
 
