@@ -5,6 +5,7 @@ import com.cocomoo.taily.dto.admin.AdminLoginRequestDto;
 import com.cocomoo.taily.dto.admin.AdminLoginResponseDto;
 import com.cocomoo.taily.dto.admin.AdminUserResponseDto;
 import com.cocomoo.taily.dto.admin.UserPageResponseDto;
+import com.cocomoo.taily.dto.common.report.ReportResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserRole;
 import com.cocomoo.taily.security.jwt.JwtUtil;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -55,4 +58,17 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponseDto.success(userInfo, "회원 정보 조회 성공"));
     }
 
+    // 모든 신고 조회
+    @GetMapping("/reports")
+    public ResponseEntity<List<ReportResponseDto>> getAllReports() {
+        List<ReportResponseDto> reports = adminService.getAllReports();
+        return ResponseEntity.ok(reports);
+    }
+
+    // 특정 신고 조회
+    @GetMapping("/reports/{id}")
+    public ResponseEntity<ReportResponseDto> getReport(@PathVariable Long id) {
+        ReportResponseDto report = adminService.getReportById(id);
+        return ResponseEntity.ok(report);
+    }
 }
