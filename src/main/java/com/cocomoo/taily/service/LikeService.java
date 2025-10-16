@@ -19,6 +19,7 @@ public class LikeService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final LikeRepository likeRepository;
+    private final AlarmService alarmService;
 
     @Transactional
     public boolean toggleLike(Long postId, String username, Long tableTypeId) {
@@ -33,6 +34,7 @@ public class LikeService {
 
         boolean isLiked;
         if (like == null) {
+            log.info("[LikeService] 좋아요 클릭됨 - 알람 발송 시도: user={}, postId={}", username, postId);
             likeRepository.save(Like.builder()
                     .postsId(postId)
                     .user(user)
@@ -40,9 +42,18 @@ public class LikeService {
                     .state(true)
                     .build());
             isLiked = true;
+            // 좋아요 클릭 시 알람 발송
+            if (tableTypeId == 5L) { // TailyFriend 게시글만
+                log.info("[LikeService] sendLikeAlarm 호출 전");
+                alarmService.sendLikeAlarm(username, postId);
+                log.info("[LikeService] sendLikeAlarm 호출 후");
+            }
         } else {
             like.toggle();
             isLiked = like.isState();
+            // 좋아요 취소 시에는 알람 생략
+            log.info("[LikeService] 좋아요 토글 완료: user={}, postId={}, state={}", username, postId, isLiked);
+
         }
         return isLiked;
     }
