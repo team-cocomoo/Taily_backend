@@ -39,12 +39,15 @@ public class FeedController {
         return ResponseEntity.ok(feedService.getFeed(id));
     }
     
-    // 전체 피드 조회
+    // 전체 피드 조회 (페이징 처리)
     @GetMapping
-    public ResponseEntity<List<FeedResponseDto>> getAllFeeds() {
-        List<FeedResponseDto> feeds = feedService.getAllFeeds();
-        return ResponseEntity.ok(feeds);
+    public ResponseEntity<?> getAllFeeds(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(feedService.getFeedsWithPaging(page, size));
     }
+
 
     // 피드 삭제 메서드
     @DeleteMapping("/delete/{id}")

@@ -1,5 +1,6 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.config.FileStorageProperties;
 import com.cocomoo.taily.dto.petstory.FeedRequestDto;
 import com.cocomoo.taily.dto.petstory.FeedResponseDto;
 import com.cocomoo.taily.entity.*;
@@ -7,6 +8,10 @@ import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,11 +35,9 @@ public class FeedService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final TagRepository tagRepository;
+    private final FileStorageProperties fileStorageProperties;
 
     // 업로드 경로 외부 설정 가능 (없으면 기본 상대경로)
-    @Value("${app.upload-path:uploads/feed/}")
-    private String uploadPath; // 기본 상대경로
-
     /**
      * Feed 등록 메서드
      * @param userId
@@ -101,7 +104,8 @@ public class FeedService {
 
         // 트랜잭션 종료 후 파일 저장 (정합성 체크)
         try {
-            saveFilesWithLog(savedFileNames, dto.getImages());
+
+            saveFilesWithLog(savedFileNames, dto.getImages(),"feed");
         } catch (IOException e) {
             // 파일 저장 실패 시 DB에 저장된 이미지 삭제
             if (!images.isEmpty()) imageRepository.deleteAll(images);
@@ -119,13 +123,21 @@ public class FeedService {
      * @throws IOException
      */
     @Transactional
-    private void saveFilesWithLog(List<String> savedFileNames, List<MultipartFile> files) throws IOException {
+    private void saveFilesWithLog(List<String> savedFileNames, List<MultipartFile> files, String subFolder) throws IOException {
         if (files == null || files.isEmpty()) return;
 
-        File uploadDir = new File(uploadPath);
+        // 프로젝트 루트 기준 절대 경로
+        String projectRoot = new File("").getAbsolutePath();
+        String uploadPath = projectRoot + File.separator + fileStorageProperties.getUploadDir();
+
+        // 기능별 하위 폴더를 포함한 업로드 디렉토리
+        File uploadDir = new File(uploadPath, subFolder);
         if (!uploadDir.exists() && !uploadDir.mkdirs()) {
-            throw new IOException("업로드 폴더 생성 실패: " + uploadPath);
+            throw new IOException("업로드 폴더 생성 실패: " + uploadDir.getAbsolutePath());
         }
+
+        // 저장된 파일 추적용 리스트
+        List<File> savedFiles = new ArrayList<>();
 
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
@@ -133,20 +145,21 @@ public class FeedService {
             File dest = new File(uploadDir, fileName);
 
             try {
-                file.transferTo(dest);
-                log.info("파일 저장 성공: {}", fileName);
+                file.transferTo(dest); // 실제 저장
+                savedFiles.add(dest);
+                log.info("파일 저장 성공: {}", dest.getAbsolutePath());
             } catch (IOException e) {
-                log.error("파일 저장 실패: {}", fileName, e);
-                // [] 실패 시 이미 저장된 파일 삭제
-                for (String fn : savedFileNames) {
-                    File f = new File(uploadDir, fn);
+                log.error("파일 저장 실패: {}", dest.getAbsolutePath(), e);
+                // 실패 시 지금까지 저장한 파일 삭제
+                for (File f : savedFiles) {
                     if (f.exists()) f.delete();
                 }
-                throw e;
+                throw e; // 예외 던져서 트랜잭션 롤백
             }
         }
     }
-    
+
+
     // 피드와 피드에 연결된 모든 이미지를 리스트로 반환
     public FeedResponseDto getFeed(Long feedId) {
         Feed feed = feedRepository.findById(feedId)
@@ -154,7 +167,7 @@ public class FeedService {
 
         feed.setView(feed.getView() + 1);
         feedRepository.save(feed);
-        
+
         // 특정 피드에 해당되는 모든 이미지 반환
         List<Image> images = imageRepository.findByPostsIdAndTableTypesId(feed.getId(), 3L);
         feed.getImages().clear();
@@ -213,6 +226,29 @@ public class FeedService {
         feedRepository.delete(feed);
     }
 
+    /**
+     * 페이지 단위로 피드를 가져오는 메서드
+     * @param page
+     * @param size
+     * @return
+     */
+    public Page<FeedResponseDto> getFeedsWithPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Feed> feedPage = feedRepository.findAllByOrderByCreatedAtDesc(pageable);
+
+        // Feed -> DTO 변환
+        List<FeedResponseDto> dtoList = feedPage.getContent().stream()
+                .map(feed -> {
+                    List<Image> images = imageRepository.findByPostsIdAndTableTypesId(feed.getId(), 3L);
+                    feed.getImages().clear();
+                    feed.getImages().addAll(images);
+                    return mapToDto(feed);
+                })
+                .toList();
+
+        return new PageImpl<>(dtoList, pageable, feedPage.getTotalElements());
+    }
+
     @Transactional
     // [] feed와 연결된 모든 TagList 객체를 가져와서 리스트로 만든다.
     private FeedResponseDto mapToDto(Feed feed) {
@@ -239,4 +275,7 @@ public class FeedService {
                 .tags(tagNames)
                 .build();
     }
+
+
+
 }
