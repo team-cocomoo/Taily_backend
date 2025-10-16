@@ -1,6 +1,8 @@
 package com.cocomoo.taily.repository;
 
 import com.cocomoo.taily.entity.Feed;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,4 +23,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     List<Feed> findByUserId(Long userId);
 
     List<Feed> findAllByIdIn(List<Long> feedIds);
+
+    Page<Feed> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    // 페이지 단위로 피드를 가져온다.
 }

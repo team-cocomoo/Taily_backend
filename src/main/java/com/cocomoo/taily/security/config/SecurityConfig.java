@@ -130,7 +130,8 @@ public class SecurityConfig {
                         "/api/event/**", // 이벤트
                         "/api/taily-friends/**", // 테일리 프렌드
                         "/api/feeds/**",  // 피드
-                        "/api/api/walk-paths/**" // 산책경로
+                        "/api/api/walk-paths/**", // 산책경로
+                        "/uploads/**" // 이미지 폴더 접근
                 ).hasAnyRole("USER","ADMIN")
 
                 // 나머지 모든 요청은 인증 필요
