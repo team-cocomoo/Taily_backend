@@ -324,4 +324,9 @@ public class TailyFriendService {
                 .map(TailyFriendAddressResponseDto::from)
                 .collect(Collectors.toList());
     }
+
+    // 부모 댓글 조회
+    public Comment getCommentById(Long parentId) {
+        return commentRepository.findById(parentId).orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다. ID: " + parentId));
+    }
 }

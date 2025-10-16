@@ -1,5 +1,6 @@
 package com.cocomoo.taily.repository;
 
+import com.cocomoo.taily.entity.Comment;
 import com.cocomoo.taily.entity.TailyFriend;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,4 +36,7 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
     Page<TailyFriend> findByUserId(Long userId, Pageable pageable);
 
     List<TailyFriend> findAllByIdIn(List<Long> tailyFriendsIds);
+
+    @Query("SELECT c FROM Comment c WHERE c.id = :commentId")
+    Comment getCommentById(@Param("commentId") Long parentCommentId);
 }
