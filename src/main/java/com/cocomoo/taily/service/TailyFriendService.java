@@ -219,6 +219,8 @@ public class TailyFriendService {
         post.refreshLikeCount(likeCount);
         tailyFriendRepository.save(post);
 
+        log.info("[TailyFriendService] 좋아요 상태: postId={}, liked={}, likeCount={}", postId, liked, likeCount);
+
         // 4. DTO 반환
         return new LikeResponseDto(liked, likeCount);
     }

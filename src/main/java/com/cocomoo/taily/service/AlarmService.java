@@ -76,4 +76,46 @@ public class AlarmService {
 
         return post.getUser();
     }
+
+    @Transactional
+    public void sendLikeAlarm(String username, Long postId) {
+        log.info("[AlarmService] 좋아요 알람 발생 : username={}, postId={}", username, postId);
+
+        // 좋아요 작성자 (sender) 조회
+        User sender = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
+        // 게시글 조회
+        TailyFriend post = tailyFriendRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+
+        // 게시글 작성자 (receiver)
+        User receiver = post.getUser();
+
+        // 본인 게시글이면 알람 생략
+        if (receiver.getId().equals(sender.getId())) {
+            log.info("[AlarmService] 본인 게시글 좋아요 - 알람 전송 생략");
+            return;
+        }
+
+        // TableType 조회 (댓글과 동일하게 5L로 가정)
+        TableType tableType = tableTypeRepository.findById(5L)
+                .orElseThrow(() -> new IllegalArgumentException("해당 TableType이 존재하지 않습니다."));
+
+        // 알람 생성 및 저장
+        Alarm alarm = Alarm.builder()
+                .sender(sender)
+                .receiver(receiver)
+                .content(sender.getUsername() + "님이 회원님의 게시글을 좋아합니다.")
+                .postsId(postId)
+                .state(false)
+                .tableTypeId(tableType)
+                .build();
+
+        Alarm savedAlarm = alarmRepository.save(alarm);
+
+        // WebSocket으로 전송
+        AlarmResponseDto alarmDto = AlarmResponseDto.from(savedAlarm);
+        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getId(), alarmDto);
+
+        log.info("[AlarmService] 좋아요 알람 전송 완료 → 수신자 ID: {}", receiver.getId());
+
+    }
 }
