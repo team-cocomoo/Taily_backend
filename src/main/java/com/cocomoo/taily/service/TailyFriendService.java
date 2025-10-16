@@ -1,21 +1,19 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.common.comment.CommentPageResponseDto;
-import com.cocomoo.taily.dto.common.like.LikeResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.*;
-import com.cocomoo.taily.repository.TailyFriendRepository;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
+import com.cocomoo.taily.dto.common.like.LikeResponseDto;
+import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
