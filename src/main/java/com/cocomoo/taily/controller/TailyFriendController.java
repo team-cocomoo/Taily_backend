@@ -2,25 +2,21 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
-import com.cocomoo.taily.dto.common.comment.CommentPageResponseDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.*;
 import com.cocomoo.taily.entity.Comment;
+import com.cocomoo.taily.service.AlarmService;
 import com.cocomoo.taily.service.TailyFriendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/taily-friends")
@@ -28,6 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TailyFriendController {
     private final TailyFriendService tailyFriendService;
+    private final AlarmService alarmService;
 
     @GetMapping
     public ResponseEntity<?> getTailyFriends(
@@ -86,13 +83,24 @@ public class TailyFriendController {
 
     // 댓글 작성
     @PostMapping("/{id}/comments")
-    public ResponseEntity<?> createComment(@PathVariable Long id,
-                                           @RequestBody CommentCreateRequestDto requestDto) {
+    public ResponseEntity<?> createComment(
+            @PathVariable Long id,
+            @RequestBody CommentCreateRequestDto requestDto
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         log.info("댓글 작성 , 작성자 {}", username);
 
         CommentResponseDto dto = tailyFriendService.createComment(id, username, requestDto);
+
+        // 댓글 작성 시 알람 위임
+        try {
+            alarmService.sendCommentAlarm(username, id, null);
+            log.info("댓글 알람 전송 시도 → 게시글 ID: {}", id);
+        } catch (Exception e) {
+            log.error("댓글 알람 전송 실패 → 게시글 ID: {}, 작성자: {}", id, username, e);
+        }
+
         return ResponseEntity.ok(ApiResponseDto.success(dto, "댓글 작성 성공"));
     }
 
@@ -112,6 +120,19 @@ public class TailyFriendController {
                         .parentCommentsId(parentId)
                         .build()
         );
+
+        // 대댓글 작성 시 알람 전송 (부모 댓글 작성자가 자기 자신이면 알람 생략)
+        try {
+            Comment parentComment = tailyFriendService.getCommentById(parentId);
+            if (!parentComment.getUsersId().getUsername().equals(username)) {
+                alarmService.sendCommentAlarm(username, id, parentId);
+                log.info("대댓글 알람 전송 시도 → 게시글 ID: {}, 부모 댓글 ID: {}", id, parentId);
+            } else {
+                log.info("자기 자신 댓글에 답글 작성 - 알람 전송 생략");
+            }
+        } catch (Exception e) {
+            log.error("대댓글 알람 전송 실패 → 게시글 ID: {}, 부모 댓글 ID: {}, 작성자: {}", id, parentId, username, e);
+        }
 
         return ResponseEntity.ok(ApiResponseDto.success(dto, "대댓글 작성 성공"));
     }
