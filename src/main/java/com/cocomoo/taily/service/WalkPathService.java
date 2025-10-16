@@ -17,7 +17,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,8 +76,8 @@ public class WalkPathService {
     }
 
     //게시물 생성
-    @Transactional
-    public WalkPathDetailResponseDto createWalkPath(WalkPathCreateRequestDto requestDto, String username) {
+    @Transactional(readOnly = false)
+    public WalkPathDetailResponseDto createWalkPath(WalkPathCreateRequestDto requestDto, String username, List<MultipartFile> images) {
         //작성자 조회
         User author = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
@@ -93,9 +97,9 @@ public class WalkPathService {
         WalkPath savedWalkPath = walkPathRepository.save(walkPath);
 
         //경로 지점들 저장
-        List <WalkPathRoute>savedRoutes = new ArrayList<>();
-        if (requestDto.getRoute() != null && !requestDto.getRoute().isEmpty()) {
-            List<WalkPathRoute> routeEntities = requestDto.getRoute().stream()
+        List<WalkPathRoute> savedRoutes = new ArrayList<>();
+        if (requestDto.getRoutes() != null && !requestDto.getRoutes().isEmpty()) {
+            List<WalkPathRoute> routeEntities = requestDto.getRoutes().stream()
                     .map(routeDto -> WalkPathRoute.builder()
                             .address(routeDto.getAddress())
                             .orderNo(routeDto.getOrderNo())
@@ -108,26 +112,58 @@ public class WalkPathService {
         }
 
         // 이미지 저장
-        List<ImageResponseDto> images = new ArrayList<>();
-        if (requestDto.getImages() != null && !requestDto.getImages().isEmpty()) {
-            List<Image> imageEntities = requestDto.getImages().stream()
-                    .map(imgDto -> {
-                        String uuid = UUID.randomUUID().toString(); // 이미지별 고유 UUID 생성
-                        return Image.builder()
-                                .uuid(uuid)
-                                .filePath(imgDto.getFilePath())
-                                .fileSize(imgDto.getFileSize())
-                                .postsId(savedWalkPath.getId())
-                                .user(author)
-                                .tableTypesId(6L)
-                                .build();
-                    })
-                    .toList();
+        List<Image> imageEntities = new ArrayList<>();
 
+        List<ImageResponseDto> imaged = null;
+        if (images != null && !images.isEmpty()) {
+            for (MultipartFile file : images) {
+                if (file.isEmpty()) continue; // 빈 파일은 건너뛰기
+
+                // (1) 파일명 및 경로 생성
+                String uuid = UUID.randomUUID().toString();
+                String originalName = StringUtils.cleanPath(file.getOriginalFilename());
+                String newFileName = uuid + "_" + originalName;
+
+                // (2) 저장 디렉토리 설정 (절대 경로)
+                String uploadDir = System.getProperty("user.dir") + "/uploads/walkpath/";
+                File uploadPath = new File(uploadDir);
+                if (!uploadPath.exists()) {
+                    boolean created = uploadPath.mkdirs();
+                    if (created) {
+                        log.info("📁 이미지 업로드 폴더 생성 완료: {}", uploadPath.getAbsolutePath());
+                    } else {
+                        log.warn("⚠️ 이미지 업로드 폴더 생성 실패 또는 이미 존재: {}", uploadPath.getAbsolutePath());
+                    }
+                }
+
+                // (3) 실제 파일 저장
+                try {
+                    File destination = new File(uploadPath, newFileName);
+                    file.transferTo(destination);
+                    log.info("✅ 이미지 저장 완료: {}", destination.getAbsolutePath());
+                } catch (IOException e) {
+                    throw new RuntimeException("이미지 저장 실패: " + originalName, e);
+                }
+
+                // (4) DB 엔티티 생성
+                Image image = Image.builder()
+                        .uuid(uuid)
+                        .filePath("/uploads/walkpath/" + newFileName) // 웹에서 접근 가능한 경로
+                        .fileSize(String.valueOf(file.getSize()))
+                        .postsId(savedWalkPath.getId())
+                        .user(author)
+                        .tableTypesId(6L) // WalkPath
+                        .build();
+
+                imageEntities.add(image);
+            }
+            //(5) DB저장
             imageRepository.saveAll(imageEntities);
+            imageRepository.flush();
 
-            // DTO 변환
-            images = imageEntities.stream()
+
+            // (6) DTO 변환
+            imaged = imageEntities.stream()
                     .map(ImageResponseDto::from)
                     .toList();
 
@@ -135,7 +171,7 @@ public class WalkPathService {
         }
         log.info("게시글 작성 완료 id = {}, title = {}", savedWalkPath.getId(), savedWalkPath.getTitle());
 
-        return WalkPathDetailResponseDto.from(savedWalkPath,false,images);
+        return WalkPathDetailResponseDto.from(savedWalkPath, false, imaged);
     }
 
     //전체 게시물 목록으로 조회
@@ -162,43 +198,64 @@ public class WalkPathService {
         if (!post.getUser().getUsername().equals(username)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
-
+        //게시글 제목, 내용 수정
         post.updatePost(dto.getTitle(), dto.getContent());
 
-        // 이미지 수정
-        List<ImageResponseDto> images = new ArrayList<>();
-        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
-            User user = post.getUser();
-            TableType tableType = tableTypeRepository.findById(6L)
-                    .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
-
-            List<Image> imageEntities = dto.getImages().stream()
-                    .map(imgDto -> {
-                        String uuid = UUID.randomUUID().toString(); // 이미지별 고유 UUID
-                        return Image.builder()
-                                .uuid(uuid)
-                                .filePath(imgDto.getFilePath())
-                                .fileSize(imgDto.getFileSize())
-                                .postsId(post.getId())
-                                .user(user)
-                                .tableTypesId(6L)
-                                .build();
-                    })
-                    .toList();
-
-            imageRepository.saveAll(imageEntities); // 배치 저장
-
-            images = imageEntities.stream()
-                    .map(ImageResponseDto::from)
-                    .toList();
-        } else {
-            // 기존 이미지 조회만
-            images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
-                    .stream()
-                    .map(ImageResponseDto::from)
-                    .toList();
+        //기존 이미지 삭제
+        List<Image> existingImages = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L);
+        if (!existingImages.isEmpty()) {
+            imageRepository.deleteAll(existingImages);
+            log.info("기존 이미지 {}개 삭제 완료", existingImages.size());
         }
-        return WalkPathDetailResponseDto.from(post,false,images);
+
+
+        //새 이미지 업로드
+        List<Image> newImageEntities = new ArrayList<>();
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            for (MultipartFile file : dto.getImages()) {
+                if (file.isEmpty()) continue;
+
+                // (1) 파일명 및 경로 생성
+                String uuid = UUID.randomUUID().toString();
+                String originalName = StringUtils.cleanPath(file.getOriginalFilename());
+                String newFileName = uuid + "_" + originalName;
+
+                // (2) 저장 디렉토리 설정
+                String uploadDir = "uploads/walkpath/";
+                File uploadPath = new File(uploadDir);
+                if (!uploadPath.exists()) uploadPath.mkdirs();
+
+                // (3) 실제 파일 저장
+                try {
+                    file.transferTo(new File(uploadPath, newFileName));
+                } catch (IOException e) {
+                    throw new RuntimeException("이미지 저장 실패: " + originalName, e);
+                }
+
+                // (4) DB에 새 이미지 정보 저장
+                Image image = Image.builder()
+                        .uuid(uuid)
+                        .filePath("/uploads/walkpath/" + newFileName)
+                        .fileSize(String.valueOf(file.getSize()))
+                        .postsId(post.getId())
+                        .user(post.getUser())
+                        .tableTypesId(6L)
+                        .build();
+
+                newImageEntities.add(image);
+            }
+
+            imageRepository.saveAll(newImageEntities);
+            log.info("새 이미지 {}개 저장 완료", newImageEntities.size());
+        }
+
+        // ✅ 응답 DTO 변환
+        List<ImageResponseDto> imageDtos = newImageEntities.stream()
+                .map(ImageResponseDto::from)
+                .toList();
+
+        log.info("게시글 수정 완료 id = {}, title = {}", post.getId(), post.getTitle());
+        return WalkPathDetailResponseDto.from(post, false, imageDtos);
     }
 
     // 게시글 삭제
