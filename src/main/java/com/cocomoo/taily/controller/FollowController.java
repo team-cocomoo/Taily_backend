@@ -5,6 +5,7 @@ import com.cocomoo.taily.dto.follow.FollowRequestDto;
 import com.cocomoo.taily.dto.follow.FollowResponseDto;
 import com.cocomoo.taily.dto.follow.FollowUserResponseDto;
 import com.cocomoo.taily.security.user.CustomUserDetails;
+import com.cocomoo.taily.service.AlarmService;
 import com.cocomoo.taily.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.List;
 public class FollowController {
 
     private final FollowService followService;
+    private final AlarmService alarmService;
 
     // 팔로우
     @PostMapping("/{followingId}")
@@ -30,6 +32,9 @@ public class FollowController {
 
         FollowRequestDto request = new FollowRequestDto(userDetails.getUserId(), followingId);
         FollowResponseDto response = followService.follow(request);
+
+        // 팔로우 시 알람 위임
+        alarmService.sendFollowAlarm(userDetails.getUsername(), followingId);
 
         return ResponseEntity.ok(ApiResponseDto.success(response, "팔로우 성공"));
     }

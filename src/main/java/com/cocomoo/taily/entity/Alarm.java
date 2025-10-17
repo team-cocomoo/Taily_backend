@@ -31,7 +31,7 @@ public class Alarm {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;    // 생성 일시
 
-    @Column(name = "posts_id", nullable = false)
+    @Column(name = "posts_id", nullable = true)
     private Long postsId;
 
     @Enumerated(EnumType.STRING)
