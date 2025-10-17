@@ -30,6 +30,60 @@ public class MyPageService {
     private final MyLikesRepository myLikesRepository;
     private final ImageRepository imageRepository;
 
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    // 유저 정보 조회 메서드
+    @Transactional(readOnly = true)
+    public UserProfileResponseDto getMyInfo(String publicId) {
+        log.info("내 정보 조회 요청: publicId={}", publicId);
+
+        // DB에서 유저 조회
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        return UserProfileResponseDto.from(user);
+    }
+
+    // 유저 정보 수정 메서드
+    @Transactional
+    public UserProfileResponseDto updateMyInfo(String publicId, UserProfileUpdateRequestDto dto) {
+        log.info("내 정보 수정 요청: publicId={}, dto={}", publicId, dto);
+
+        // DB에서 유저 조회
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 비밀번호 변경 로직 (선택적)
+        String encodedPassword = null;
+        if (dto.getNewPassword() != null && !dto.getNewPassword().isBlank()) {
+            encodedPassword = passwordEncoder.encode(dto.getNewPassword());
+            log.info("비밀번호 변경 요청 감지: publicId={}", publicId);
+        }
+
+        // User 엔티티 업데이트 (비밀번호 없을 때는 기존 유지)
+        user.updateInfo(
+                dto.getUsername(),            // username
+                dto.getNickname(),            // nickname
+                encodedPassword,              // password (null이면 updateInfo에서 변경 안 됨)
+                dto.getTel(),                 // tel
+                dto.getEmail(),               // email
+                dto.getAddress(),             // address
+                dto.getIntroduction(),        // introduction
+                null                          // 일반 유저는 state 변경 불가
+        );
+
+        // 변경 저장
+        userRepository.save(user);
+
+        log.info("내 정보 수정 완료: nickname={}, tel={}, email={}",
+                user.getNickname(), user.getTel(), user.getEmail());
+
+        // 응답 DTO 반환
+        return UserProfileResponseDto.from(user);
+    }
+
+
+
     @Transactional
     public MyPetProfileResponseDto createMyPetProfile(MyPetProfileCreateRequestDto myPetProfileCreateRequestDto, String username) {
         log.info("=== 내 반려동물 프로필 작성 시작 : 주인={} ===", username);
