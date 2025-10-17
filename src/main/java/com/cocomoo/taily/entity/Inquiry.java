@@ -46,7 +46,7 @@ public class Inquiry {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "inquiries_id", nullable = true)
+    @JoinColumn(name = "parent_inquiries_id", nullable = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Inquiry inquiry;
 
