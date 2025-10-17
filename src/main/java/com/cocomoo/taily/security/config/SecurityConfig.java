@@ -49,6 +49,8 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final TokenBlacklistService tokenBlacklistService;
 
+
+
     /*
      * Spring Security가 주입되면 내부적으로 글로벌 영역에  AuthenticationManager 는 자동으로 주입됨
      */
