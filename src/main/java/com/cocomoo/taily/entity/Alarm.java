@@ -34,6 +34,10 @@ public class Alarm {
     @Column(name = "posts_id", nullable = false)
     private Long postsId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AlarmCategory category;
+
     // 연관 관계 매핑
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)

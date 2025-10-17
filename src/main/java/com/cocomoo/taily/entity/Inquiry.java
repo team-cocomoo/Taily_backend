@@ -3,12 +3,14 @@ package com.cocomoo.taily.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="Inquiries")
+@Table(name="inquiries")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,6 +42,12 @@ public class Inquiry {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "inquiries_id", nullable = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Inquiry inquiry;
 
 }
