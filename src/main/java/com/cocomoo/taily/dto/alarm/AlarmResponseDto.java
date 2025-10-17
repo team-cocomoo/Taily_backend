@@ -24,6 +24,9 @@ public class AlarmResponseDto {
     private Long tableTypeId;   // 카테고리 타입 Id
     private String tableTypeCategory;   // Comment, Like, follow ...
 
+    /**
+     * Alarm → AlarmResponseDto 변환
+     */
     public static AlarmResponseDto from(Alarm alarm) {
         return AlarmResponseDto.builder()
                 .id(alarm.getId())

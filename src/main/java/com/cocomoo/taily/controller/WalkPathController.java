@@ -6,6 +6,7 @@ import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathCreateRequestDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathDetailResponseDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathListResponseDto;
+import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.WalkPathService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,15 +53,16 @@ public class WalkPathController {
     //walkpath 게시글 작성
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createWalkPath(
-            @RequestBody WalkPathCreateRequestDto requestDto,
+            //@RequestBody WalkPathCreateRequestDto requestDto,
+            @RequestPart("walkpath") WalkPathCreateRequestDto requestDto,
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         log.info("게시글 작성, 작성자 {}",username);
 
-        WalkPathDetailResponseDto walkPathDetailResponseDto = walkPathService.createWalkPath(requestDto,username);
+        WalkPathDetailResponseDto walkPathDetailResponseDto = walkPathService.createWalkPath(requestDto,username,images);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(walkPathDetailResponseDto,"게시글 작성 성공."));
     }
 
