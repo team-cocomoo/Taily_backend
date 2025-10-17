@@ -2,6 +2,7 @@ package com.cocomoo.taily.security.jwt;
 
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserRole;
+import com.cocomoo.taily.security.TokenBlacklistService;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -36,6 +37,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService; // 블랙리스트 서비스 주입
 
     /**
      * 필터 처리 메인 메서드
@@ -64,7 +66,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authorization.substring(7);  // "Bearer " 이후 문자열
         log.debug("토큰 추출 완료");
         try {
-            // 4. 토큰 유효성 전체 검증 (서명 + 만료 시간)
+            // 4. 블랙리스트 검사 (로그아웃된 토큰 차단)
+            if (tokenBlacklistService.contains(token)) {
+                log.warn("차단된 JWT 토큰 접근 시도: {}", token);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            // 5. 토큰 유효성 전체 검증 (서명 + 만료 시간)
             if (!jwtUtil.validateToken(token)) {
                 log.warn("유효하지 않은 토큰 감지");
                 // 유효하지 않은 토큰 인증 정보를 생성하지 않고 다음 필터로
@@ -72,7 +81,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // 5. 토큰에서 사용자 정보 추출
+            // 6. 토큰에서 사용자 정보 추출
             Long id = jwtUtil.getId(token);
             String publicId = jwtUtil.getPublicId(token);
             String username = jwtUtil.getUsername(token);
@@ -81,7 +90,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             log.info("JWT 인증 성공: username={}, role={}", username, role);
 
-            // 6. User 엔티티 생성 (토큰 정보로 임시 생성)
+            // 7. User 엔티티 생성 (토큰 정보로 임시 생성)
             // 실제 DB 조회 없이 토큰 정보만으로 인증 객체 생성
             User user = User.builder()
                     .id(id)
@@ -93,10 +102,10 @@ public class JwtFilter extends OncePerRequestFilter {
                     .build();
 
 
-            // 7. CustomMemberDetails 생성
+            // 8. CustomMemberDetails 생성
             CustomUserDetails userDetails = new CustomUserDetails(user);
 
-            // 8. Spring Security 인증 토큰 생성
+            // 9. Spring Security 인증 토큰 생성
             // 이미 JWT로 인증되었으므로 credentials(비밀번호)는 null
             Authentication authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,                      // Principal (인증 주체)
@@ -104,7 +113,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     userDetails.getAuthorities()      // Authorities (권한)
             );
 
-            // 9. SecurityContext에 인증 정보 저장
+            // 10. SecurityContext에 인증 정보 저장
             // 이 정보는 Controller나 Service에서 사용 가능
             SecurityContextHolder.getContext().setAuthentication(authToken);
 

@@ -1,5 +1,6 @@
 package com.cocomoo.taily.security.config;
 
+import com.cocomoo.taily.security.TokenBlacklistService;
 import com.cocomoo.taily.security.jwt.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ public class SecurityConfig {
      */
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final TokenBlacklistService tokenBlacklistService;
 
     /*
      * Spring Security가 주입되면 내부적으로 글로벌 영역에  AuthenticationManager 는 자동으로 주입됨
@@ -169,7 +171,7 @@ public class SecurityConfig {
 
         // JWTFilter를 LoginFilter 이전에 추가합니다.
         // 이 필터가 먼저 실행되어 요청 헤더의 JWT 토큰을 검증하고 인증 정보를 설정합니다.
-        http.addFilterBefore(new JwtFilter(jwtUtil), JsonLoginFilter.class);
+        http.addFilterBefore(new JwtFilter(jwtUtil, tokenBlacklistService), JsonLoginFilter.class);
 
         // 설정된 HttpSecurity 객체를 기반으로 SecurityFilterChain을 빌드하여 반환합니다.
         return http.build();
