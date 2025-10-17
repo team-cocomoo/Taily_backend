@@ -31,7 +31,7 @@ public class Alarm {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;    // 생성 일시
 
-    @Column(name = "posts_id", nullable = true)
+    @Column(name = "posts_id", nullable = false)
     private Long postsId;
 
     @Enumerated(EnumType.STRING)
@@ -48,7 +48,7 @@ public class Alarm {
     private User receiver;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "table_types_id", nullable = true)
+    @JoinColumn(name = "table_types_id", nullable = false)
     private TableType tableTypeId;
 
 
