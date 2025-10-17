@@ -28,11 +28,13 @@ public class TailyFriendService {
     private final TailyFriendRepository tailyFriendRepository;
     private final UserService userService;
     private final LikeService likeService;
+    private final AlarmService alarmService;
     private final TableTypeRepository tableTypeRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final ImageRepository imageRepository;
+
     // 게시글 작성
     @Transactional
     public TailyFriendDetailResponseDto createTailyFriend(TailyFriendCreateRequestDto requestDto, String username) {
@@ -254,6 +256,14 @@ public class TailyFriendService {
 
         Comment savedComment = commentRepository.save(comment);
 
+        // 알람 전송
+        try {
+            alarmService.sendCommentAlarm(username, postId, dto.getParentCommentsId(), tableType.getId());
+            log.info("[TailyFriendService] 댓글 알람 전송 성공 → postId={}, username={}", postId, username);
+        } catch (Exception e) {
+            log.error("[TailyFriendService] 댓글 알람 전송 실패 → postId={}, username={}, 이유={}", postId, username, e.getMessage());
+        }
+
         return CommentResponseDto.from(savedComment);
     }
 
@@ -325,10 +335,5 @@ public class TailyFriendService {
         return addresses.stream()
                 .map(TailyFriendAddressResponseDto::from)
                 .collect(Collectors.toList());
-    }
-
-    // 부모 댓글 조회
-    public Comment getCommentById(Long parentId) {
-        return commentRepository.findById(parentId).orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다. ID: " + parentId));
     }
 }

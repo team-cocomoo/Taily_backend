@@ -24,7 +24,6 @@ import java.util.Map;
 @Slf4j
 public class TailyFriendController {
     private final TailyFriendService tailyFriendService;
-    private final AlarmService alarmService;
 
     @GetMapping
     public ResponseEntity<?> getTailyFriends(
@@ -93,14 +92,6 @@ public class TailyFriendController {
 
         CommentResponseDto dto = tailyFriendService.createComment(id, username, requestDto);
 
-        // 댓글 작성 시 알람 위임
-        try {
-            alarmService.sendCommentAlarm(username, id, null);
-            log.info("댓글 알람 전송 시도 → 게시글 ID: {}", id);
-        } catch (Exception e) {
-            log.error("댓글 알람 전송 실패 → 게시글 ID: {}, 작성자: {}", id, username, e);
-        }
-
         return ResponseEntity.ok(ApiResponseDto.success(dto, "댓글 작성 성공"));
     }
 
@@ -120,19 +111,6 @@ public class TailyFriendController {
                         .parentCommentsId(parentId)
                         .build()
         );
-
-        // 대댓글 작성 시 알람 전송 (부모 댓글 작성자가 자기 자신이면 알람 생략)
-        try {
-            Comment parentComment = tailyFriendService.getCommentById(parentId);
-            if (!parentComment.getUsersId().getUsername().equals(username)) {
-                alarmService.sendCommentAlarm(username, id, parentId);
-                log.info("대댓글 알람 전송 시도 → 게시글 ID: {}, 부모 댓글 ID: {}", id, parentId);
-            } else {
-                log.info("자기 자신 댓글에 답글 작성 - 알람 전송 생략");
-            }
-        } catch (Exception e) {
-            log.error("대댓글 알람 전송 실패 → 게시글 ID: {}, 부모 댓글 ID: {}, 작성자: {}", id, parentId, username, e);
-        }
 
         return ResponseEntity.ok(ApiResponseDto.success(dto, "대댓글 작성 성공"));
     }

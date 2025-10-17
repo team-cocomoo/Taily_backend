@@ -42,12 +42,11 @@ public class LikeService {
                     .state(true)
                     .build());
             isLiked = true;
+
             // 좋아요 클릭 시 알람 발송
-            if (tableTypeId == 5L) { // TailyFriend 게시글만
-                log.info("[LikeService] sendLikeAlarm 호출 전");
-                alarmService.sendLikeAlarm(username, postId);
-                log.info("[LikeService] sendLikeAlarm 호출 후");
-            }
+            alarmService.sendLikeAlarm(username, postId, tableTypeId);
+            log.info("[LikeService] sendLikeAlarm 호출 완료");
+
         } else {
             like.toggle();
             isLiked = like.isState();
