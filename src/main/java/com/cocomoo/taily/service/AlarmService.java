@@ -169,6 +169,12 @@ public class AlarmService {
         };
     }
 
+    /**
+     * 팔로우 알람
+     *
+     * @param followerUsername
+     * @param followingId
+     */
     @Transactional
     public void sendFollowAlarm(String followerUsername, Long followingId) {
         log.info("[AlarmService] 팔로우 알람 발생: follower={}, followingId={}", followerUsername, followingId);
@@ -179,17 +185,23 @@ public class AlarmService {
         // 팔로우 받은 사람 (알람 수신자)
         User receiver = userRepository.findById(followingId).orElseThrow(() -> new IllegalArgumentException("팔로우 대상 사용자를 찾을 수 없습니다."));
 
-        // 본인에게 팔로우한 경우 방비
+        // 본인에게 팔로우한 경우 방지
         if (sender.getId().equals(receiver.getId())) {
             log.info("[AlarmService] 본인에게 팔로우 시도 - 알람 전송 생략");
             return;
         }
 
+        // Users의 팔로우용 TableType 엔티티 가져오기
+        TableType tableType = tableTypeRepository.findByCategory(TableTypeCategory.USERS).orElseThrow(() -> new IllegalArgumentException("TableTypeCategory.USERS에 해당하는 TableType이 없습니다."));
+
+
         Alarm alarm = Alarm.builder()
                 .sender(sender)
                 .receiver(receiver)
                 .content(sender.getUsername() + "님이 회원님을 팔로우했습니다.")
+                .postsId(followingId)   // 게시글이 없으므로 follwngId로 대체
                 .state(false)
+                .tableTypeId(tableType)
                 .category(AlarmCategory.FOLLOW)
                 .build();
         Alarm savedAlarm = alarmRepository.save(alarm);

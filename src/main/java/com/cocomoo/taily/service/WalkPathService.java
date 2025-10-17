@@ -22,10 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,7 +49,6 @@ public class WalkPathService {
             log.error("게시글 조회 실패: id={}", postId);
             return new IllegalArgumentException("존재하지 않는 게시글입니다.");
         });
-
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
@@ -67,12 +63,13 @@ public class WalkPathService {
                 post.getId(), tableType, user, true
         );
         // 게시글에 연결된 이미지 조회
-        List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
+        List<String> imagePaths = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
                 .stream()
-                .map(ImageResponseDto::from)
+                .map(Image::getFilePath)
+                .filter(Objects::nonNull)
                 .toList();
 
-        return WalkPathDetailResponseDto.from(post,liked,images);
+        return WalkPathDetailResponseDto.from(post,liked,imagePaths);
     }
 
     //게시물 생성
@@ -113,8 +110,9 @@ public class WalkPathService {
 
         // 이미지 저장
         List<Image> imageEntities = new ArrayList<>();
+        List<String> imagePaths = new ArrayList<>();
 
-        List<ImageResponseDto> imaged = null;
+        List<String> imaged = null;
         if (images != null && !images.isEmpty()) {
             for (MultipartFile file : images) {
                 if (file.isEmpty()) continue; // 빈 파일은 건너뛰기
@@ -146,9 +144,10 @@ public class WalkPathService {
                 }
 
                 // (4) DB 엔티티 생성
+                String imageUrl = "http://localhost:8080/uploads/walkpath/" + newFileName;
                 Image image = Image.builder()
                         .uuid(uuid)
-                        .filePath("/uploads/walkpath/" + newFileName) // 웹에서 접근 가능한 경로
+                        .filePath(imageUrl) // 웹에서 접근 가능한 경로
                         .fileSize(String.valueOf(file.getSize()))
                         .postsId(savedWalkPath.getId())
                         .user(author)
@@ -156,22 +155,18 @@ public class WalkPathService {
                         .build();
 
                 imageEntities.add(image);
+                imagePaths.add(image.getFilePath());
             }
             //(5) DB저장
             imageRepository.saveAll(imageEntities);
             imageRepository.flush();
 
 
-            // (6) DTO 변환
-            imaged = imageEntities.stream()
-                    .map(ImageResponseDto::from)
-                    .toList();
-
 
         }
         log.info("게시글 작성 완료 id = {}, title = {}", savedWalkPath.getId(), savedWalkPath.getTitle());
 
-        return WalkPathDetailResponseDto.from(savedWalkPath, false, imaged);
+        return WalkPathDetailResponseDto.from(savedWalkPath, false, imagePaths);
     }
 
     //전체 게시물 목록으로 조회
