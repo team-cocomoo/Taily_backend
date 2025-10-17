@@ -20,7 +20,7 @@ public class WalkPathDetailResponseDto {
     private Long view;
     private boolean liked;
     private Long likeCount;
-    private List<ImageResponseDto> images;
+    private List<String> images;
     private TableTypeCategory category;
     private Long user;
     private String authorName;
@@ -29,7 +29,7 @@ public class WalkPathDetailResponseDto {
 
 
     // Entity -> Dto 변환 메서드
-    public static WalkPathDetailResponseDto from(WalkPath walkPath, boolean liked ,List<ImageResponseDto> images){
+    public static WalkPathDetailResponseDto from(WalkPath walkPath, boolean liked ,List<String> images){
         User user = walkPath.getUser();
         return WalkPathDetailResponseDto.builder()
                 .postId(walkPath.getId())
