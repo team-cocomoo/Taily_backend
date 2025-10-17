@@ -127,7 +127,7 @@ public class SecurityConfig {
                         "/api/faq/**", // faq
                         "/api/notice/**", // 공지사항
                         "/api/report/**", // 신고
-                        "/api/inquiry/**", // 1대1 문의
+                        "/api/inquiries/**", // 1대1 문의
                         "/api/event/**", // 이벤트
                         "/api/taily-friends/**", // 테일리 프렌드
                         "/api/feeds/**",  // 피드

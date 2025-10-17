@@ -273,6 +273,7 @@ public class FeedService {
                 .updatedAt(feed.getUpdatedAt())
                 .images(imagePaths)
                 .tags(tagNames)
+                .writerName(feed.getUser().getNickname())
                 .build();
     }
 
