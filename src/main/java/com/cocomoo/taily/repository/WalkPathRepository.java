@@ -1,5 +1,6 @@
 package com.cocomoo.taily.repository;
 
+import com.cocomoo.taily.entity.Comment;
 import com.cocomoo.taily.entity.TailyFriend;
 import com.cocomoo.taily.entity.WalkPath;
 import org.springframework.data.domain.Page;
@@ -38,4 +39,6 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
     Long countWalkPathsByUserId(@Param("userId") Long userId);
 
     List<WalkPath> findAllByIdIn(List<Long> walkPathIds);
+
+    Comment getCommentById(Long parentCommentId);
 }

@@ -1,6 +1,7 @@
 package com.cocomoo.taily.dto.alarm;
 
 import com.cocomoo.taily.entity.Alarm;
+import com.cocomoo.taily.entity.AlarmCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,12 +18,13 @@ public class AlarmResponseDto {
     private String content; // 알람 내용
     private boolean state;  // 읽음 여부
     private LocalDateTime createdAt;
-    private Long postsId;   // 댓글이 달린 게시글 Id
+    private Long postsId;   // 알람이 발생하는 게시글 Id, follow는 null
     private Long senderId;  // 액션을 하는 사람 Id
     private String senderName;  // 액션을 하는 사람의 아이디
     private Long receiverId;    //알람을 받는 유저 Id
     private Long tableTypeId;   // 카테고리 타입 Id
-    private String tableTypeCategory;   // Comment, Like, follow ...
+    private String tableTypeCategory;   // 게시판 이름: TailyFriends, Feed, WalkPath
+    private AlarmCategory alarmCategory; // 알람 종류: Comment, Like, follow, Chatting
 
     /**
      * Alarm → AlarmResponseDto 변환
@@ -37,8 +39,9 @@ public class AlarmResponseDto {
                 .senderId(alarm.getSender().getId())
                 .senderName(alarm.getSender().getUsername())
                 .receiverId(alarm.getReceiver().getId())
-                .tableTypeId(alarm.getTableTypeId().getId())
+                .tableTypeId(alarm.getTableTypeId() != null ? alarm.getTableTypeId().getId() : null)
                 .tableTypeCategory(alarm.getTableTypeId().getCategory().getDisplayName())
+                .alarmCategory(alarm.getCategory())
                 .build();
     }
 
