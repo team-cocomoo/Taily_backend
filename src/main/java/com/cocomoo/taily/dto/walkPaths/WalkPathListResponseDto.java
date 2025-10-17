@@ -17,7 +17,7 @@ public class WalkPathListResponseDto{
     private Long view;
     private LocalDateTime createdAt;
     private List<ImageResponseDto> images;
-    private User user;
+    private String nickname;
 
     //Entity -> Dto
     public static WalkPathListResponseDto from(WalkPath walkPath,List<ImageResponseDto> images){
@@ -27,7 +27,7 @@ public class WalkPathListResponseDto{
                 .view(walkPath.getView())
                 .images(images)
                 .createdAt(walkPath.getCreatedAt())
-                .user(walkPath.getUser())
+                .nickname(walkPath.getUser() != null ? walkPath.getUser().getNickname() : null)
                 .build();
     }
 }
