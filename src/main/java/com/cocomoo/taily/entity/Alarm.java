@@ -31,8 +31,12 @@ public class Alarm {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;    // 생성 일시
 
-    @Column(name = "posts_id", nullable = false)
+    @Column(name = "posts_id", nullable = true)
     private Long postsId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AlarmCategory category;
 
     // 연관 관계 매핑
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,7 +48,7 @@ public class Alarm {
     private User receiver;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "table_types_id", nullable = false)
+    @JoinColumn(name = "table_types_id", nullable = true)
     private TableType tableTypeId;
 
 
