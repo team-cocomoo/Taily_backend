@@ -48,7 +48,7 @@ public class Alarm {
     private User receiver;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "table_types_id", nullable = false)
+    @JoinColumn(name = "table_types_id", nullable = true)
     private TableType tableTypeId;
 
 
