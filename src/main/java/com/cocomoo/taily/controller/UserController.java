@@ -6,7 +6,9 @@ import com.cocomoo.taily.dto.User.UserLoginRequestDto;
 import com.cocomoo.taily.dto.User.UserLoginResponseDto;
 import com.cocomoo.taily.dto.User.UserResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
+import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserState;
+import com.cocomoo.taily.security.TokenBlacklistService;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final TokenBlacklistService tokenBlacklistService;
+    // 로그아웃된 토큰 블랙리스트 처리하는 서비스
 
     /**
      * 1. 회원가입
@@ -90,56 +94,16 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    // 로그인은 SecurityConfig에서 LoginFilter를 사용해서 구현되어 있음
+    // 여기에 로그인 메서드 구현하지 않는다.
 
-    /** 로그인 메서드
-     *
-     */
-//    @PostMapping("/login")
-//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(@RequestBody UserLoginRequestDto requestDto) {
-//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
-//
-//        // 기존 서비스 login 메서드 사용
-//        UserLoginResponseDto responseDto = userService.login(
-//                new UserLoginRequestDto(requestDto.getUsername(), requestDto.getPassword())
-//        );
-//
-//        log.info("로그인 성공: username={}", responseDto.getUsername());
-//
-//        return ResponseEntity.ok(ApiResponseDto.success(responseDto, "로그인 성공"));
-//    }
-
-//    @PostMapping(path = "/login-st")
-//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
-//            @RequestBody UserLoginRequestDto requestDto) {
-//
-//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
-//
-//        // UserService에서 로그인 처리 및 JWT 발급
-//        UserLoginResponseDto loginResponse = userService.login(requestDto);
-//
-//        log.info("로그인 성공: username={}", loginResponse.getUsername());
-//
-//        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
-//    }
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authoriztion") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.add(token); // 블랙리스트 등록
+        }
+        return ResponseEntity.ok("로그아웃 완료");
+    }
 
 }
-
-
-/**
- * 5. 로그인 (Swagger 테스트용)
- * URL: /login
- */
-//    @PostMapping(path = "/api/auth/login")
-//    public ResponseEntity<ApiResponseDto<UserLoginResponseDto>> login(
-//            @RequestBody UserLoginRequestDto requestDto) {
-//
-//        log.info("=== 로그인 요청: username={}", requestDto.getUsername());
-//
-//        // UserService에서 로그인 처리 및 JWT 발급
-//        UserLoginResponseDto loginResponse = userService.login(requestDto);
-//
-//        log.info("로그인 성공: username={}", loginResponse.getUsername());
-//
-//        return ResponseEntity.ok(ApiResponseDto.success(loginResponse, "로그인 성공"));
-//    }
-//}
