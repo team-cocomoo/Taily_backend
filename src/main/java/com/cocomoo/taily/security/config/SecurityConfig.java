@@ -95,7 +95,8 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/swagger-resources/**",
                         "/webjars/**",
-                        "/api-docs/**"
+                        "/api-docs/**",
+                        "/api/health" // aws health check 를 위해
                 )
                 .permitAll()
 
@@ -175,26 +176,33 @@ public class SecurityConfig {
     }
 
     /**
-     * *CORS(Cross-Origin Resource Sharing) 설정
-     * *
-     * * CORS란?
-     * * - 다른 도메인에서 API를 호출할 때 필요한 보안 정책
-     * * - React(localhost:3000) → Spring Boot(localhost:8080) 통신 허용
+     * CORS(Cross-Origin Resource Sharing) 설정
+     *
+     * CORS란?
+     * - 다른 도메인에서 API를 호출할 때 필요한 보안 정책
      */
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
         CorsConfiguration config = new CorsConfiguration();
+        // Amplify 도메인 허용, AWS Amplify 는 AWS CloudFront에 의해 https가 적용됨
+        config.addAllowedOriginPattern("https://*.amplifyapp.com");
+        // 로컬 개발 환경
+        config.addAllowedOriginPattern("http://localhost:*");
+
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173"); // 리액트 앱의 출처
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
-        //이 부분을 추가하면 브라우저 콘솔창에 토큰 정보를 직접 확인할 수 있다
+        /*
+           토큰 기반 인증/인가 시스템(JWT 등)을 사용하고,
+           서버가 응답 헤더에 토큰 정보를 담아 보낼 때,
+           프론트엔드(클라이언트) JavaScript 코드가 그 토큰을 읽어 저장하기 위한 설정
+         */
         config.addExposedHeader("Authorization");
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
-
     }
 }
