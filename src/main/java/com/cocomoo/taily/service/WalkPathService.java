@@ -185,7 +185,14 @@ public class WalkPathService {
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();
-                    return WalkPathListResponseDto.from(post, images);
+                    return WalkPathListResponseDto.builder()
+                            .id(post.getId())
+                            .title(post.getTitle())
+                            .view(post.getView())
+                            .images(images)
+                            .createdAt(post.getCreatedAt())
+                            .nickname(post.getUser() != null ? post.getUser().getNickname() : null)
+                            .build();
                 })
                 .collect(Collectors.toList());
     }
@@ -370,13 +377,24 @@ public class WalkPathService {
     // 검색 기능
     public List<WalkPathListResponseDto> searchWalkPathsPage(String keyword, int page, int size) {
         Page<WalkPath> posts = walkPathRepository.searchByKeyword(keyword, PageRequest.of(page, size));
+
         return posts.stream()
                 .map(post -> {
+                    // 이미지 조회
                     List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();
-                    return WalkPathListResponseDto.from(post, images);
+
+                    // ✅ User 엔티티 제거, 닉네임만 전달
+                    return WalkPathListResponseDto.builder()
+                            .id(post.getId())
+                            .title(post.getTitle())
+                            .view(post.getView())
+                            .images(images)
+                            .createdAt(post.getCreatedAt())
+                            .nickname(post.getUser() != null ? post.getUser().getNickname() : null)
+                            .build();
                 })
                 .collect(Collectors.toList());
     }
