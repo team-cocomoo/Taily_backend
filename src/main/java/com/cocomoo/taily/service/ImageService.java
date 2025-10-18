@@ -1,12 +1,11 @@
 package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.entity.Image;
-import com.cocomoo.taily.entity.TableType;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.repository.ImageRepository;
-import com.cocomoo.taily.repository.TableTypeRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageService {
@@ -21,47 +21,57 @@ public class ImageService {
     private final ImageRepository imageRepository;
     private final FileStorageService fileStorageService;
     private final UserRepository userRepository;
-    private final TableTypeRepository tableTypeRepository;
 
-    public List<Image> uploadImages(Long tableTypesId, Long userId, Long tableTypeId, Long postsId, List<MultipartFile> files) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + userId));
+    /**
+     * 이미지 업로드
+     * tableTypesId:
+     *  - 1L → usersId 기준 (프로필)
+     *  - 나머지 → postsId 기준 (피드, 펫, 이벤트 등)
+     */
+    public List<Image> uploadImages(Long tableTypesId, Long usersId, Long postsId, List<MultipartFile> files) {
+        User user = userRepository.findById(usersId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + usersId));
 
-        TableType tableType = tableTypeRepository.findById(tableTypeId)
-                .orElseThrow(() -> new IllegalArgumentException("TableType 없음: " + tableTypeId));
-
-        List<Image> images = new ArrayList<>();
-        if (files != null) {
+        List<Image> savedImages = new ArrayList<>();
+        if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 String uuid = UUID.randomUUID().toString();
-                String path = fileStorageService.storeFile(file, uuid);
+                String filePath = fileStorageService.storeFile(file, uuid);
 
                 Image image = Image.builder()
                         .uuid(uuid)
-                        .filePath(path)
+                        .filePath(filePath)
                         .fileSize(String.valueOf(file.getSize()))
-                        .postsId(postsId)
                         .user(user)
                         .tableTypesId(tableTypesId)
                         .build();
 
+                // tableTypesId에 따라 postsId 연결 여부 결정
+                if (tableTypesId != 1L && postsId != null) {
+                    image.setPostsId(postsId);
+                }
+
                 imageRepository.save(image);
-                images.add(image);
+                savedImages.add(image);
+
+                log.info("이미지 업로드: tableType={}, userId={}, postsId={}, path={}",
+                        tableTypesId, usersId, postsId, filePath);
             }
         }
-        return images;
+
+        return savedImages;
     }
 
-    public void deleteImage(Long imageId) {
-        Image image = imageRepository.findById(imageId)
-                .orElseThrow(() -> new IllegalArgumentException("이미지 없음: " + imageId));
-        fileStorageService.deleteFile(image.getFilePath());
-        imageRepository.delete(image);
-    }
-
-    public List<Image> getImagesByTableAndPost(Long postsId, Long tableTypesId) {
-        TableType tableType = tableTypeRepository.findById(tableTypesId)
-                .orElseThrow(() -> new IllegalArgumentException("TableType 없음: " + tableTypesId));
-        return imageRepository.findByPostsIdAndTableTypesId(postsId, tableTypesId);
+    /**
+     * 이미지 조회
+     * tableTypesId가 1L이면 usersId 기준,
+     * 나머지는 postsId 기준으로 조회
+     */
+    public List<Image> getImages(Long tableTypesId, Long usersId, Long postsId) {
+        if (tableTypesId == 1L) {
+            return imageRepository.findByUserIdAndTableTypesId(usersId, tableTypesId);
+        } else {
+            return imageRepository.findByPostsIdAndTableTypesId(postsId, tableTypesId);
+        }
     }
 }

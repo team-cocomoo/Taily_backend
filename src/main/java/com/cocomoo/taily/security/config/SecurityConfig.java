@@ -136,7 +136,8 @@ public class SecurityConfig {
                         "/api/taily-friends/**", // 테일리 프렌드
                         "/api/feeds/**",  // 피드
                         "/api/api/walk-paths/**", // 산책경로
-                        "/uploads/**" // 이미지 폴더 접근
+                        "/api/images/**", // 이미지 api
+                        "/uploads/**" // 업로드 폴더 접근
                 ).hasAnyRole("USER","ADMIN")
 
                 // 나머지 모든 요청은 인증 필요

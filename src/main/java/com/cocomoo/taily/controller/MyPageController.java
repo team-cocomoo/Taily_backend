@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -48,6 +49,29 @@ public class MyPageController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 비밀번호 검증 컨트롤러
+     * @param userDetails
+     * @param request
+     * @return
+     */
+    @PostMapping("/check-password")
+    public ResponseEntity<?> checkPassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody Map<String, String> request
+    ) {
+        String username = userDetails.getUsername();
+        String inputPassword = request.get("password");
+
+        boolean isValid = userService.validatePassword(username, inputPassword);
+
+        if (!isValid) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("message", "비밀번호가 일치하지 않습니다."));
+        }
+
+        return ResponseEntity.ok(Map.of("message", "비밀번호 검증 성공"));
+    }
 
     /**
      * 현재 로그인한 사용자 정보 수정
@@ -64,11 +88,14 @@ public class MyPageController {
         User user = userDetails.getUser();
         log.info("내 정보 수정 API 호출: username={}, publicId={}", user.getUsername(), user.getPublicId());
 
+
         // 서비스 호출: publicId 기반으로 사용자 조회 후 수정
         UserProfileResponseDto response = userService.updateMyProfileByPublicId(user.getPublicId(), requestDto);
 
         return ResponseEntity.ok(response);
     }
+
+
 
     /**
      * 내 반려동물 프로필 작성
