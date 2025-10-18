@@ -2,6 +2,7 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.inquiry.InquiryCreateRequestDto;
+import com.cocomoo.taily.dto.inquiry.InquiryPageResponseDto;
 import com.cocomoo.taily.dto.inquiry.InquiryResponseDto;
 import com.cocomoo.taily.service.InquiryService;
 import lombok.RequiredArgsConstructor;
@@ -35,10 +36,18 @@ public class InquiryController {
 
     // 전체 문의 조회
     @GetMapping
-    public ResponseEntity<?> getAllInquiries() {
-        List<InquiryResponseDto> response = inquiryService.getAllInquiries();
-        log.info("전체 문의 조회, 개수: {}", response.size());
-        return ResponseEntity.ok(ApiResponseDto.success(response, "전체 문의 조회 성공"));
+    public ResponseEntity<?> getAllInquiries(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.info("전체 문의 조회 요청, keyword={}, page={}, size={}", keyword, page, size);
+
+        InquiryPageResponseDto result = inquiryService.getInquiriesPage(keyword, page - 1, size);
+
+        log.info("전체 문의 조회 결과, totalCount={}", result.getTotalCount());
+
+        return ResponseEntity.ok(ApiResponseDto.success(result, "전체 문의 조회 성공"));
     }
 
     // 특정 문의 조회

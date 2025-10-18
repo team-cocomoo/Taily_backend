@@ -49,7 +49,7 @@ public class Alarm {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false)
-    private TableType tableTypeId;
+    private TableType tableType;
 
 
 }

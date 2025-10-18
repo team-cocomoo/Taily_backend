@@ -3,6 +3,7 @@ package com.cocomoo.taily.controller;
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.chat.*;
 import com.cocomoo.taily.entity.MessageRoom;
+import com.cocomoo.taily.service.AlarmService;
 import com.cocomoo.taily.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class ChatRoomController {
-
+    private final AlarmService alarmService;
     private final ChatService chatService;
 
     // 내가 참여한 채팅방 조회
@@ -66,6 +67,10 @@ public class ChatRoomController {
 
         chatService.saveAndBroadcastMessage(dto, username);
         log.info("메시지 전송: roomId={}, senderId={}", dto.getRoomId(), dto.getSenderId());
+
+        // 메시지 전송 시 알람 위임
+        alarmService.sendChattingAlarm(username, dto.getRoomId());
+
         return ResponseEntity.ok(ApiResponseDto.success(null, "메시지 전송 성공"));
     }
 
