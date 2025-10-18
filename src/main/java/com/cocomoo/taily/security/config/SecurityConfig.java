@@ -1,6 +1,5 @@
 package com.cocomoo.taily.security.config;
 
-import com.cocomoo.taily.security.TokenBlacklistService;
 import com.cocomoo.taily.security.jwt.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -2,7 +2,7 @@ package com.cocomoo.taily.security.jwt;
 
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserRole;
-import com.cocomoo.taily.security.TokenBlacklistService;
+import com.cocomoo.taily.security.jwt.TokenBlacklistService;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;

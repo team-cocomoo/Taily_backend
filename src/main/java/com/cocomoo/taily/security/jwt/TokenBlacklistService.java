@@ -1,4 +1,4 @@
-package com.cocomoo.taily.security;
+package com.cocomoo.taily.security.jwt;
 
 import org.springframework.stereotype.Service;
 import java.util.Set;
