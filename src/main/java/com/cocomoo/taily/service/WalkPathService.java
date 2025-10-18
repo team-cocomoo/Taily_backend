@@ -252,9 +252,11 @@ public class WalkPathService {
         }
 
         // ✅ 응답 DTO 변환
-        List<ImageResponseDto> imageDtos = newImageEntities.stream()
-                .map(ImageResponseDto::from)
+        List<String> imageDtos = newImageEntities.stream()
+                .map(Image::getFilePath)   // Image 엔티티에서 경로 문자열만 추출
+                .filter(Objects::nonNull)  // 혹시 null 값 방지
                 .toList();
+
 
         log.info("게시글 수정 완료 id = {}, title = {}", post.getId(), post.getTitle());
         return WalkPathDetailResponseDto.from(post, false, imageDtos);
