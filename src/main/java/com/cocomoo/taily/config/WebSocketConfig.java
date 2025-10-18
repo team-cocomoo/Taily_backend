@@ -1,5 +1,8 @@
 package com.cocomoo.taily.config;
 
+import com.cocomoo.taily.security.jwt.JwtHandshakeInterceptor;
+import com.cocomoo.taily.security.jwt.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -8,7 +11,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private final JwtUtil jwtUtil;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -19,7 +24,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-chat") // WebSocket 연결 endpoint
+                .addInterceptors(new JwtHandshakeInterceptor(jwtUtil))
                 .setAllowedOriginPatterns("*") // localhost 테스트용
                 .withSockJS();
+
     }
 }

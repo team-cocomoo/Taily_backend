@@ -32,6 +32,11 @@ public class Inquiry {
     private InquiryType type;
     // ENUM
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state", nullable = false)
+    @Builder.Default
+    private InquiryState state = InquiryState.PENDING;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -50,4 +55,8 @@ public class Inquiry {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Inquiry parentInquiry;
 
+    public void updateState(InquiryState newState) {
+        this.state = newState;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
