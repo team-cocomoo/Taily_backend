@@ -19,6 +19,7 @@ public class AlarmService {
     private final FeedRepository feedRepository;
     private final TailyFriendRepository tailyFriendRepository;
     private final WalkPathRepository walkPathRepository;
+    private final MessageRoomRepository messageRoomRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
@@ -194,7 +195,6 @@ public class AlarmService {
         // Users의 팔로우용 TableType 엔티티 가져오기
         TableType tableType = tableTypeRepository.findByCategory(TableTypeCategory.USERS).orElseThrow(() -> new IllegalArgumentException("TableTypeCategory.USERS에 해당하는 TableType이 없습니다."));
 
-
         Alarm alarm = Alarm.builder()
                 .sender(sender)
                 .receiver(receiver)
@@ -212,4 +212,49 @@ public class AlarmService {
 
         log.info("[AlarmService] 팔로우 알람 전송 완료 → {}", receiver.getUsername());
     }
+
+    // 채팅 알람
+    public void sendChattingAlarm(String username, Long roomId) {
+        log.info("[AlarmService] 채팅 알람 발생: username={}, roomId={}", username, roomId);
+
+        // 채팅을 보내는 사람 (생성 시 처음 채팅을 시작하는 사람)
+        User sender = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("채팅을 요청한 사람을 찾을 수 없습니다."));
+
+        // 채팅창 정보 가져오기
+        MessageRoom room = messageRoomRepository.findById(roomId).orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다."));
+
+        // 받는 사람 결정 (알람을 전송받는 사람, 보낸 사람은 제외)
+        User receiver;
+        if (room.getUser1().getId().equals(sender.getId())) {
+            receiver = room.getUser2();
+        } else {
+            receiver = room.getUser1();
+        }
+
+        // 본인에게 보내는 경우 방지
+        if (sender.getId().equals(receiver.getId())) {
+            log.info("[AlarmService] 본인에게 채팅 시도 - 알람 전송 생략");
+            return;
+        }
+
+        // Users의 팔로우용 TableType 엔티티 가져오기
+        TableType tableType = tableTypeRepository.findByCategory(TableTypeCategory.USERS).orElseThrow(() -> new IllegalArgumentException("TableTypeCategory.USERS에 해당하는 TableType이 없습니다."));
+
+        Alarm alarm = Alarm.builder()
+                .sender(sender)
+                .receiver(receiver)
+                .content(sender.getUsername() + "님이 회원에게 새 메시지를 보냈습니다.")
+                .postsId(roomId)   // 게시글이 없으므로 roomId 대체
+                .state(false)
+                .tableTypeId(tableType)
+                .category(AlarmCategory.CHATTING)
+                .build();
+        Alarm savedAlarm = alarmRepository.save(alarm);
+
+        // 실시간 알람 전송
+        AlarmResponseDto alarmResponseDto = AlarmResponseDto.from(savedAlarm);
+        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getId(), alarmResponseDto);
+
+        log.info("[AlarmService] 채팅 알람 전송 완료 → sender={}, receiver={}, roomId={}",
+                sender.getUsername(), receiver.getUsername(), roomId);    }
 }
