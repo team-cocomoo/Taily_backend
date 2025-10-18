@@ -8,6 +8,7 @@ import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathCreateRequestDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathDetailResponseDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathListResponseDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathRouteResponseDto;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,13 @@ public class WalkPathService {
         boolean liked = likeRepository.existsByPostsIdAndTableTypeAndUserAndState(
                 post.getId(), tableType, user, true
         );
+        // 게시글에 연결된 경로지점들 조회
+        List<WalkPathRouteResponseDto> routes = walkPathRepository.findByWalkPathId(postId)
+                .stream()
+                .map(WalkPathRouteResponseDto::from)
+                .toList();
+
+
         // 게시글에 연결된 이미지 조회
         List<String> imagePaths = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 6L)
                 .stream()
@@ -69,7 +77,7 @@ public class WalkPathService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        return WalkPathDetailResponseDto.from(post,liked,imagePaths);
+        return WalkPathDetailResponseDto.from(post,liked,imagePaths,routes);
     }
 
     //게시물 생성
@@ -160,13 +168,14 @@ public class WalkPathService {
             //(5) DB저장
             imageRepository.saveAll(imageEntities);
             imageRepository.flush();
-
-
-
         }
+        // ✅ 경로를 DTO로 변환
+        List<WalkPathRouteResponseDto> routeDtos = savedRoutes.stream()
+                .map(WalkPathRouteResponseDto::from)
+                .toList();
         log.info("게시글 작성 완료 id = {}, title = {}", savedWalkPath.getId(), savedWalkPath.getTitle());
 
-        return WalkPathDetailResponseDto.from(savedWalkPath, false, imagePaths);
+        return WalkPathDetailResponseDto.from(savedWalkPath, false, imagePaths,routeDtos);
     }
 
     //전체 게시물 목록으로 조회
@@ -213,6 +222,7 @@ public class WalkPathService {
 
         //새 이미지 업로드
         List<Image> newImageEntities = new ArrayList<>();
+        List<WalkPathRoute> newRoutes = new ArrayList<>();
         if (dto.getImages() != null && !dto.getImages().isEmpty()) {
             for (MultipartFile file : dto.getImages()) {
                 if (file.isEmpty()) continue;
@@ -251,15 +261,18 @@ public class WalkPathService {
             log.info("새 이미지 {}개 저장 완료", newImageEntities.size());
         }
 
-        // ✅ 응답 DTO 변환
+        // 이미지 경로 문자열만 추출
         List<String> imageDtos = newImageEntities.stream()
                 .map(Image::getFilePath)   // Image 엔티티에서 경로 문자열만 추출
                 .filter(Objects::nonNull)  // 혹시 null 값 방지
                 .toList();
-
+        // 경로 DTO 변환
+        List<WalkPathRouteResponseDto> routeDtos = newRoutes.stream()
+                .map(WalkPathRouteResponseDto::from)
+                .toList();
 
         log.info("게시글 수정 완료 id = {}, title = {}", post.getId(), post.getTitle());
-        return WalkPathDetailResponseDto.from(post, false, imageDtos);
+        return WalkPathDetailResponseDto.from(post, false, imageDtos,routeDtos);
     }
 
     // 게시글 삭제

@@ -99,12 +99,11 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**",
                         "/api-docs/**",
-                        "/api/health" // aws health check 를 위해
+                        "/api/health", // aws health check 를 위해
+                        "/ws-chat/**"
                 )
                 .permitAll()
 
-                // WebSocket 허용
-                .requestMatchers("/ws-chat/**").permitAll()
 
                 // 회원만 접근 가능 (ROLE_USER)
                 .requestMatchers(

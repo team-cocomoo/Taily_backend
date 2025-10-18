@@ -11,7 +11,14 @@ import org.springframework.data.repository.query.Param;
 public interface ReportRepository extends JpaRepository<Report, Long> {
     boolean existsByReporterAndReportedAndPath(User reporterId, User reportedId, String path);
 
-    @Query("SELECT r FROM Report r " +
-            "WHERE (:keyword IS NULL OR r.reported.nickname LIKE %:keyword% OR r.reporter.nickname LIKE %:keyword%)")
+    @Query("""
+            SELECT r FROM Report r
+            WHERE (:keyword IS NULL
+               OR r.reported.nickname LIKE CONCAT('%', :keyword, '%')
+               OR r.reporter.nickname LIKE CONCAT('%', :keyword, '%'))
+            """)
     Page<Report> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT r FROM Report r")
+    Page<Report> findAllWithPage(Pageable pageable);
 }

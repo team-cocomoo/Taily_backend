@@ -26,10 +26,13 @@ public class WalkPathDetailResponseDto {
     private String authorName;
     private String authorEmail;
     private LocalDateTime createdAt;
-
+    private List<WalkPathRouteResponseDto> routes;
 
     // Entity -> Dto 변환 메서드
-    public static WalkPathDetailResponseDto from(WalkPath walkPath, boolean liked ,List<String> images){
+    public static WalkPathDetailResponseDto from(WalkPath walkPath,
+                                                 boolean liked ,
+                                                 List<String> images,
+                                                 List<WalkPathRouteResponseDto> routes){
         User user = walkPath.getUser();
         return WalkPathDetailResponseDto.builder()
                 .postId(walkPath.getId())
@@ -43,6 +46,7 @@ public class WalkPathDetailResponseDto {
                 .authorName(user.getUsername())
                 .authorEmail(user.getEmail())
                 .createdAt(walkPath.getCreatedAt())
+                .routes(routes)
                 .build();
     }
 }

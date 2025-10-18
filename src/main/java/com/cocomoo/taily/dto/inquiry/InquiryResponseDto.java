@@ -1,6 +1,7 @@
 package com.cocomoo.taily.dto.inquiry;
 
 import com.cocomoo.taily.entity.Inquiry;
+import com.cocomoo.taily.entity.InquiryState;
 import com.cocomoo.taily.entity.InquiryType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,8 +19,8 @@ public class InquiryResponseDto {
     private String title;
     private String content;
     private InquiryType type;
-    private LocalDateTime createAt;
-    private LocalDateTime updateAt;
+    private InquiryState state;
+    private LocalDateTime createdAt;
     private Long userId;
     private String nickname;
     private Long parentId;
@@ -30,8 +31,8 @@ public class InquiryResponseDto {
                 .title(inquiry.getTitle())
                 .content(inquiry.getContent())
                 .type(inquiry.getType())
-                .createAt(inquiry.getCreatedAt())
-                .updateAt(inquiry.getUpdatedAt())
+                .state(inquiry.getState())
+                .createdAt(inquiry.getCreatedAt())
                 .userId(inquiry.getUser().getId())
                 .nickname(inquiry.getUser().getNickname())
                 .parentId(inquiry.getParentInquiry() != null ? inquiry.getParentInquiry().getId() : null)
