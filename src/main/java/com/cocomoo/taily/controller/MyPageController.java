@@ -2,14 +2,15 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
-import com.cocomoo.taily.dto.follow.FollowUserResponseDto;
 import com.cocomoo.taily.dto.myPage.*;
 import com.cocomoo.taily.entity.User;
+import com.cocomoo.taily.security.jwt.TokenBlacklistService;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.MyPageService;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.Token;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -27,6 +29,7 @@ import java.util.List;
 public class MyPageController {
     private final UserService userService;
     private final MyPageService myPageService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     /**
      * 현재 로그인한 사용자 정보 조회
@@ -48,9 +51,34 @@ public class MyPageController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 비밀번호 검증 컨트롤러
+     * @param userDetails
+     * @param request
+     * @return
+     */
+    @PostMapping("/check-password")
+    public ResponseEntity<?> checkPassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody Map<String, String> request
+    ) {
+        String username = userDetails.getUsername();
+        String inputPassword = request.get("password");
+
+        boolean isValid = userService.validatePassword(username, inputPassword);
+
+        if (!isValid) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("message", "비밀번호가 일치하지 않습니다."));
+        }
+
+        return ResponseEntity.ok(Map.of("message", "비밀번호 검증 성공"));
+    }
 
     /**
-     * 현재 로그인한 사용자 정보 수정
+     * 사용자 정보 수정 (이미지 업로드는 ImageController로 분리됨)
+     * - 텍스트 정보만 수정
+     * - 프로필 이미지는 /api/images/upload (tableTypesId=1)로 별도 처리
      */
     @PutMapping("/me")
     public ResponseEntity<UserProfileResponseDto> updateMyInfo(
@@ -62,12 +90,55 @@ public class MyPageController {
         }
 
         User user = userDetails.getUser();
-        log.info("내 정보 수정 API 호출: username={}, publicId={}", user.getUsername(), user.getPublicId());
+        log.info("내 정보 수정 API 호출: username={}, publicId={}",
+                user.getUsername(), user.getPublicId());
 
-        // 서비스 호출: publicId 기반으로 사용자 조회 후 수정
-        UserProfileResponseDto response = userService.updateMyProfileByPublicId(user.getPublicId(), requestDto);
+        // 서비스 호출 - publicId 기반
+        UserProfileResponseDto response =
+                userService.updateMyProfileByPublicId(user.getPublicId(), requestDto);
+
+        log.info("내 정보 수정 완료: nickname={}, email={}",
+                response.getNickname(), response.getEmail());
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteMyAccount(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestHeader(value = "Authorization", required = false) String tokenHeader,
+            @RequestBody Map<String, String> request
+    ) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "로그인이 필요합니다."));
+        }
+
+        String username = userDetails.getUsername();
+        String password = request.get("password");
+
+        // 비밀번호 검증
+        boolean isValid = userService.validatePassword(username, password);
+        if (!isValid) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "비밀번호가 일치하지 않습니다."));
+        }
+
+        // 회원 탈퇴 처리
+        userService.deleteMyAccount(username);
+        log.info("회원 탈퇴 완료: username={}", username);
+
+        // JWT 추출 및 블랙리스트 등록
+        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
+            String token = tokenHeader.substring(7);
+            tokenBlacklistService.add(token);  // 블랙리스트에 등록
+            log.info("JWT 블랙리스트 등록 완료: {}", token);
+        }
+
+        // SecurityContext 초기화 (즉시 로그아웃 효과)
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
     }
 
     /**

@@ -39,8 +39,8 @@ public class AlarmResponseDto {
                 .senderId(alarm.getSender().getId())
                 .senderName(alarm.getSender().getUsername())
                 .receiverId(alarm.getReceiver().getId())
-                .tableTypeId(alarm.getTableTypeId() != null ? alarm.getTableTypeId().getId() : null)
-                .tableTypeCategory(alarm.getTableTypeId().getCategory().getDisplayName())
+                .tableTypeId(alarm.getTableType() != null ? alarm.getTableType().getId() : null)
+                .tableTypeCategory(alarm.getTableType().getCategory().getDisplayName())
                 .alarmCategory(alarm.getCategory())
                 .build();
     }

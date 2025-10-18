@@ -3,6 +3,7 @@ package com.cocomoo.taily.repository;
 import com.cocomoo.taily.entity.Comment;
 import com.cocomoo.taily.entity.TailyFriend;
 import com.cocomoo.taily.entity.WalkPath;
+import com.cocomoo.taily.entity.WalkPathRoute;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +32,6 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
             "ORDER BY w.createdAt DESC")
     Page<WalkPath> searchByKeyword(String keyword, PageRequest of);
 
-    //
     @Query("SELECT w FROM WalkPath w ORDER BY w.createdAt DESC")
     Page<WalkPath> findAllWithUser(Pageable pageable);
 
@@ -41,4 +41,8 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
     List<WalkPath> findAllByIdIn(List<Long> walkPathIds);
 
     Comment getCommentById(Long parentCommentId);
+
+    //게시글 id 별 경로지점 검색
+    @Query("SELECT r FROM WalkPathRoute r WHERE r.walkPath.id = :walkPathId ORDER BY r.orderNo ASC")
+    List<WalkPathRoute> findByWalkPathId(Long walkPathId);
 }
