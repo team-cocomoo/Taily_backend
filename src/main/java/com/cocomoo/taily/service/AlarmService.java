@@ -67,7 +67,7 @@ public class AlarmService {
                                 : "님이 회원님의 게시글에 댓글을 남겼습니다."))
                 .postsId(postId)
                 .state(false)
-                .tableTypeId(tableType)
+                .tableType(tableType)
                 .category(AlarmCategory.COMMENT)
                 .build();
 
@@ -88,13 +88,17 @@ public class AlarmService {
      * @return
      */
     private Comment findParentCommentByTableType(TableType tableType, Long parentCommentId) {
-        String category = tableType.getCategory().getDisplayName();
+        TableTypeCategory category = tableType.getCategory();
 
         return switch (category) {
-            case "TAILY_FRIENDS" -> tailyFriendRepository.getCommentById(parentCommentId);
-            case "FEEDS" -> feedRepository.getCommentById(parentCommentId);
-            case "WALK_PATHS" -> walkPathRepository.getCommentById(parentCommentId);
-            default -> null;
+            case TAILY_FRIENDS ->
+                    tailyFriendRepository.getCommentById(parentCommentId);
+            case FEEDS ->
+                    feedRepository.getCommentById(parentCommentId);
+            case WALK_PATHS ->
+                    walkPathRepository.getCommentById(parentCommentId);
+            default ->
+                    null; // 혹은 throw new IllegalArgumentException("지원하지 않는 게시판 타입입니다: " + category);
         };
     }
 
@@ -139,7 +143,7 @@ public class AlarmService {
                 .content(sender.getUsername() + "님이 회원님의 게시글을 좋아합니다.")
                 .postsId(postId)
                 .state(false)
-                .tableTypeId(tableType)
+                .tableType(tableType)
                 .category(AlarmCategory.LIKE)
                 .build();
 
@@ -161,12 +165,23 @@ public class AlarmService {
      * @return
      */
     private User getPostWriterByTableType(Long postId, TableType tableType) {
-        String tableCategory = tableType.getCategory().getDisplayName();
-        return switch (tableCategory) {
-            case "TAILY_FRIENDS" -> tailyFriendRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("테일리 프렌즈 게시글 없음")).getUser();
-            case "FEEDS" -> feedRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("피드 없음")).getUser();
-            case "WALK_PATHS" -> walkPathRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("산책 경로 없음")).getUser();
-            default -> throw new IllegalArgumentException("지원하지 않는 게시판 타입입니다." + tableCategory);
+        TableTypeCategory tableTypeCategory = tableType.getCategory(); // Enum 자체로 받기
+
+        return switch (tableTypeCategory) {
+            case TAILY_FRIENDS ->
+                    tailyFriendRepository.findById(postId)
+                            .orElseThrow(() -> new IllegalArgumentException("테일리 프렌즈 게시글 없음"))
+                            .getUser();
+            case FEEDS ->
+                    feedRepository.findById(postId)
+                            .orElseThrow(() -> new IllegalArgumentException("피드 없음"))
+                            .getUser();
+            case WALK_PATHS ->
+                    walkPathRepository.findById(postId)
+                            .orElseThrow(() -> new IllegalArgumentException("산책 경로 없음"))
+                            .getUser();
+            default ->
+                    throw new IllegalArgumentException("지원하지 않는 게시판 타입입니다. " + tableTypeCategory);
         };
     }
 
@@ -201,7 +216,7 @@ public class AlarmService {
                 .content(sender.getUsername() + "님이 회원님을 팔로우했습니다.")
                 .postsId(followingId)   // 게시글이 없으므로 follwngId로 대체
                 .state(false)
-                .tableTypeId(tableType)
+                .tableType(tableType)
                 .category(AlarmCategory.FOLLOW)
                 .build();
         Alarm savedAlarm = alarmRepository.save(alarm);
@@ -246,7 +261,7 @@ public class AlarmService {
                 .content(sender.getUsername() + "님이 회원에게 새 메시지를 보냈습니다.")
                 .postsId(roomId)   // 게시글이 없으므로 roomId 대체
                 .state(false)
-                .tableTypeId(tableType)
+                .tableType(tableType)
                 .category(AlarmCategory.CHATTING)
                 .build();
         Alarm savedAlarm = alarmRepository.save(alarm);
