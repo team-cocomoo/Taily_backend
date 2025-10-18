@@ -252,7 +252,7 @@ public class WalkPathService {
         }
 
         // ✅ 응답 DTO 변환
-        List<ImageResponseDto> imageDtos = newImageEntities.stream()
+        List<String> imageDtos = newImageEntities.stream()
                 .map(ImageResponseDto::from)
                 .toList();
 
