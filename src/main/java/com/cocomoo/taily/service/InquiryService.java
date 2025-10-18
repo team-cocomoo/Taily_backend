@@ -1,14 +1,19 @@
 package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.dto.inquiry.InquiryCreateRequestDto;
+import com.cocomoo.taily.dto.inquiry.InquiryPageResponseDto;
 import com.cocomoo.taily.dto.inquiry.InquiryResponseDto;
 import com.cocomoo.taily.entity.Inquiry;
+import com.cocomoo.taily.entity.InquiryState;
 import com.cocomoo.taily.entity.InquiryType;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.repository.InquiryRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +41,7 @@ public class InquiryService {
             parent = inquiryRepository.findById(dto.getParentId())
                     .orElseThrow(() -> new IllegalArgumentException("부모 문의를 찾을 수 없습니다."));
             type = InquiryType.REPLY;
+            parent.updateState(InquiryState.RESOLVED);
         } else{
             type = InquiryType.ASK;
         }
@@ -44,6 +50,7 @@ public class InquiryService {
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .type(type)
+                .state(InquiryState.RESOLVED)
                 .user(user)
                 .parentInquiry(parent)
                 .build();
@@ -52,10 +59,18 @@ public class InquiryService {
     }
 
     // 모든 문의 조회
-    public List<InquiryResponseDto> getAllInquiries() {
-        return inquiryRepository.findAll().stream()
-                .map(InquiryResponseDto::from)
-                .collect(Collectors.toList());
+    public InquiryPageResponseDto getInquiriesPage(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Inquiry> inquiryPage;
+
+        if (keyword == null || keyword.isBlank()) {
+            inquiryPage = inquiryRepository.findAll(pageable);
+        } else {
+            inquiryPage = inquiryRepository.findByTitleContainingOrContentContainingOrUserNicknameContaining(
+                    keyword, keyword, keyword, pageable);
+        }
+
+        return InquiryPageResponseDto.from(inquiryPage, page, size);
     }
 
     // 특정 문의 조회
