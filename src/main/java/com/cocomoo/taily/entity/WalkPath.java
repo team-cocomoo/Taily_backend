@@ -85,4 +85,6 @@ public class WalkPath {
         this.likeCount = count;
     }
 
+
+
 }

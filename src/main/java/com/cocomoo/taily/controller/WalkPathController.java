@@ -6,6 +6,7 @@ import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathCreateRequestDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathDetailResponseDto;
 import com.cocomoo.taily.dto.walkPaths.WalkPathListResponseDto;
+import com.cocomoo.taily.dto.walkPaths.WalkPathUpdateRequestDto;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.WalkPathService;
 import lombok.RequiredArgsConstructor;
@@ -68,13 +69,17 @@ public class WalkPathController {
 
     // walkpath 게시글 수정
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updatewalkPath(@PathVariable Long id,
-                                               @RequestBody WalkPathCreateRequestDto requestDto) {
+    public ResponseEntity<?> updateWalkPath(
+            @PathVariable Long id,
+            @RequestPart("requestDto") WalkPathUpdateRequestDto requestDto,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        log.info("게시글 수정 , 작성자 {}", username);
 
-        WalkPathDetailResponseDto updatedPost = walkPathService.updateWalkPath(id, username, requestDto);
+        WalkPathDetailResponseDto updatedPost =
+                walkPathService.updateWalkPath(id, username, requestDto, newImages);
+
         return ResponseEntity.ok(ApiResponseDto.success(updatedPost, "게시글 수정 성공"));
     }
     // walkpath 게시글 삭제

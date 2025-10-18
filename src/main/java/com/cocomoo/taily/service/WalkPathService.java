@@ -5,10 +5,7 @@ import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.dto.common.like.LikeResponseDto;
 import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
-import com.cocomoo.taily.dto.walkPaths.WalkPathCreateRequestDto;
-import com.cocomoo.taily.dto.walkPaths.WalkPathDetailResponseDto;
-import com.cocomoo.taily.dto.walkPaths.WalkPathListResponseDto;
-import com.cocomoo.taily.dto.walkPaths.WalkPathRouteResponseDto;
+import com.cocomoo.taily.dto.walkPaths.*;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -203,7 +200,7 @@ public class WalkPathService {
 
     // 게시글 수정
     @Transactional
-    public WalkPathDetailResponseDto updateWalkPath(Long postId, String username, WalkPathCreateRequestDto dto){
+    public WalkPathDetailResponseDto updateWalkPath(Long postId, String username, WalkPathUpdateRequestDto dto, List<MultipartFile> getImages){
         WalkPath post = walkPathRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
         if (!post.getUser().getUsername().equals(username)) {
@@ -223,8 +220,8 @@ public class WalkPathService {
         //새 이미지 업로드
         List<Image> newImageEntities = new ArrayList<>();
         List<WalkPathRoute> newRoutes = new ArrayList<>();
-        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
-            for (MultipartFile file : dto.getImages()) {
+        if (getImages != null && !getImages.isEmpty()) {
+            for (MultipartFile file : getImages) {
                 if (file.isEmpty()) continue;
 
                 // (1) 파일명 및 경로 생성
