@@ -1,5 +1,6 @@
 package com.cocomoo.taily.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @ToString
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -77,6 +79,7 @@ public class User {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_types_id", nullable = false, foreignKey = @ForeignKey(name = "fk_users_table_type"))
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @OnDelete(action = OnDeleteAction.CASCADE)
     private TableType tableType;
 

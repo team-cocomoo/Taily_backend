@@ -1,5 +1,6 @@
 package com.cocomoo.taily.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -38,6 +39,7 @@ public class Image {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User user;      // 업로더 ID (글 작성에서 사용 시 null)
 
 

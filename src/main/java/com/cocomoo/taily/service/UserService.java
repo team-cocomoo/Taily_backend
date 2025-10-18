@@ -201,25 +201,80 @@ public class UserService {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
+        // 🔹 비밀번호가 입력된 경우에만 암호화 후 변경
         String encodedPassword = null;
         if (requestDto.getPassword() != null && !requestDto.getPassword().isBlank()) {
             encodedPassword = passwordEncoder.encode(requestDto.getPassword());
         }
 
+        // UserState 값이 null일 경우 기존 state 값 유지
+        UserState newState = null;
+        if (requestDto.getState() != null) {
+            try {
+                newState = UserState.valueOf(requestDto.getState());
+            } catch (IllegalArgumentException e) {
+                log.warn("잘못된 상태 값입니다. state={}", requestDto.getState());
+                newState = user.getState(); // 기존 상태 유지
+            }
+        } else {
+            newState = user.getState(); // null이면 기존 상태 유지
+        }
+
+        // 🔹 user 엔티티에 업데이트 적용
         user.updateInfo(
                 requestDto.getUsername(),
                 requestDto.getNickname(),
-                encodedPassword,
+                encodedPassword != null ? encodedPassword : user.getPassword(), // 기존 비밀번호 유지
                 requestDto.getTel(),
                 requestDto.getEmail(),
                 requestDto.getAddress(),
                 requestDto.getIntroduction(),
-                UserState.valueOf(requestDto.getState())
+                newState
         );
 
         log.info("회원 정보 수정 완료: publicId={}", publicId);
         return UserProfileResponseDto.from(user);
     }
+
+
+    @Transactional
+    public void deleteMyAccount(String username) {
+        log.info("회원 탈퇴 시도: username={}", username);
+
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+            if (user.getState() == UserState.WITHDRAW) {
+                throw new IllegalStateException("이미 탈퇴한 회원입니다.");
+            }
+
+            // Soft Delete (상태만 변경)
+            user.updateInfo(
+                    user.getUsername(),
+                    user.getNickname(),
+                    user.getPassword(),
+                    user.getTel(),
+                    user.getEmail(),
+                    user.getAddress(),
+                    user.getIntroduction(),
+                    UserState.WITHDRAW
+            );
+
+            log.info("회원 탈퇴 완료: username={}, state={}", username, user.getState());
+
+        } catch (IllegalArgumentException e) {
+            log.error("회원 탈퇴 실패 - 존재하지 않는 사용자: {}", username, e);
+            throw e; // → 컨트롤러에서 GlobalExceptionHandler에 의해 처리됨
+        } catch (IllegalStateException e) {
+            log.warn("회원 탈퇴 중복 요청: username={}, message={}", username, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("회원 탈퇴 처리 중 예상치 못한 오류 발생: username={}", username, e);
+            throw new RuntimeException("회원 탈퇴 중 오류가 발생했습니다.");
+        }
+    }
+
 
     // 관리자 로그인
     public User findAdminByUsername(String username) {

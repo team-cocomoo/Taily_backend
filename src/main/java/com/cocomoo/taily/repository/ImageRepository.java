@@ -28,6 +28,9 @@ public interface ImageRepository extends JpaRepository<Image,Long> {
     List<Image> findByUserIdAndTableTypesId(@Param("userId") Long userId, @Param("tableTypesId") Long tableTypesId);
     // user.id를 사용하기 위해서 JPQL로 작성
 
+    // 프로필용 최신 1개 이미지만 조회
+    Optional<Image> findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(Long userId, Long tableTypesId);
+
     // 특정 게시글(postsId)와 테이블 타입(tableTypesId)에 해당하는 모든 이미지 조회
     List<Image> findByPostsIdAndTableTypesId(Long postsId, Long tableTypesId);
 

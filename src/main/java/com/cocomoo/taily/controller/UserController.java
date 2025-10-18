@@ -8,7 +8,7 @@ import com.cocomoo.taily.dto.User.UserResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserState;
-import com.cocomoo.taily.security.TokenBlacklistService;
+import com.cocomoo.taily.security.jwt.TokenBlacklistService;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +98,7 @@ public class UserController {
     // 여기에 로그인 메서드 구현하지 않는다.
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authoriztion") String authHeader) {
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             tokenBlacklistService.add(token); // 블랙리스트 등록
