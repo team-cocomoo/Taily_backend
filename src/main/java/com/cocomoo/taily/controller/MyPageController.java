@@ -38,16 +38,16 @@ public class MyPageController {
         if (userDetails == null) {
             throw new RuntimeException("인증되지 않은 사용자입니다.");
         }
+        String publicId = userDetails.getUser().getPublicId();
 
-        // 1. CustomUserDetails에서 User 객체 가져오기
-        User user = userDetails.getUser();
-        // 2. 로그 출력
-        log.info("내 정보 조회 API 호출: username={}, publicId={}", user.getUsername(), user.getPublicId());
-        // 3. DTO 변환 (publicId 기준)
-        UserProfileResponseDto response = UserProfileResponseDto.from(user);
+        // 서비스에서 유저 정보 조회
+        UserProfileResponseDto response = myPageService.getMyInfo(publicId);
+
+        log.info("내 정보 조회 완료: username={}, nickname={}", response.getUsername(), response.getNickname());
 
         return ResponseEntity.ok(response);
     }
+
 
     /**
      * 현재 로그인한 사용자 정보 수정
