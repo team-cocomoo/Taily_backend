@@ -418,8 +418,7 @@ public class TailyFriendService {
 
     // 주소만 검색
     public List<TailyFriendAddressResponseDto> getAllAddresses() {
-        List<String> addresses = tailyFriendRepository.findAllAddresses();
-        return addresses.stream()
+        return tailyFriendRepository.findAll().stream()
                 .map(TailyFriendAddressResponseDto::from)
                 .collect(Collectors.toList());
     }
