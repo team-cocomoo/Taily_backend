@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "walk_path_routes")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
