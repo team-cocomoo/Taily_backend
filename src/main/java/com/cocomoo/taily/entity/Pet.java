@@ -87,13 +87,17 @@ public class Pet {
      * - 작성자와 선택된 일자는 변경 불가
      * - 입력값 검증 포함
      */
-    public void updateMyPetProfile(String name, PetGender gender, String preference, String introduction) {
+    public void updateMyPetProfile(String name, PetGender gender, int age, String preference, String introduction) {
         if (name != null && !name.trim().isEmpty()) {
             this.name = name.trim();
         }
 
         if (gender != null) {
             this.gender = gender;
+        }
+
+        if (age != 0) {
+            this.age = age;
         }
 
         if (preference != null && !preference.trim().isEmpty()) {

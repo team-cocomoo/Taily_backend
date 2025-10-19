@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 public class MyPetProfileCreateRequestDto {
     private String name;
     private PetGender gender;
+    private Integer age;
     private String preference;
     private String introduction;
     private String tel;
