@@ -84,26 +84,16 @@ public class SecurityConfig {
 
         ///////////////////////인증 인가에 대한 설정(개발자가 주로 확인)//////////////////////
         // !주의! 주소 중복 선언하면 오류 첫번째로 매칭된 rule만 적용 ###//
+        // 권한이 더 높은 경로를 위에, URL이 넓은 범위를 위에 놓는다.
         http.authorizeHttpRequests(auth -> auth
-                // 비회원 가능 (permitAll)
-                .requestMatchers(
-                        "/api/users/login",
-                        "/api/users/register",
-                        "/api/admin/login",
-                        "/api/auth/**",
-                        "/api/facilities/**",         // 동물 관련 시설 조회
-                        "/api/events/public/**",      // 이벤트 조회용 (목록/배너)
-                        "/api/notices/public/**",     // 공지사항 목록
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/swagger-resources/**",
-                        "/webjars/**",
-                        "/api-docs/**",
-                        "/api/health", // aws health check 를 위해
-                        "/ws-chat/**"
-                )
-                .permitAll()
 
+                // 관리자만 접근 가능 (ROLE_ADMIN)
+                .requestMatchers(
+                        "/api/adtest/**",
+                        "/api/admin/**",
+                        "/api/manage/**"                   // (회원관리, 신고처리, 공지, 이벤트)
+                        // faq
+                ).hasAuthority("ROLE_ADMIN")
 
                 // 회원만 접근 가능 (ROLE_USER)
                 .requestMatchers(
@@ -115,14 +105,7 @@ public class SecurityConfig {
                         "/api/notices/**",            // 공지사항 상세
                         "/api/qna/**",                 // 1:1 문의
                         "/api/user-profile/**"        // 다른 회원 페이지
-                ).hasRole("USER")
-
-                // 관리자만 접근 가능 (ROLE_ADMIN)
-                .requestMatchers(
-                        "/api/admin/**",              // 관리자 기능 전체
-                        "/api/manage/**"                   // (회원관리, 신고처리, 공지, 이벤트)
-                                        // faq
-                ).hasRole("ADMIN")
+                ).hasAuthority("ROLE_USER")
 
                 // 유저와 관리자 모두 접근 가능 (ROLE_USER, ROLE_ADMIN)
                 .requestMatchers(
@@ -135,8 +118,27 @@ public class SecurityConfig {
                         "/api/feeds/**",  // 피드
                         "/api/api/walk-paths/**", // 산책경로
                         "/api/images/**", // 이미지 api
-                        "/uploads/**" // 업로드 폴더 접근
-                ).hasAnyRole("USER","ADMIN")
+                        "/uploads/**", // 업로드 폴더 접근
+                                "/api/notices/**"
+                ).hasAnyAuthority("ROLE_USER","ROLE_ADMIN")
+
+                // 비회원 가능 (permitAll)
+                .requestMatchers(
+                        "/api/users/login",
+                        "/api/users/register",
+                        "/api/admin/login",
+                        "/api/auth/**",
+                        "/api/facilities/**",         // 동물 관련 시설 조회
+                        "/api/events/public/**",      // 이벤트 조회용 (목록/배너)
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/api-docs/**",
+                        "/api/health", // aws health check 를 위해
+                        "/ws-chat/**"
+                )
+                .permitAll()
 
                 // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated()

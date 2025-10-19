@@ -148,9 +148,7 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
                 "id", user.getId(),
                 "publicId", user.getPublicId(),
                 "username", user.getUsername(),
-                "nickname", user.getNickname(),
-                "role", role,
-                "state", user.getState()
+                "role", role
         );
 
 // ApiResponseDto.success()를 사용하여 표준 응답 생성
