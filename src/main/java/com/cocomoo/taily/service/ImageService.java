@@ -90,7 +90,11 @@ public class ImageService {
                 // 피드, 펫 등
                 else {
                     if (postsId == null) {
-                        throw new IllegalArgumentException("기능 연관 이미지 업로드 시 postsId는 필수입니다.");
+                        if (tableTypesId == 4L) {
+                            log.info("산책 일기 업로드 예외 허용: postsId가 null이지만 임시 업로드 처리됨 (tableTypesId={})", tableTypesId);
+                        } else {
+                            throw new IllegalArgumentException("기능 연관 이미지 업로드 시 postsId는 필수입니다.");
+                        }
                     }
                     image.setPostsId(postsId);
                 }
