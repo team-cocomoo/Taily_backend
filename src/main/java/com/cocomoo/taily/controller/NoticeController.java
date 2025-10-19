@@ -1,73 +1,96 @@
 package com.cocomoo.taily.controller;
 
-import com.cocomoo.taily.entity.Notice;
-import com.cocomoo.taily.entity.User;
+import com.cocomoo.taily.dto.notice.NoticeRequestDto;
+import com.cocomoo.taily.dto.notice.NoticeResponseDto;
+import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.NoticeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/notice")
+@RequestMapping("/api/notices")
 @RequiredArgsConstructor
+@Slf4j
 public class NoticeController {
 
     private final NoticeService noticeService;
 
     /**
-     * 관리자 - 공지 등록
+     * 공지 등록 (관리자만)
+     * JWT 토큰에서 publicId 추출 → 서비스로 전달
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Notice> createNotice(
-            @RequestParam String title,
-            @RequestParam String content,
-            @AuthenticationPrincipal User user
+    public ResponseEntity<NoticeResponseDto> createNotice(
+            @RequestBody NoticeRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Notice saved = noticeService.createNotice(title, content, user);
+        String publicId = userDetails.getPublicId();
+        log.info("[공지등록] 요청자 publicId={}", publicId);
+
+        NoticeResponseDto saved = noticeService.createNotice(dto, publicId);
         return ResponseEntity.ok(saved);
     }
 
     /**
-     * 사용자, 관리자 - 공지 전체 목록 조회
+     * 공지 목록 조회 (검색 + 페이지네이션)
      */
     @GetMapping
-    public ResponseEntity<List<Notice>> getAllNotices() {
-        return ResponseEntity.ok(noticeService.getAllNotices());
+    public ResponseEntity<Page<NoticeResponseDto>> getNotices(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword
+    ) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<NoticeResponseDto> notices = noticeService.getNotices(pageable, keyword);
+        return ResponseEntity.ok(notices);
     }
 
     /**
-     * 사용자, 관리자 - 공지 상세 조회
+     * 공지 상세 조회 (조회수 증가)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Notice> getNotice(@PathVariable Long id) {
-        return ResponseEntity.ok(noticeService.getNotice(id));
+    public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable Long id) {
+        NoticeResponseDto notice = noticeService.getNotice(id);
+        return ResponseEntity.ok(notice);
     }
 
     /**
-     * 관리자 - 공지 수정
+     * 공지 수정 (관리자)
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<Notice> updateNotice(
+    public ResponseEntity<NoticeResponseDto> updateNotice(
             @PathVariable Long id,
-            @RequestParam String title,
-            @RequestParam String content
+            @RequestBody NoticeRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Notice updated = noticeService.updateNotice(id, title, content);
+        String publicId = userDetails.getPublicId();
+        log.info("[공지수정] 요청자 publicId={}, noticeId={}", publicId, id);
+
+        NoticeResponseDto updated = noticeService.updateNotice(id, dto, publicId);
         return ResponseEntity.ok(updated);
     }
 
     /**
-     * 관리자 - 공지 삭제
+     * 공지 삭제 (관리자)
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable Long id) {
-        noticeService.deleteNotice(id);
+    public ResponseEntity<Void> deleteNotice(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        String publicId = userDetails.getPublicId();
+        log.info("[공지삭제] 요청자 publicId={}, noticeId={}", publicId, id);
+
+        noticeService.deleteNotice(id, publicId);
         return ResponseEntity.noContent().build();
     }
 }

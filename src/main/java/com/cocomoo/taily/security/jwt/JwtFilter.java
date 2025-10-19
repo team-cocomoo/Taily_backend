@@ -85,7 +85,6 @@ public class JwtFilter extends OncePerRequestFilter {
             Long id = jwtUtil.getId(token);
             String publicId = jwtUtil.getPublicId(token);
             String username = jwtUtil.getUsername(token);
-            String nickname = jwtUtil.getNickname(token);
             String role = jwtUtil.getRole(token);
 
             log.info("JWT 인증 성공: username={}, role={}", username, role);
@@ -96,8 +95,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     .id(id)
                     .publicId(publicId)
                     .username(username)
-                    .nickname(nickname)
-                    .role(UserRole.valueOf(role))
                     .password("") // JWT 인증이므로 비밀번호 불필요
                     .build();
 
