@@ -20,8 +20,9 @@ public class AlarmResponseDto {
     private LocalDateTime createdAt;
     private Long postsId;   // 알람이 발생하는 게시글 Id, follow는 null
     private Long senderId;  // 액션을 하는 사람 Id
-    private String senderName;  // 액션을 하는 사람의 아이디
+    private String senderNickname;  // 액션을 하는 사람의 닉네임
     private Long receiverId;    //알람을 받는 유저 Id
+    private String receiverNickname;    // 알람 받는 유저의 닉네임
     private Long tableTypeId;   // 카테고리 타입 Id
     private String tableTypeCategory;   // 게시판 이름: TailyFriends, Feed, WalkPath
     private AlarmCategory alarmCategory; // 알람 종류: Comment, Like, follow, Chatting
@@ -37,8 +38,9 @@ public class AlarmResponseDto {
                 .createdAt(alarm.getCreatedAt())
                 .postsId(alarm.getPostsId())
                 .senderId(alarm.getSender().getId())
-                .senderName(alarm.getSender().getUsername())
+                .senderNickname(alarm.getSender().getNickname())
                 .receiverId(alarm.getReceiver().getId())
+                .receiverNickname(alarm.getReceiver().getNickname())
                 .tableTypeId(alarm.getTableType() != null ? alarm.getTableType().getId() : null)
                 .tableTypeCategory(alarm.getTableType().getCategory().getDisplayName())
                 .alarmCategory(alarm.getCategory())
