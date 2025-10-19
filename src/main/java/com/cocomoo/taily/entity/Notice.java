@@ -28,7 +28,7 @@ public class Notice {
 
     //조회수
     @Column(name = "view", nullable = false)
-    private  Long view =0L;
+    private Long view =0L;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -44,5 +44,6 @@ public class Notice {
     private User user;
 
 
-
+    public void setView(long l) {
+    }
 }
