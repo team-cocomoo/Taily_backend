@@ -1,6 +1,6 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.common.image.ImageResponseDto;
+import com.cocomoo.taily.config.FileStorageProperties;
 import com.cocomoo.taily.dto.walkDiary.*;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.ImageRepository;
@@ -9,16 +9,12 @@ import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.repository.WalkDiaryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -35,10 +31,7 @@ public class WalkDiaryService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final ImageRepository imageRepository;
-    private final FileUploadService fileUploadService;
-
-    @Value("${app.base-url}")
-    private String baseUrl; // application.properties 값 주입
+    private final FileStorageProperties fileStorageProperties;
 
     /**
      * 현재 년도, 월 별로 작성한 산책 일지 조회
@@ -84,7 +77,7 @@ public class WalkDiaryService {
      * @return 생성된 산책 일지 상세 정보
      */
     @Transactional
-    public WalkDiaryDetailResponseDto createWalkDiary(WalkDiaryCreateRequestDto walkDiaryCreateRequestDto, LocalDate date, String username) throws IOException {
+    public WalkDiaryDetailResponseDto createWalkDiary(WalkDiaryCreateRequestDto walkDiaryCreateRequestDto, LocalDate date, String username) {
         log.info("=== 산책 일지 작성 시작 : username={} ===", username);
 
         // 작성자 조회
@@ -93,7 +86,7 @@ public class WalkDiaryService {
         TableType tableType = tableTypeRepository.findById(4L).orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
 
         // 오늘 날짜 이후의 글을 작성할 경우 예외 처리
-        if (walkDiaryCreateRequestDto.getDate().isAfter(LocalDate.now())) {
+        if (date.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("오늘 이후 날짜에는 산책 일지를 작성할 수 없습니다.");
         }
 
@@ -111,39 +104,24 @@ public class WalkDiaryService {
         // DB 저장
         WalkDiary savedWalkDiary = walkDairyRepository.save(walkDiary);
 
-        // 이미지 저장
-        List<ImageResponseDto> images = new ArrayList<>();
-        if (walkDiaryCreateRequestDto.getImages() != null && !walkDiaryCreateRequestDto.getImages().isEmpty()) {
-            Files.createDirectories(Paths.get("uploads/")); // 폴더 없을 경우 생성
-            List<Image> imageEntities = new ArrayList<>();
-
-            for (MultipartFile file : walkDiaryCreateRequestDto.getImages()) {
-                String uuid = UUID.randomUUID().toString();
-                String filename = uuid + "_" + file.getOriginalFilename();
-                Path path = Paths.get("uploads/", filename);
-                Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-
-                String fileUrl = "/uploads/" + filename;
-
-                Image image = Image.builder()
-                        .uuid(uuid)
-                        .filePath(fileUrl)
-                        .fileSize(String.valueOf(file.getSize()))
-                        .postsId(savedWalkDiary.getId())
-                        .user(user)
-                        .tableTypesId(4L)
-                        .build();
-                imageEntities.add(image);
-
+        // 업로드된 이미지 ID들을 일지에 연결
+        if (walkDiaryCreateRequestDto.getImageIds() != null && !walkDiaryCreateRequestDto.getImageIds().isEmpty()) {
+            List<Image> images = imageRepository.findAllById(walkDiaryCreateRequestDto.getImageIds());
+            for (Image img : images) {
+                img.setPostsId(savedWalkDiary.getId());
+                img.setTableTypesId(4L); // WALK_DIARY
             }
-                imageRepository.saveAll(imageEntities);
-                images = imageEntities.stream().map(img -> ImageResponseDto.from(img, baseUrl)) // 여기서 baseUrl 전달
-                        .toList();
+            imageRepository.saveAll(images);
         }
+
+        List<String> imagePaths = imageRepository.findByPostsIdAndTableTypesId(savedWalkDiary.getId(), 4L)
+                .stream()
+                .map(Image::getFilePath)
+                .toList();
 
         log.info("산책 일지 작성 완료: id={}, title={}", savedWalkDiary.getId(), savedWalkDiary.getContent());
 
-        return WalkDiaryDetailResponseDto.from(savedWalkDiary, images);
+        return WalkDiaryDetailResponseDto.from(savedWalkDiary, imagePaths);
     }
 
     /**
@@ -169,11 +147,11 @@ public class WalkDiaryService {
         });
 
         // 이미지 조회 + url 완성
-        List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L).stream().map(img -> ImageResponseDto.from(img, baseUrl)).toList();
+        List<String> imagePaths  = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L).stream().map(Image::getFilePath).toList();
 
         log.info("산책 일지 조회 성공: content={}", walkDiary.getContent());
 
-        return WalkDiaryDetailResponseDto.from(walkDiary, images);
+        return WalkDiaryDetailResponseDto.from(walkDiary, imagePaths);
     }
 
     /**
@@ -194,7 +172,13 @@ public class WalkDiaryService {
      * @return
      */
     @Transactional
-    public WalkDiaryDetailResponseDto updateWalkDiary(Long walkDiaryId, WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto, String username, List<MultipartFile> newImages) throws IOException {
+    public WalkDiaryDetailResponseDto updateWalkDiary(
+            Long walkDiaryId,
+            WalkDiaryUpdateRequestDto walkDiaryUpdateRequestDto,
+            String username
+    ) {
+        log.info("=== 산책 일지 수정 시작 : id={}, username={} ===", walkDiaryId, username);
+
         // 기존 산책 일지 조회
         WalkDiary walkDiary = walkDairyRepository.findById(walkDiaryId).orElseThrow(() -> new IllegalArgumentException("산책 일지가 존재하지 않습니다."));
 
@@ -212,46 +196,28 @@ public class WalkDiaryService {
                 walkDiaryUpdateRequestDto.getContent()
         );
 
-        // 이미지 처리
-        List<ImageResponseDto> updatedImages = new ArrayList<>();
+        // TableType, User 가져오기
+        User user = walkDiary.getUser();
+        TableType tableType = tableTypeRepository.findById(4L)
+                .orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
 
-        if (newImages != null && !newImages.isEmpty()) {
-            User user = walkDiary.getUser();
-            TableType tableType = tableTypeRepository.findById(4L)
-                    .orElseThrow(() -> new IllegalArgumentException("TableType가 존재하지 않습니다."));
+        if (walkDiaryUpdateRequestDto.getImageIds() != null && !walkDiaryUpdateRequestDto.getImageIds().isEmpty()) {
+            imageRepository.deleteAll(
+                    imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L)
+            );
 
-            // 새 이미지 저장
-            List<Image> savedImages = new ArrayList<>();
-            for (MultipartFile file : newImages) {
-                String filePath = fileUploadService.saveFile(file); // 파일 저장 후 URL 반환
-                String uuid = UUID.randomUUID().toString();
-
-                Image img = Image.builder()
-                        .uuid(uuid)
-                        .filePath(filePath)
-                        .fileSize(String.valueOf(file.getSize()))
-                        .postsId(walkDiary.getId())
-                        .user(user)
-                        .tableTypesId(4L)
-                        .build();
-
-                savedImages.add(img);
+            List<Image> images = imageRepository.findAllById(walkDiaryUpdateRequestDto.getImageIds());
+            for (Image img : images) {
+                img.setPostsId(walkDiary.getId());
+                img.setTableTypesId(4L);
             }
-
-            imageRepository.saveAll(savedImages);
-
-            updatedImages = savedImages.stream()
-                    .map(img -> ImageResponseDto.from(img, baseUrl))
-                    .toList();
-        } else {
-            // 기존 이미지 유지
-            updatedImages = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L)
-                    .stream()
-                    .map(img -> ImageResponseDto.from(img, baseUrl))
-                    .toList();
+            imageRepository.saveAll(images);
         }
 
-        return WalkDiaryDetailResponseDto.from(walkDiary, updatedImages);
+        // 최종 이미지 리스트 반환
+        List<String> imagePaths = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L).stream().map(Image::getFilePath).toList();
+
+        return WalkDiaryDetailResponseDto.from(walkDiary, imagePaths);
     }
 
     /**
@@ -342,7 +308,7 @@ public class WalkDiaryService {
                 .build();
     }
 
-    // 통계 도와주는 메서드 - 추후 entity로 이동
+    // 통계 도와주는 메서드
     private long calculateStreak(List<WalkDiary> diaries) {
         List<LocalDate> sortedDates = diaries.stream()
                 .map(WalkDiary::getDate)
@@ -396,5 +362,48 @@ public class WalkDiaryService {
 
     public boolean existsByUserAndDate(User user, LocalDate date) {
         return walkDairyRepository.existsByUserAndDate(user,date);
+    }
+
+    /**
+     * 실제 파일 저장 메서드
+     * @param savedFileNames
+     * @param files
+     * @throws IOException
+     */
+    @Transactional
+    private void saveFilesWithLog(List<String> savedFileNames, List<MultipartFile> files, String subFolder) throws IOException {
+        if (files == null || files.isEmpty()) return;
+
+        // 프로젝트 루트 기준 절대 경로
+        String projectRoot = new File("").getAbsolutePath();
+        String uploadPath = projectRoot + File.separator + fileStorageProperties.getUploadDir();
+
+        // 기능별 하위 폴더를 포함한 업로드 디렉토리
+        File uploadDir = new File(uploadPath, subFolder);
+        if (!uploadDir.exists() && !uploadDir.mkdirs()) {
+            throw new IOException("업로드 폴더 생성 실패: " + uploadDir.getAbsolutePath());
+        }
+
+        // 저장된 파일 추적용 리스트
+        List<File> savedFiles = new ArrayList<>();
+
+        for (int i = 0; i < files.size(); i++) {
+            MultipartFile file = files.get(i);
+            String fileName = savedFileNames.get(i);
+            File dest = new File(uploadDir, fileName);
+
+            try {
+                file.transferTo(dest); // 실제 저장
+                savedFiles.add(dest);
+                log.info("파일 저장 성공: {}", dest.getAbsolutePath());
+            } catch (IOException e) {
+                log.error("파일 저장 실패: {}", dest.getAbsolutePath(), e);
+                // 실패 시 지금까지 저장한 파일 삭제
+                for (File f : savedFiles) {
+                    if (f.exists()) f.delete();
+                }
+                throw e; // 예외 던져서 트랜잭션 롤백
+            }
+        }
     }
 }
