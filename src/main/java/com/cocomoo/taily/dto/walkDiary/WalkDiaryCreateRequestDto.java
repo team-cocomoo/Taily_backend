@@ -1,10 +1,7 @@
 package com.cocomoo.taily.dto.walkDiary;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -18,15 +15,13 @@ import java.util.List;
 @Builder
 @ToString
 public class WalkDiaryCreateRequestDto {
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate date;
     private String walkDiaryWeather;
     private String beginTime;
     private String endTime;
     private String walkDiaryEmotion;
     private String content;
 
-    private List<MultipartFile> images;
+    private List<Long> imageIds;
 
     // userId는 별도로 받지 않음
     // - Spring Security에서 현재 로그인한 사용자 정보 사용

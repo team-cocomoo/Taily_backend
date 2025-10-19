@@ -50,47 +50,11 @@ public class InquiryService {
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .type(type)
-                .state(InquiryState.RESOLVED)
+                .state(dto.getParentId() == null ? InquiryState.PENDING : InquiryState.RESOLVED)
                 .user(user)
                 .parentInquiry(parent)
                 .build();
 
         return InquiryResponseDto.from(inquiryRepository.save(inquiry));
     }
-
-    // 모든 문의 조회
-    public InquiryPageResponseDto getInquiriesPage(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Inquiry> inquiryPage;
-
-        if (keyword == null || keyword.isBlank()) {
-            inquiryPage = inquiryRepository.findAll(pageable);
-        } else {
-            inquiryPage = inquiryRepository.findByTitleContainingOrContentContainingOrUserNicknameContaining(
-                    keyword, keyword, keyword, pageable);
-        }
-
-        return InquiryPageResponseDto.from(inquiryPage, page, size);
-    }
-
-    // 특정 문의 조회
-    public InquiryResponseDto getInquiry(Long id) {
-        Inquiry inquiry = inquiryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("문의가 존재하지 않습니다."));
-        return InquiryResponseDto.from(inquiry);
-    }
-
-    // 특정 답변 조회
-    public InquiryResponseDto getReply(Long parentId) {
-        Inquiry reply = inquiryRepository.findByParentInquiryId(parentId)
-                .orElseThrow(() -> new IllegalArgumentException("답변이 존재하지 않습니다."));
-        return InquiryResponseDto.from(reply);
-    }
-
-    // 문의 삭제
-    @Transactional
-    public void deleteInquiry(Long id) {
-        inquiryRepository.deleteById(id);
-    }
-
 }

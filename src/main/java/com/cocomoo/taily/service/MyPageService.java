@@ -1,11 +1,16 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.inquiry.InquiryPageResponseDto;
+import com.cocomoo.taily.dto.inquiry.InquiryResponseDto;
 import com.cocomoo.taily.dto.myPage.*;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +34,7 @@ public class MyPageService {
     private final FollowRepository followRepository;
     private final MyLikesRepository myLikesRepository;
     private final ImageRepository imageRepository;
+    private final InquiryRepository inquiryRepository;
 
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
@@ -97,6 +103,7 @@ public class MyPageService {
         Pet pet = Pet.builder()
                 .name(myPetProfileCreateRequestDto.getName())
                 .gender(myPetProfileCreateRequestDto.getGender())
+                .age(myPetProfileCreateRequestDto.getAge())
                 .preference(myPetProfileCreateRequestDto.getPreference())
                 .introduction(myPetProfileCreateRequestDto.getIntroduction())
                 .tel(myPetProfileCreateRequestDto.getTel())
@@ -127,6 +134,7 @@ public class MyPageService {
         pet.updateMyPetProfile(
                 myPetProfileUpdateRequestDto.getName(),
                 myPetProfileUpdateRequestDto.getGender(),
+                myPetProfileUpdateRequestDto.getAge(),
                 myPetProfileUpdateRequestDto.getPreference(),
                 myPetProfileUpdateRequestDto.getIntroduction()
         );
@@ -408,4 +416,31 @@ public class MyPageService {
                 .isLast(likesPage.isLast())
                 .build();
     }
+
+    // 특정 유저의 문의 목록 조회
+    public InquiryPageResponseDto getUserInquiriesPage(String username, String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+        Page<Inquiry> inquiryPage;
+
+        if (keyword == null || keyword.isBlank()) {
+            inquiryPage = inquiryRepository.findByUserId(user.getId(), pageable);
+        } else {
+            // 제목이나 내용에 키워드가 포함된 문의만 조회
+            inquiryPage = inquiryRepository.findByUserIdAndTitleContainingOrUserIdAndContentContaining(
+                    user.getId(), keyword, user.getId(), keyword, pageable);
+        }
+
+        return InquiryPageResponseDto.from(inquiryPage, page, size);
+    }
+
+    // 문의 + 답변 함께 조회
+    public InquiryResponseDto getInquiryWithReply(Long id) {
+        Inquiry inquiry = inquiryRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> new IllegalArgumentException("문의가 존재하지 않습니다."));
+        return InquiryResponseDto.from(inquiry);
+    }
+
 }

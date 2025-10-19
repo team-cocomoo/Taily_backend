@@ -4,10 +4,10 @@ import com.cocomoo.taily.dto.admin.UserListResponseDto;
 import com.cocomoo.taily.dto.admin.UserPageResponseDto;
 import com.cocomoo.taily.dto.admin.UserPenaltyResponseDto;
 import com.cocomoo.taily.dto.common.report.ReportResponseDto;
-import com.cocomoo.taily.entity.Report;
-import com.cocomoo.taily.entity.ReportState;
-import com.cocomoo.taily.entity.User;
-import com.cocomoo.taily.entity.UserState;
+import com.cocomoo.taily.dto.inquiry.InquiryPageResponseDto;
+import com.cocomoo.taily.dto.inquiry.InquiryResponseDto;
+import com.cocomoo.taily.entity.*;
+import com.cocomoo.taily.repository.InquiryRepository;
 import com.cocomoo.taily.repository.ReportRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class AdminService {
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
+    private final InquiryRepository inquiryRepository;
 
     /**
      * 전체 회원 리스트 + 검색 + 페이지네이션
@@ -123,7 +124,39 @@ public class AdminService {
         return UserPenaltyResponseDto.from(user);
     }
 
+    // 모든 문의 조회
+    public InquiryPageResponseDto getInquiriesPage(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Inquiry> inquiryPage;
 
+        if (keyword == null || keyword.isBlank()) {
+            inquiryPage = inquiryRepository.findAll(pageable);
+        } else {
+            inquiryPage = inquiryRepository.findByTitleContainingOrContentContainingOrUserNicknameContaining(
+                    keyword, keyword, keyword, pageable);
+        }
 
+        return InquiryPageResponseDto.from(inquiryPage, page, size);
+    }
+
+    // 특정 문의 조회
+    public InquiryResponseDto getInquiry(Long id) {
+        Inquiry inquiry = inquiryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("문의가 존재하지 않습니다."));
+        return InquiryResponseDto.from(inquiry);
+    }
+
+    // 특정 답변 조회
+    public InquiryResponseDto getReply(Long parentId) {
+        Inquiry reply = inquiryRepository.findByParentInquiryId(parentId)
+                .orElseThrow(() -> new IllegalArgumentException("답변이 존재하지 않습니다."));
+        return InquiryResponseDto.from(reply);
+    }
+
+    // 문의 삭제
+    @Transactional
+    public void deleteInquiry(Long id) {
+        inquiryRepository.deleteById(id);
+    }
 
 }

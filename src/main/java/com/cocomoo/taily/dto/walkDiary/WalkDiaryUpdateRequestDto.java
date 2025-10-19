@@ -1,6 +1,5 @@
 package com.cocomoo.taily.dto.walkDiary;
 
-import com.cocomoo.taily.dto.common.image.ImageRequestDto;
 import com.cocomoo.taily.entity.WalkDiaryEmotion;
 import com.cocomoo.taily.entity.WalkDiaryWeather;
 import lombok.AllArgsConstructor;
@@ -26,5 +25,5 @@ public class WalkDiaryUpdateRequestDto {
     private LocalTime endTime;
     private WalkDiaryEmotion walkDiaryEmotion;
     private String content;
-    private List<ImageRequestDto> images;
+    private List<Long> imageIds;
 }

@@ -9,6 +9,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -61,10 +64,11 @@ public class AlarmService {
         Alarm alarm = Alarm.builder()
                 .sender(sender)
                 .receiver(receiver)
-                .content(sender.getUsername() +
-                        (parentCommentId != null
+                .content(
+                        parentCommentId != null
                                 ? "님이 회원님의 댓글에 답글을 남겼습니다."
-                                : "님이 회원님의 게시글에 댓글을 남겼습니다."))
+                                : "님이 회원님의 게시글에 댓글을 남겼습니다."
+                )
                 .postsId(postId)
                 .state(false)
                 .tableType(tableType)
@@ -140,7 +144,7 @@ public class AlarmService {
         Alarm alarm = Alarm.builder()
                 .sender(sender)
                 .receiver(receiver)
-                .content(sender.getUsername() + "님이 회원님의 게시글을 좋아합니다.")
+                .content("님이 회원님의 게시글을 좋아합니다.")
                 .postsId(postId)
                 .state(false)
                 .tableType(tableType)
@@ -216,7 +220,7 @@ public class AlarmService {
         Alarm alarm = Alarm.builder()
                 .sender(sender)
                 .receiver(receiver)
-                .content(sender.getUsername() + "님이 회원님을 팔로우했습니다.")
+                .content("님이 회원님을 팔로우했습니다.")
                 .postsId(followingId)   // 게시글이 없으므로 follwngId로 대체
                 .state(false)
                 .tableType(tableType)
@@ -261,7 +265,7 @@ public class AlarmService {
         Alarm alarm = Alarm.builder()
                 .sender(sender)
                 .receiver(receiver)
-                .content(sender.getUsername() + "님이 회원에게 새 메시지를 보냈습니다.")
+                .content("님이 회원에게 새 메시지를 보냈습니다.")
                 .postsId(roomId)   // 게시글이 없으므로 roomId 대체
                 .state(false)
                 .tableType(tableType)
@@ -275,4 +279,23 @@ public class AlarmService {
 
         log.info("[AlarmService] 채팅 알람 전송 완료 → sender={}, receiver={}, roomId={}",
                 sender.getUsername(), receiver.getUsername(), roomId);    }
+
+    public List<AlarmResponseDto> getAlarms(String username) {
+        log.info("[AlarmService] 알람 목록 조회 요청 - username={}", username);
+
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        List<Alarm> alarms = alarmRepository.findByReceiverOrderByCreatedAtDesc(user);
+
+        return alarms.stream()
+                .map(AlarmResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void markAsRead(Long alarmId) {
+        Alarm alarm = alarmRepository.findById(alarmId).orElseThrow(() -> new IllegalArgumentException("해당 알람이 존재하지 않습니다."));
+
+        alarm.markAsRead();
+    }
 }

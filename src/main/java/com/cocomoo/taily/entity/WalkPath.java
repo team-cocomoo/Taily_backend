@@ -76,6 +76,12 @@ public class WalkPath {
         }
     }
 
+    //제목 , 내용 수정
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     // 좋아요 수 증감
     public void increaseView() {
         this.view = this.view + 1;

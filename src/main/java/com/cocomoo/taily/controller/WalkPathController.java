@@ -68,7 +68,7 @@ public class WalkPathController {
     }
 
     // walkpath 게시글 수정
-    @PatchMapping("/{id}")
+    @PatchMapping ("/{id}")
     public ResponseEntity<?> updateWalkPath(
             @PathVariable Long id,
             @RequestPart("requestDto") WalkPathUpdateRequestDto requestDto,

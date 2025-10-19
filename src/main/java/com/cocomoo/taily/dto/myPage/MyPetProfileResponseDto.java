@@ -20,6 +20,7 @@ public class MyPetProfileResponseDto {
     private Long petId;
     private String name;
     private PetGender gender;
+    private Integer age;
     private String preference;
     private String introduction;
     private String tel;
@@ -37,6 +38,7 @@ public class MyPetProfileResponseDto {
                 .petId(pet.getId())
                 .name(pet.getName())
                 .gender(pet.getGender())
+                .age(pet.getAge())
                 .preference(pet.getPreference())
                 .introduction(pet.getIntroduction())
                 .tel(pet.getTel())
