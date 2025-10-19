@@ -75,7 +75,7 @@ public class AlarmService {
 
         // WebSocket으로 전송
         AlarmResponseDto alarmDto = AlarmResponseDto.from(savedAlarm);
-        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getId(), alarmDto);
+        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getPublicId(), alarmDto);
 
         log.info("댓글 알람 전송 완료 → 수신자 ID: {}", receiver.getId());
     }
@@ -151,7 +151,7 @@ public class AlarmService {
 
         // WebSocket으로 전송
         AlarmResponseDto alarmDto = AlarmResponseDto.from(savedAlarm);
-        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getId(), alarmDto);
+        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getPublicId(), alarmDto);
 
         log.info("[AlarmService] 좋아요 알람 전송 완료 → 수신자 ID: {}", receiver.getId());
 
@@ -207,6 +207,9 @@ public class AlarmService {
             return;
         }
 
+        log.info("🚀 WebSocket 알림 전송 시도 → receiverPublicId={}", receiver.getPublicId());
+
+
         // Users의 팔로우용 TableType 엔티티 가져오기
         TableType tableType = tableTypeRepository.findByCategory(TableTypeCategory.USERS).orElseThrow(() -> new IllegalArgumentException("TableTypeCategory.USERS에 해당하는 TableType이 없습니다."));
 
@@ -223,7 +226,7 @@ public class AlarmService {
 
         // 실시간 알람 전송
         AlarmResponseDto alarmResponseDto = AlarmResponseDto.from(savedAlarm);
-        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getId(), alarmResponseDto);
+        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getPublicId(), alarmResponseDto);
 
         log.info("[AlarmService] 팔로우 알람 전송 완료 → {}", receiver.getUsername());
     }
@@ -268,7 +271,7 @@ public class AlarmService {
 
         // 실시간 알람 전송
         AlarmResponseDto alarmResponseDto = AlarmResponseDto.from(savedAlarm);
-        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getId(), alarmResponseDto);
+        messagingTemplate.convertAndSend("/topic/alarm/" + receiver.getPublicId(), alarmResponseDto);
 
         log.info("[AlarmService] 채팅 알람 전송 완료 → sender={}, receiver={}, roomId={}",
                 sender.getUsername(), receiver.getUsername(), roomId);    }
