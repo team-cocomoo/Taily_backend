@@ -2,6 +2,8 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserUpdateRequestDto;
+import com.cocomoo.taily.dto.inquiry.InquiryPageResponseDto;
+import com.cocomoo.taily.dto.inquiry.InquiryResponseDto;
 import com.cocomoo.taily.dto.myPage.*;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.security.jwt.TokenBlacklistService;
@@ -286,5 +288,32 @@ public class MyPageController {
         log.info("좋아요 토글 완료: postsId={}, tableTypeId={}, 상태={}", postsId, tableTypeId, newState);
 
         return ResponseEntity.ok(ApiResponseDto.success(newState, "토글 상태 변화 성공"));
+    }
+
+    // 내 문의 조회
+    @GetMapping("/inquiries")
+    public ResponseEntity<?> getMyInquiries(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        log.info("내 문의 내역 조회 요청, username={}, keyword={}, page={}, size={}", username, keyword, page, size);
+
+        InquiryPageResponseDto result = myPageService.getUserInquiriesPage(username, keyword, page - 1, size);
+
+        log.info("내 문의 내역 조회 결과, totalCount={}", result.getTotalCount());
+
+        return ResponseEntity.ok(ApiResponseDto.success(result, "내 문의 내역 조회 성공"));
+    }
+
+    // 내 특정 문의 조회
+    @GetMapping("/inquiries/{id}")
+    public ResponseEntity<?> getInquiryWithReply(@PathVariable Long id) {
+        InquiryResponseDto response = myPageService.getInquiryWithReply(id);
+        log.info("문의 + 답변 조회, ID: {}", id);
+        return ResponseEntity.ok(ApiResponseDto.success(response, "문의 + 답변 조회 성공"));
     }
 }

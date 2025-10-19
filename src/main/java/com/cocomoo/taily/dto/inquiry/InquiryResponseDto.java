@@ -25,8 +25,10 @@ public class InquiryResponseDto {
     private String nickname;
     private Long parentId;
 
+    private InquiryResponseDto reply;
+
     public static InquiryResponseDto from(Inquiry inquiry) {
-        return InquiryResponseDto.builder()
+        InquiryResponseDto.InquiryResponseDtoBuilder builder = InquiryResponseDto.builder()
                 .id(inquiry.getId())
                 .title(inquiry.getTitle())
                 .content(inquiry.getContent())
@@ -35,7 +37,15 @@ public class InquiryResponseDto {
                 .createdAt(inquiry.getCreatedAt())
                 .userId(inquiry.getUser().getId())
                 .nickname(inquiry.getUser().getNickname())
-                .parentId(inquiry.getParentInquiry() != null ? inquiry.getParentInquiry().getId() : null)
-                .build();
+                .parentId(inquiry.getParentInquiry() != null ? inquiry.getParentInquiry().getId() : null);
+
+        // 이미 fetch join 되어있으면 childInquiry도 안전하게 접근 가능
+        if (inquiry.getChildInquiry() != null) {
+            builder.reply(from(inquiry.getChildInquiry()));
+        }
+
+        return builder.build();
     }
+
+
 }
