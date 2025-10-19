@@ -10,10 +10,12 @@ import com.cocomoo.taily.service.TailyFriendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -47,26 +49,42 @@ public class TailyFriendController {
 
     // 게시글 작성
     @PostMapping
-    public ResponseEntity<?> createTailyFriend(@RequestBody TailyFriendCreateRequestDto requestDto){
+    public ResponseEntity<?> createTailyFriend(
+            @RequestPart("post") TailyFriendCreateRequestDto requestDto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        log.info("게시글 작성 , 작성자 {}", username);
 
-        TailyFriendDetailResponseDto tailyFriendDetailResponseDto = tailyFriendService.createTailyFriend(requestDto, username);
+        // 기존 DTO를 복사하여 images만 교체
+        TailyFriendCreateRequestDto dtoWithImages = requestDto.withImages(images);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(tailyFriendDetailResponseDto,"게시글 작성 성공."));
+        TailyFriendDetailResponseDto responseDto =
+                tailyFriendService.createTailyFriend(dtoWithImages, username);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponseDto.success(responseDto, "게시글 작성 성공"));
     }
 
     // 게시글 수정
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateTailyFriend(@PathVariable Long id,
-                                               @RequestBody TailyFriendCreateRequestDto requestDto) {
+    public ResponseEntity<?> updateTailyFriend(
+            @PathVariable Long id,
+            @RequestPart("post") TailyFriendCreateRequestDto requestDto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        log.info("게시글 수정 , 작성자 {}", username);
+        log.info("게시글 수정 요청 - 작성자: {}", username);
 
-        TailyFriendDetailResponseDto updatedPost = tailyFriendService.updateTailyFriend(id, username, requestDto);
-        return ResponseEntity.ok(ApiResponseDto.success(updatedPost, "게시글 수정 성공"));
+        TailyFriendCreateRequestDto dtoWithImages = requestDto.withImages(images);
+
+        TailyFriendDetailResponseDto updatedPost =
+                tailyFriendService.updateTailyFriend(id, username, requestDto);
+
+        return ResponseEntity
+                .ok(ApiResponseDto.success(updatedPost, "게시글 수정 성공"));
     }
 
     // 게시글 삭제
