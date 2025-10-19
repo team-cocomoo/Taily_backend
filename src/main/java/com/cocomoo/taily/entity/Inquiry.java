@@ -59,4 +59,7 @@ public class Inquiry {
         this.state = newState;
         this.updatedAt = LocalDateTime.now();
     }
+
+    @OneToOne(mappedBy = "parentInquiry", fetch = FetchType.LAZY)
+    private Inquiry childInquiry;
 }
