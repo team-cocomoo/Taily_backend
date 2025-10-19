@@ -288,6 +288,11 @@ public class WalkPathService {
         if (!post.getUser().getUsername().equals(username)) {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
+        // 자식 엔티티(경로 지점) 먼저 삭제
+        walkPathRoutesRepository.deleteByWalkPath_Id(postId);
+
+        // 부모 엔티티(게시글) 삭제
+        walkPathRepository.delete(post);
 
         walkPathRepository.delete(post);
     }
