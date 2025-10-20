@@ -14,7 +14,6 @@ public class UserProfileResponseDto {
     private String email; // 이메일
     private String address; // 주소
     private String introduction; // 자기 소개
-    private String state; // 회원 상태
 
     public static UserProfileResponseDto from(User user) {
         return UserProfileResponseDto.builder()
@@ -25,7 +24,6 @@ public class UserProfileResponseDto {
                 .email(user.getEmail())
                 .address(user.getAddress())
                 .introduction(user.getIntroduction())
-                .state(String.valueOf(user.getState()))
                 .build();
     }
 }
