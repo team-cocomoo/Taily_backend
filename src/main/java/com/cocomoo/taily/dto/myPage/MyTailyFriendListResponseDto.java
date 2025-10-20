@@ -17,6 +17,7 @@ import java.util.List;
 public class MyTailyFriendListResponseDto {
     private Long id;
     private String title;
+    private String content;
     private Long view;
     private LocalDateTime createdAt;
 
@@ -24,6 +25,7 @@ public class MyTailyFriendListResponseDto {
         return MyTailyFriendListResponseDto.builder()
                 .id(post.getId())
                 .title(post.getTitle())
+                .content(post.getContent())
                 .view(post.getView())
                 .createdAt(post.getCreatedAt())
                 .build();
