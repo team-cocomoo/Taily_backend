@@ -104,6 +104,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     .publicId(publicId)
                     .username(username)
                     .password("") // JWT 인증이므로 비밀번호 불필요
+                    .role(UserRole.valueOf(role))
                     .build();
 
 
@@ -118,8 +119,15 @@ public class JwtFilter extends OncePerRequestFilter {
             Authentication authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,                      // Principal (인증 주체)
                     null,                               // Credentials (이미 인증됨)
-                    userDetails.getAuthorities()      // Authorities (권한)
+                    //userDetails.getAuthorities()      // Authorities (권한)
+                    authorities
             );
+
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            // 🔍 최종 권한이 뭔지 실제로 확인
+            log.debug("최종 권한 목록 = {}", authToken.getAuthorities());
+
 
             // 10. SecurityContext에 인증 정보 저장
             // 이 정보는 Controller나 Service에서 사용 가능

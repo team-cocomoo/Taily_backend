@@ -25,7 +25,7 @@ public class NoticeController {
      * 공지 등록 (관리자만)
      * JWT 토큰에서 publicId 추출 → 서비스로 전달
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<NoticeResponseDto> createNotice(
             @RequestBody NoticeRequestDto dto,
@@ -64,7 +64,7 @@ public class NoticeController {
     /**
      * 공지 수정 (관리자)
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<NoticeResponseDto> updateNotice(
             @PathVariable Long id,
@@ -81,7 +81,7 @@ public class NoticeController {
     /**
      * 공지 삭제 (관리자)
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotice(
             @PathVariable Long id,

@@ -111,7 +111,6 @@ public class SecurityConfig {
                         "/api/follows/**",            // 팔로우/팔로잉
                         "/api/chats/**",              // 채팅
                         "/api/events/**",             // 이벤트 참여
-                        "/api/notices/**",            // 공지사항 상세
                         "/api/qna/**",                 // 1:1 문의
                         "/api/user-profile/**"        // 다른 회원 페이지
                 ).hasAuthority("ROLE_USER")
