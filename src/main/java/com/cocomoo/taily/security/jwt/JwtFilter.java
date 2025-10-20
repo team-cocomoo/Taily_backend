@@ -13,10 +13,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -87,6 +90,11 @@ public class JwtFilter extends OncePerRequestFilter {
             String username = jwtUtil.getUsername(token);
             String role = jwtUtil.getRole(token);
 
+            // ROLE prefix 보장
+            if (!role.startsWith("ROLE_")) {
+                role = "ROLE_" + role;
+            }
+
             log.info("JWT 인증 성공: username={}, role={}", username, role);
 
             // 7. User 엔티티 생성 (토큰 정보로 임시 생성)
@@ -101,6 +109,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // 8. CustomMemberDetails 생성
             CustomUserDetails userDetails = new CustomUserDetails(user);
+
+            List<GrantedAuthority> authorities =
+                    List.of(new SimpleGrantedAuthority(role));
 
             // 9. Spring Security 인증 토큰 생성
             // 이미 JWT로 인증되었으므로 credentials(비밀번호)는 null

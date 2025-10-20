@@ -305,7 +305,16 @@ public class UserService {
         return AdminUserResponseDto.from(user);
     }
 
+    public boolean isUsernameDuplicate(String username) {
+        return userRepository.existsByUsername(username);
+    }
 
-//    public UserProfileResponseDto updateMyProfile(String username, UserUpdateRequestDto requestDto) {
-//    }
+    public boolean isNicknameDuplicate(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    public boolean isEmailDuplicate(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
 }

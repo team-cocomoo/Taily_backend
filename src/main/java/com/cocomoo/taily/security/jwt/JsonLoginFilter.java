@@ -3,6 +3,7 @@ package com.cocomoo.taily.security.jwt;
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserLoginRequestDto;
 import com.cocomoo.taily.entity.User;
+import com.cocomoo.taily.entity.UserState;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -126,7 +127,7 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         log.info("인증 성공: username={}, role={}", user.getUsername(), role);
 
         // ✅ 상태(state) 검증
-        if ("WITHDRAW".equals(user.getState())) {
+        if (user.getState() == UserState.WITHDRAW) {
             log.warn("탈퇴한 계정 로그인 시도: {}", user.getUsername());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
@@ -135,14 +136,27 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
             """);
             return;
         }
-
-        if ("SUSPENDED".equals(user.getState())) {
+        if (user.getState() == UserState.SUSPENDED) {
             log.warn("정지된 계정 로그인 시도: {}", user.getUsername());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("""
-                {"success": false, "message": "정지된 계정입니다.", "code": "ACCOUNT_SUSPENDED"}
-            """);
+
+            // ✅ 정지 종료일 가져오기 (nullable)
+            String penaltyEnd = user.getPenaltyEndDate() != null
+                    ? user.getPenaltyEndDate().toString()
+                    : null;
+
+            // ✅ JSON 문자열 동적으로 생성
+            String json = String.format("""
+        {
+          "success": false,
+          "message": "정지된 계정입니다.",
+          "code": "ACCOUNT_SUSPENDED",
+          "penalty_end_date": %s
+        }
+    """, penaltyEnd != null ? "\"" + penaltyEnd + "\"" : null);
+
+            response.getWriter().write(json);
             return;
         }
 

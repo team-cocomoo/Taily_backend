@@ -152,4 +152,10 @@ public class AdminController {
         adminService.deleteInquiry(id);
         return ResponseEntity.ok(ApiResponseDto.success(null, "문의 삭제 성공"));
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> testAdminAccess() {
+        return ResponseEntity.ok("관리자 권한 접근 성공");
+    }
+
 }
