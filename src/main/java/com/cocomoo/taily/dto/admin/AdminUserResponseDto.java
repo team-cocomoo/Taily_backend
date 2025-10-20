@@ -22,6 +22,8 @@ public class AdminUserResponseDto {
     private String introduction;
     private UserState state;
     private Long sanctionCount;
+    private LocalDateTime penaltyStartDate;
+    private LocalDateTime penaltyEndDate;
     private LocalDateTime createdAt;
 
     public static AdminUserResponseDto from(User user) {
@@ -35,6 +37,8 @@ public class AdminUserResponseDto {
                 .introduction(user.getIntroduction())
                 .state(user.getState())
                 .sanctionCount(user.getSanctionCount())
+                .penaltyStartDate(user.getPenaltyStartDate())
+                .penaltyEndDate(user.getPenaltyEndDate())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
