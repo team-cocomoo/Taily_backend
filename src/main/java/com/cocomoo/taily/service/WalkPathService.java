@@ -57,6 +57,9 @@ public class WalkPathService {
 
         post.increaseView();
 
+        Long likeCount = likeRepository.countByPostsIdAndTableTypeAndState(post.getId(),tableType,true);
+        post.refreshLikeCount(likeCount);
+
         boolean liked = likeRepository.existsByPostsIdAndTableTypeAndUserAndState(
                 post.getId(), tableType, user, true
         );
