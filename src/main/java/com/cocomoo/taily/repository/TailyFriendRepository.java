@@ -3,6 +3,7 @@ package com.cocomoo.taily.repository;
 import com.cocomoo.taily.entity.Comment;
 import com.cocomoo.taily.entity.TailyFriend;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -39,4 +40,8 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
 
     @Query("SELECT c FROM Comment c WHERE c.id = :commentId")
     Comment getCommentById(@Param("commentId") Long parentCommentId);
+
+    @Query("SELECT tf FROM TailyFriend tf JOIN FETCH tf.user u " +
+            "WHERE (:keyword IS NULL OR tf.title LIKE %:keyword% OR tf.content LIKE %:keyword% OR u.nickname LIKE %:keyword%)")
+    Page<TailyFriend> findAllWithUserAndKeyword(@Param("keyword") String keyword, Pageable pageable);
 }

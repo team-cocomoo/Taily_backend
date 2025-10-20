@@ -27,12 +27,14 @@ import java.util.Map;
 public class TailyFriendController {
     private final TailyFriendService tailyFriendService;
 
+    // 테일리프렌즈 전체 조회
     @GetMapping
     public ResponseEntity<?> getTailyFriends(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "6") int size) {
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(required = false) String keyword) {
 
-        TailyFriendPageResponseDto response = tailyFriendService.getTailyFriendsPage(page - 1, size);
+        TailyFriendPageResponseDto response = tailyFriendService.getTailyFriendsPage(page - 1, size, keyword);
         return ResponseEntity.ok(ApiResponseDto.success(response, "게시물 목록 조회 성공"));
     }
 
@@ -170,16 +172,6 @@ public class TailyFriendController {
 
         tailyFriendService.deleteComment(commentId, username);
         return ResponseEntity.ok(ApiResponseDto.success(null, "댓글 삭제 성공"));
-    }
-
-    // 검색
-    @GetMapping("/search")
-    public ResponseEntity<?> searchTailyFriendsPage(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size) {
-        List<TailyFriendListResponseDto> results = tailyFriendService.searchTailyFriendsPage(keyword, page, size);
-        return ResponseEntity.ok(ApiResponseDto.success(results, "검색 결과"));
     }
 
     // 주소만 검색
