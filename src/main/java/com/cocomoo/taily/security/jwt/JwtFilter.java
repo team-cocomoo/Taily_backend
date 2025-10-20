@@ -13,10 +13,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -87,6 +90,11 @@ public class JwtFilter extends OncePerRequestFilter {
             String username = jwtUtil.getUsername(token);
             String role = jwtUtil.getRole(token);
 
+            // ROLE prefix 보장
+            if (!role.startsWith("ROLE_")) {
+                role = "ROLE_" + role;
+            }
+
             log.info("JWT 인증 성공: username={}, role={}", username, role);
 
             // 7. User 엔티티 생성 (토큰 정보로 임시 생성)
@@ -96,19 +104,30 @@ public class JwtFilter extends OncePerRequestFilter {
                     .publicId(publicId)
                     .username(username)
                     .password("") // JWT 인증이므로 비밀번호 불필요
+                    .role(UserRole.valueOf(role))
                     .build();
 
 
             // 8. CustomMemberDetails 생성
             CustomUserDetails userDetails = new CustomUserDetails(user);
 
+            List<GrantedAuthority> authorities =
+                    List.of(new SimpleGrantedAuthority(role));
+
             // 9. Spring Security 인증 토큰 생성
             // 이미 JWT로 인증되었으므로 credentials(비밀번호)는 null
             Authentication authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,                      // Principal (인증 주체)
                     null,                               // Credentials (이미 인증됨)
-                    userDetails.getAuthorities()      // Authorities (권한)
+                    //userDetails.getAuthorities()      // Authorities (권한)
+                    authorities
             );
+
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            // 🔍 최종 권한이 뭔지 실제로 확인
+            log.debug("최종 권한 목록 = {}", authToken.getAuthorities());
+
 
             // 10. SecurityContext에 인증 정보 저장
             // 이 정보는 Controller나 Service에서 사용 가능

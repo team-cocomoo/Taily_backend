@@ -2,11 +2,8 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.UserCreateRequestDto;
-import com.cocomoo.taily.dto.User.UserLoginRequestDto;
-import com.cocomoo.taily.dto.User.UserLoginResponseDto;
 import com.cocomoo.taily.dto.User.UserResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
-import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserState;
 import com.cocomoo.taily.security.jwt.TokenBlacklistService;
 import com.cocomoo.taily.service.UserService;
@@ -105,5 +102,7 @@ public class UserController {
         }
         return ResponseEntity.ok("로그아웃 완료");
     }
+
+
 
 }

@@ -76,6 +76,7 @@ public class SecurityConfig {
         // CSRF(Cross-Site Request Forgery) 보호를 비활성화합니다.
         // JWT와 같은 REST API에서는 보통 STATELESS 세션이므로 CSRF 공격으로부터 안전하여 비활성화합니다.
         http.csrf(auth -> auth.disable());
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         // 폼 로그인 방식과 HTTP Basic 인증을 비활성화합니다.
         // JWT를 사용한 커스텀 로그인 방식을 사용하기 때문입니다.
@@ -110,17 +111,16 @@ public class SecurityConfig {
                         "/api/follows/**",            // 팔로우/팔로잉
                         "/api/chats/**",              // 채팅
                         "/api/events/**",             // 이벤트 참여
-                        "/api/notices/**",            // 공지사항 상세
                         "/api/qna/**",                 // 1:1 문의
                         "/api/user-profile/**"        // 다른 회원 페이지
-                ).hasRole("USER")
+                ).hasAuthority("ROLE_USER")
 
                 // 관리자만 접근 가능 (ROLE_ADMIN)
                 .requestMatchers(
                         "/api/admin/**",// 관리자 기능 전체
                         "/api/manage/**"// (회원관리, 신고처리, 공지, 이벤트)
                         // faq
-                ).hasRole("ADMIN")
+                ).hasAuthority("ROLE_ADMIN")
 
                 // 유저와 관리자 모두 접근 가능 (ROLE_USER, ROLE_ADMIN)
                 .requestMatchers(
@@ -134,7 +134,7 @@ public class SecurityConfig {
                         "/api/walk-paths/**", // 산책경로
                         "/api/images/**", // 이미지 api
                         "/uploads/**" // 업로드 폴더 접근
-                ).hasAnyRole("USER","ADMIN")
+                ).hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
                 // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated()

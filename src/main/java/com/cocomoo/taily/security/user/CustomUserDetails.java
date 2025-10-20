@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * CustomerMemberDetails : Spring Security의 UserDetails 구현체
@@ -34,11 +35,8 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Member의 role을 Spring Security가 이해하는 GrantedAuthority로 변환
-        // SimpleGrantedAuthority는 GrantedAuthority의 가장 간단한 구현체
-        return Collections.singletonList(
-                new SimpleGrantedAuthority(user.getRole().name())
-        );
+        // Enum이 이미 ROLE_ 접두어를 포함하고 있으므로 그대로 사용
+        return List.of(new SimpleGrantedAuthority(user.getRole().name()));
     }
 
     /**
