@@ -61,7 +61,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                     //return false; // 디버깅 단계에서는 주석 처리, 배포 전 주석 해제 -> 보안상 안전
                 }
 
-                // ✅ userId 추출 후 세션에 저장 (필요하면 nickname 등도 가능)
+                // userId 추출 후 세션에 저장 (필요하면 nickname 등도 가능)
                 Long userId = jwtUtil.getId(token);
                 attributes.put("userId", userId);
 

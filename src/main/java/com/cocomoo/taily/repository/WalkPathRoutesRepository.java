@@ -1,17 +1,11 @@
 package com.cocomoo.taily.repository;
-import com.cocomoo.taily.entity.TailyFriend;
-import com.cocomoo.taily.entity.WalkPath;
 import com.cocomoo.taily.entity.WalkPathRoute;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WalkPathRoutesRepository extends JpaRepository<WalkPathRoute,Long> {
@@ -21,4 +15,10 @@ public interface WalkPathRoutesRepository extends JpaRepository<WalkPathRoute,Lo
             "WHERE w.id = :walkPathId " +
             "ORDER BY r.orderNo ASC")
     List<WalkPathRoute> findAllByWalkPathId(@Param("walkPathId") Long walkPathId);
+
+    // 특정 게시글(post)의 모든 경로를 삭제
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM WalkPathRoute r WHERE r.walkPath.id = :walkPathId")
+    void deleteByWalkPath_Id(@Param("walkPathId") Long walkPathId);
+
 }

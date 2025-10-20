@@ -87,10 +87,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 // 비회원 가능 (permitAll)
                 .requestMatchers(
-                        "/api/users/login",
                         "/api/users/register",
-                        "/api/admin/login",
-                        "/api/auth/**",
+                        "/api/auth/**",     // 로그인 인증 부분
                         "/api/facilities/**",         // 동물 관련 시설 조회
                         "/api/events/public/**",      // 이벤트 조회용 (목록/배너)
                         "/api/notices/public/**",     // 공지사항 목록
@@ -119,9 +117,9 @@ public class SecurityConfig {
 
                 // 관리자만 접근 가능 (ROLE_ADMIN)
                 .requestMatchers(
-                        "/api/admin/**",              // 관리자 기능 전체
-                        "/api/manage/**"                   // (회원관리, 신고처리, 공지, 이벤트)
-                                        // faq
+                        "/api/admin/**",// 관리자 기능 전체
+                        "/api/manage/**"// (회원관리, 신고처리, 공지, 이벤트)
+                        // faq
                 ).hasRole("ADMIN")
 
                 // 유저와 관리자 모두 접근 가능 (ROLE_USER, ROLE_ADMIN)
@@ -158,7 +156,7 @@ public class SecurityConfig {
         JsonLoginFilter userLoginFilter = new JsonLoginFilter(
                 authenticationManager(authenticationConfiguration),
                 jwtUtil,
-                "/api/users/login"
+                "/api/auth/login/user"
         );
         http.addFilterBefore(userLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -166,7 +164,7 @@ public class SecurityConfig {
         JsonLoginFilter adminLoginFilter = new JsonLoginFilter(
                 authenticationManager(authenticationConfiguration),
                 jwtUtil,
-                "/api/admin/login"
+                "/api/auth/login/admin"
         );
         http.addFilterBefore(adminLoginFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -8,6 +8,7 @@ import com.cocomoo.taily.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,8 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 이미지 통합 서비스 클래스 트랜잭션 처리
+ */
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ImageService {
 
@@ -32,6 +37,7 @@ public class ImageService {
      * - tableTypesId == 1L → 프로필(usersId 기반)
      * - tableTypesId != 1L → 피드, 펫, 이벤트 등(postsId 기반)
      */
+    @Transactional
     public List<Image> uploadImages(
             String subFolder,
             Long tableTypesId,
@@ -90,7 +96,11 @@ public class ImageService {
                 // 피드, 펫 등
                 else {
                     if (postsId == null) {
-                        throw new IllegalArgumentException("기능 연관 이미지 업로드 시 postsId는 필수입니다.");
+                        if (tableTypesId == 4L) {
+                            log.info("산책 일기 업로드 예외 허용: postsId가 null이지만 임시 업로드 처리됨 (tableTypesId={})", tableTypesId);
+                        } else {
+                            throw new IllegalArgumentException("기능 연관 이미지 업로드 시 postsId는 필수입니다.");
+                        }
                     }
                     image.setPostsId(postsId);
                 }
@@ -114,6 +124,7 @@ public class ImageService {
      * - tableTypesId != 1L → postsId 기준 (피드, 펫 등)
      * - DB와 서버 파일 모두 삭제
      */
+    @Transactional
     public void deleteImages(Long tableTypesId, Long usersId, Long postsId) {
         List<Image> images;
 
@@ -160,7 +171,7 @@ public class ImageService {
     }
 
     /**
-     * ✅ 이미지 조회
+     * 이미지 조회
      * - tableTypesId == 1L → usersId 기준
      * - tableTypesId != 1L → postsId 기준
      */

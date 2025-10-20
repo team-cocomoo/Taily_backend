@@ -201,34 +201,28 @@ public class WalkPathService {
     // 게시글 수정
     @Transactional
     public WalkPathDetailResponseDto updateWalkPath(Long postId, String username, WalkPathUpdateRequestDto requestDto, List<MultipartFile> images){
+        //기존 게시글 조회
         WalkPath post = walkPathRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+
+        //기존 게시글 제목 , 내용 업데이트
+        post.update(requestDto.getTitle(), requestDto.getContent());
+
         //작성자 조회
         User author = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        //Post 다시 생성
-        WalkPath walkPath = WalkPath.builder()
-                .title(requestDto.getTitle())
-                .content(requestDto.getContent())
-                .user(author)
-                .build();
-
-        //db에 저장
-        WalkPath savedWalkPath = walkPathRepository.save(walkPath);
-
-        //경로 지점들 저장
-        List<WalkPathRoute> savedRoutes = new ArrayList<>();
+        // 5️⃣ 기존 경로 삭제 후 새로 저장
+        walkPathRoutesRepository.deleteByWalkPath_Id(post.getId());
+        List<WalkPathRoute> newRoutes = new ArrayList<>();
         if (requestDto.getRoutes() != null && !requestDto.getRoutes().isEmpty()) {
-            List<WalkPathRoute> routeEntities = requestDto.getRoutes().stream()
-                    .map(routeDto -> WalkPathRoute.builder()
-                            .address(routeDto.getAddress())
-                            .orderNo(routeDto.getOrderNo())
-                            .walkPath(savedWalkPath)   // 부모 엔티티 지정
-                            .build())
-                    .toList();
-
-            savedRoutes = walkPathRoutesRepository.saveAll(routeEntities);
-            log.info("총 {}개의 경로 지점이 저장되었습니다.", savedRoutes.size());
+            for (WalkPathRouteRequestDto routeDto : requestDto.getRoutes()) {
+                WalkPathRoute route = new WalkPathRoute();
+                route.setAddress(routeDto.getAddress());
+                route.setOrderNo(routeDto.getOrderNo());
+                route.setWalkPath(post);  // 기존 게시글과 연결
+                newRoutes.add(route);
+            }
+            walkPathRoutesRepository.saveAll(newRoutes);
         }
 
         //기존 이미지 삭제
@@ -255,39 +249,32 @@ public class WalkPathService {
                     String uuid = UUID.randomUUID().toString();
 
                     // (3) Image 엔티티 생성 (DB 저장용)
-                    Image image = Image.builder()
-                            .uuid(uuid)
-                            .filePath(filePath) // fileUploadService가 반환하는 웹 접근 경로 (예: /uploads/파일명)
-                            .fileSize(String.valueOf(file.getSize()))
-                            .postsId(savedWalkPath.getId())
-                            .user(author)
-                            .tableTypesId(6L) // WalkPath
-                            .build();
+                    Image image = new Image();
+                    image.setUuid(UUID.randomUUID().toString());
+                    image.setFilePath(filePath);
+                    image.setFileSize(String.valueOf(file.getSize()));
+                    image.setPostsId(post.getId());
+                    image.setUser(author);
+                    image.setTableTypesId(6L); // WalkPath
 
                     imageEntities.add(image);
-                    imagePaths.add(image.getFilePath());
+                    imagePaths.add(filePath);
                     log.info("✅ 이미지 업로드 성공: {}", filePath);
                 } catch (IOException e) {
                     throw new RuntimeException("이미지 저장 실패: " + file.getOriginalFilename(), e);
                 }
-
-                // ✅ (4) DB 저장
-                imageRepository.saveAll(imageEntities);
-                imageRepository.flush();
-                log.info("새 이미지 {}개 저장 완료", imageEntities.size());
             }
-            //(5) DB저장
             imageRepository.saveAll(imageEntities);
             imageRepository.flush();
         }
 
         // ✅ 경로를 DTO로 변환
-        List<WalkPathRouteResponseDto> routeDtos = savedRoutes.stream()
+        List<WalkPathRouteResponseDto> routeDtos = newRoutes.stream()
                 .map(WalkPathRouteResponseDto::from)
                 .toList();
-        log.info("게시글 작성 완료 id = {}, title = {}", savedWalkPath.getId(), savedWalkPath.getTitle());
+//        log.info("게시글 작성 완료 id = {}, title = {}", post.getId(), post.getTitle());
 
-        return WalkPathDetailResponseDto.from(savedWalkPath, false, imagePaths,routeDtos);
+        return WalkPathDetailResponseDto.from(post, false, imagePaths,routeDtos);
 
     }
 
@@ -301,6 +288,11 @@ public class WalkPathService {
         if (!post.getUser().getUsername().equals(username)) {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
+        // 자식 엔티티(경로 지점) 먼저 삭제
+        walkPathRoutesRepository.deleteByWalkPath_Id(postId);
+
+        // 부모 엔티티(게시글) 삭제
+        walkPathRepository.delete(post);
 
         walkPathRepository.delete(post);
     }
@@ -320,7 +312,7 @@ public class WalkPathService {
         WalkPath post = walkPathRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
         post.refreshLikeCount(likeCount);
-        walkPathRepository.save(post);
+//        walkPathRepository.save(post);
 
         // 4. DTO 반환
         return new LikeResponseDto(liked, likeCount);

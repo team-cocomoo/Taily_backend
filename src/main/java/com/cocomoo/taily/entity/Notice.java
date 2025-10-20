@@ -7,42 +7,48 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity // JPA 엔티티 선언
-@Table(name = "notices")  // 테이블 명 지정 - 생략시 클래스명을 snake case 로 변환
+@Entity
+@Table(name = "notices")
 @Getter
-@NoArgsConstructor // JPA 요구사항 - 기본 생성자 필수
-@AllArgsConstructor // 모든 필드를 받는 생성자
-@Builder // 롬복을 이용한 빌더 패턴 적용 ,  객체 생성을 효율적으로
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @ToString
 public class Notice {
-    @Id // Primary Key 설정
-    @GeneratedValue(strategy = GenerationType.IDENTITY)// AUTO_INCREMENT 설정
-    @Column(name="id")
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="title",nullable = false,length = 100)
+    @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(name= "content", nullable = false, columnDefinition = "MEDIUMTEXT")
+    @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
-    //조회수
-    @Column(name = "view", nullable = false)
-    private  Long view =0L;
+    @Column(nullable = false)
+    private Long view = 0L;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false, updatable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // 외래키 : users_id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
     private User user;
 
+    /** 공지 수정 (비즈니스 로직) */
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 
-
+    /** 조회수 증가 (비즈니스 로직) */
+    public void increaseView() {
+        this.view += 1;
+    }
 }
