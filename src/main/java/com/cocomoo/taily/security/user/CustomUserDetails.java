@@ -114,7 +114,6 @@ public class CustomUserDetails implements UserDetails {
         return user.getNickname();
     }
 
-
     public String getPublicId() {
         return user.getPublicId();
     }
