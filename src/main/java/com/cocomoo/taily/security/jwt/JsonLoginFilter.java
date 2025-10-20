@@ -115,6 +115,7 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         // 1. 인증된 사용자 정보 추출
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
+        String requestURI = request.getRequestURI();
 
         // 2. 사용자 권한 추출
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -123,6 +124,48 @@ public class JsonLoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();  // ROLE_USER 또는 ROLE_ADMIN
 
         log.info("인증 성공: username={}, role={}", user.getUsername(), role);
+
+        // ✅ 상태(state) 검증
+        if ("WITHDRAW".equals(user.getState())) {
+            log.warn("탈퇴한 계정 로그인 시도: {}", user.getUsername());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("""
+                {"success": false, "message": "탈퇴한 계정입니다.", "code": "ACCOUNT_WITHDRAWN"}
+            """);
+            return;
+        }
+
+        if ("SUSPENDED".equals(user.getState())) {
+            log.warn("정지된 계정 로그인 시도: {}", user.getUsername());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("""
+                {"success": false, "message": "정지된 계정입니다.", "code": "ACCOUNT_SUSPENDED"}
+            """);
+            return;
+        }
+
+        // URL별 권한(role) 검증
+        if (requestURI.contains("/login/user") && !"ROLE_USER".equals(role)) {
+            log.warn("관리자가 /login/user 로 로그인 시도: {}", user.getUsername());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("""
+                {"success": false, "message": "사용자 전용 로그인입니다.", "code": "ROLE_MISMATCH"}
+            """);
+            return;
+        }
+
+        if (requestURI.contains("/login/admin") && !"ROLE_ADMIN".equals(role)) {
+            log.warn("일반 사용자가 /login/admin 으로 로그인 시도: {}", user.getUsername());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("""
+                {"success": false, "message": "관리자 전용 로그인입니다.", "code": "ROLE_MISMATCH"}
+            """);
+            return;
+        }
 
         // 3. JWT 토큰 생성
         // 하루로 유효 기간을 준다
