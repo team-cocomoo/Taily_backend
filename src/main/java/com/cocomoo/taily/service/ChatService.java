@@ -109,19 +109,33 @@ public class ChatService {
     }
 
     // 특정 채팅방의 이전 메시지 조회
-    public List<MessageDataResponseDto> getMessagesByRoom(Long roomId, String username) {
+    public ChatRoomDetailResponseDto getRoomDetail(Long roomId, String username) {
         MessageRoom room = messageRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방 없음"));
 
+        // 사용자 검증
         if (!room.getUser1().getUsername().equals(username) &&
                 !room.getUser2().getUsername().equals(username)) {
             throw new SecurityException("이 채팅방에 접근할 수 없습니다.");
         }
 
+        // 현재 사용자 및 상대방 찾기
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+        User otherUser = room.getUser1().equals(currentUser)
+                ? room.getUser2()
+                : room.getUser1();
+
+        // 상대방 프로필 이미지
+        String otherProfile = imageRepository.findFirstByUserOrderByCreatedAtDesc(otherUser)
+                .map(Image::getFilePath)
+                .orElse(null);
+
+        // 메시지 목록
         List<MessageData> messages = messageDataRepository.findByMessageRoomOrderByCreatedAtAsc(room);
-        return messages.stream()
-                .map(MessageDataResponseDto::from)
-                .collect(Collectors.toList());
+
+        // DTO 변환 (from 사용)
+        return ChatRoomDetailResponseDto.from(room, currentUser, otherProfile, messages);
     }
 
     // 메세지 전송 및 db 저장

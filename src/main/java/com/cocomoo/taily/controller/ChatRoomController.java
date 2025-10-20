@@ -76,13 +76,17 @@ public class ChatRoomController {
 
     // 채팅방 채팅 조회
     @GetMapping("/{roomId}/messages")
-    public ResponseEntity<?> getRoomMessages(@PathVariable Long roomId) {
+    public ResponseEntity<?> getRoomDetail(@PathVariable Long roomId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        List<MessageDataResponseDto> messages = chatService.getMessagesByRoom(roomId,username);
-        return ResponseEntity.ok(ApiResponseDto.success(messages, "이전 메시지 조회 성공"));
+        log.info("📩 채팅방 상세 조회 요청: roomId={}, username={}", roomId, username);
+
+        ChatRoomDetailResponseDto detail = chatService.getRoomDetail(roomId, username);
+
+        return ResponseEntity.ok(ApiResponseDto.success(detail, "채팅방 상세 조회 성공"));
     }
+
     // 채팅 전송(웹소켓)
     @MessageMapping("/chat.send")
     public void sendWebSocket(MessageCreateRequestDto messageCreateRequestDto) {
