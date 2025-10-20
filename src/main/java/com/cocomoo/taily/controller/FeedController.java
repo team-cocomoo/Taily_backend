@@ -5,13 +5,19 @@ import com.cocomoo.taily.dto.petstory.FeedResponseDto;
 import com.cocomoo.taily.security.user.CustomUserDetails;
 import com.cocomoo.taily.service.FeedService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
 
+/**
+ * FeedController
+ * - 이미지 업로드는 /api/images/upload 에서 별도 수행
+ * - 본 컨트롤러는 content, tags, imagePaths 기반의 JSON만 처리
+ */
+@Slf4j
 @RestController
 @RequestMapping("/api/feeds")
 @RequiredArgsConstructor
@@ -19,44 +25,111 @@ public class FeedController {
 
     private final FeedService feedService;
 
-    // 새로운 피드 등록 메서드
-    // Spring Seucurity에서 현재 로그인 유저의 id 가져오기
-    @PostMapping
+    /**
+     * 1. 피드 등록
+     * - JSON 구조: { "content": "...", "tags": ["#강아지", "#산책"], "imagePaths": ["/uploads/feed/xxx.jpg"] }
+     * - 이미지 업로드는 /api/images/upload 호출 후 filePath를 전달
+     */
+    @PostMapping(consumes = "application/json")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FeedResponseDto> createFeed(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            // @RequestBody FeedRequestDto dto, // JSON으로 받음
-            @RequestPart("feed") FeedRequestDto dto,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody FeedRequestDto dto
     ) {
-        dto.setImages(images); // images가 null일 수도 있음
-        Long userId = userDetails.getUserId();
-        return ResponseEntity.ok(feedService.registerFeed(userId, dto));
+        try {
+            log.info("피드 등록 요청: userPublicId={}, content={}, tags={}",
+                    user.getPublicId(), dto.getContent(), dto.getTags());
+
+            FeedResponseDto created = feedService.registerFeed(user.getUserId(), dto);
+            return ResponseEntity.ok(created);
+
+        } catch (Exception e) {
+            log.error("피드 등록 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    // Feed id를 기준으로 feed 객체 반환
-    @GetMapping("/{id}")
-    public ResponseEntity<FeedResponseDto> getFeed(@PathVariable Long id) {
-        return ResponseEntity.ok(feedService.getFeed(id));
-    }
-    
-    // 전체 피드 조회 (페이징 처리)
+    /**
+     * 2. 무한 스크롤 기반 피드 목록 조회
+     * - page, size 파라미터 (기본값 page=0, size=10)
+     */
     @GetMapping
-    public ResponseEntity<?> getAllFeeds(
+    public ResponseEntity<Page<FeedResponseDto>> getFeeds(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(feedService.getFeedsWithPaging(page, size));
+        log.debug("피드 목록 조회 요청: page={}, size={}", page, size);
+        Page<FeedResponseDto> feeds = feedService.getFeedsWithPaging(page, size);
+        return ResponseEntity.ok(feeds);
     }
 
+    /**
+     * 3. 피드 상세 조회
+     * - 조회수 증가 포함
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<FeedResponseDto> getFeed(@PathVariable Long id) {
+        log.debug("피드 상세 조회 요청: id={}", id);
+        FeedResponseDto feed = feedService.getFeed(id);
+        return ResponseEntity.ok(feed);
+    }
 
-    // 피드 삭제 메서드
-    @DeleteMapping("/delete/{id}")
+    /**
+     * 4. 피드 수정용 데이터 조회
+     * - 프론트 수정 페이지 진입 시 사용
+     * - 기존 내용 + 태그 + 이미지 경로 반환
+     */
+    @GetMapping("/{id}/edit")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FeedResponseDto> getFeedForEdit(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        log.debug("피드 수정 데이터 조회 요청: feedId={}, userPublicId={}", id, user.getPublicId());
+        FeedResponseDto dto = feedService.getFeedForUpdate(id, user.getUserId());
+        return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * 5. 피드 수정
+     * - JSON 구조: { "content": "...", "tags": [...], "imagePaths": [...] }
+     * - 기존 이미지 삭제 후 새 경로 기반으로 저장
+     */
+    @PutMapping(value = "/{id}", consumes = "application/json")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FeedResponseDto> updateFeed(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody FeedRequestDto dto
+    ) {
+        try {
+            log.info("피드 수정 요청: feedId={}, userPublicId={}, tags={}",
+                    id, user.getPublicId(), dto.getTags());
+            FeedResponseDto updated = feedService.updateFeed(id, user.getUserId(), dto);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            log.error("피드 수정 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 6. 피드 삭제
+     * - 본인 게시물만 가능
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteFeed(
             @PathVariable Long id,
-            @AuthenticationPrincipal UserDetails user
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        Long userId = Long.parseLong(user.getUsername());
-        feedService.deleteFeed(id, userId);
-        return ResponseEntity.noContent().build();
+        try {
+            log.info("피드 삭제 요청: feedId={}, userPublicId={}", id, user.getPublicId());
+            feedService.deleteFeed(id, user.getUserId());
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("피드 삭제 실패: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

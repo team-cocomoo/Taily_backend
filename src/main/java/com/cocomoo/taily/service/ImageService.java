@@ -37,6 +37,12 @@ public class ImageService {
      * - tableTypesId == 1L → 프로필(usersId 기반)
      * - tableTypesId != 1L → 피드, 펫, 이벤트 등(postsId 기반)
      */
+    /**
+     * 이미지 업로드 (하위 폴더 지원)
+     * - 저장 파일명: UUID_원본파일명
+     * - tableTypesId == 1L → 프로필(usersId 기반)
+     * - tableTypesId != 1L → 피드, 펫, 이벤트 등(postsId 기반)
+     */
     @Transactional
     public List<Image> uploadImages(
             String subFolder,
@@ -54,60 +60,67 @@ public class ImageService {
         List<Image> savedImages = new ArrayList<>();
 
         try {
-            // 프로젝트 루트 기준 절대 경로
+            // 1업로드 경로 설정
             String projectRoot = new File("").getAbsolutePath();
             String uploadPath = projectRoot + File.separator + fileStorageProperties.getUploadDir();
 
-            // 기능별 하위 폴더 포함한 업로드 디렉토리
+            // 하위 폴더 생성
             File uploadDir = new File(uploadPath, subFolder);
             if (!uploadDir.exists() && !uploadDir.mkdirs()) {
                 throw new IOException("업로드 폴더 생성 실패: " + uploadDir.getAbsolutePath());
             }
 
             for (MultipartFile file : files) {
-                // UUID + 원본 파일명
+                // 유효성 검사
+                if (file == null || file.isEmpty() || file.getSize() <= 0) {
+                    log.warn("빈 파일이 포함되어 있어 건너뜁니다. 파일명={}",
+                            file != null ? file.getOriginalFilename() : "null");
+                    continue;
+                }
+
+                // 파일명 생성
                 String uuid = UUID.randomUUID().toString();
                 String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
                 String newFileName = uuid + "_" + originalFileName;
 
-                // 실제 저장 경로
+                // 파일 저장
                 File dest = new File(uploadDir, newFileName);
                 file.transferTo(dest);
 
                 // 상대 경로 (DB용)
                 String filePath = "/uploads/" + subFolder + "/" + newFileName;
 
+                // Image 엔티티 생성
                 Image image = Image.builder()
                         .uuid(uuid)
-                        .filePath(filePath)
+                        .filePath(filePath) // ✅ 올바른 경로 유지
                         .fileSize(String.valueOf(file.getSize()))
                         .tableTypesId(tableTypesId)
                         .build();
 
-                // 프로필
-                if (tableTypesId == 1L) {
+                // 관계 설정
+                if (tableTypesId == 1L) { // 프로필 이미지
                     if (usersId == null) {
                         throw new IllegalArgumentException("프로필 이미지 업로드 시 usersId는 필수입니다.");
                     }
                     User user = userRepository.findById(usersId)
                             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. id=" + usersId));
                     image.setUser(user);
-                }
-                // 피드, 펫 등
-                else {
+                } else { // 피드, 펫 등
                     if (postsId == null) {
                         if (tableTypesId == 4L) {
                             log.info("산책 일기 업로드 예외 허용: postsId가 null이지만 임시 업로드 처리됨 (tableTypesId={})", tableTypesId);
                         } else {
-                            throw new IllegalArgumentException("기능 연관 이미지 업로드 시 postsId는 필수입니다.");
+                            throw new IllegalArgumentException("기능 연관 이미지 업로드 시 postsId는 필수입니다. (tableTypesId=" + tableTypesId + ")");
                         }
                     }
                     image.setPostsId(postsId);
                 }
 
+                // 저장
                 imageRepository.save(image);
                 savedImages.add(image);
-                log.info("이미지 저장 완료: [{}] {}", subFolder, dest.getAbsolutePath());
+                log.info("✅ 이미지 저장 완료: [{}] {} ({} bytes)", subFolder, dest.getAbsolutePath(), file.getSize());
             }
 
         } catch (IOException e) {
@@ -117,6 +130,7 @@ public class ImageService {
 
         return savedImages;
     }
+
 
     /**
      * 이미지 삭제
@@ -154,7 +168,7 @@ public class ImageService {
                 File file = new File(projectRoot, relativePath);
 
                 if (file.exists() && file.delete()) {
-                    log.info("🗑️ 서버 파일 삭제 완료: {}", file.getAbsolutePath());
+                    log.info(" 서버 파일 삭제 완료: {}", file.getAbsolutePath());
                 } else {
                     log.warn("서버 파일 삭제 실패 또는 존재하지 않음: {}", file.getAbsolutePath());
                 }
