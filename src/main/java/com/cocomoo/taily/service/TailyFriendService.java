@@ -272,12 +272,12 @@ public class TailyFriendService {
     }
 
     // 테일리 프렌즈 전체 조회
-    public TailyFriendPageResponseDto getTailyFriendsPage(int page, int size) {
-        Page<TailyFriend> postsPage = tailyFriendRepository.findAllWithUser(PageRequest.of(page, size));
+    public TailyFriendPageResponseDto getTailyFriendsPage(int page, int size, String keyword) {
+        Page<TailyFriend> postsPage = tailyFriendRepository.findAllWithUserAndKeyword(keyword, PageRequest.of(page, size));
 
         List<TailyFriendListResponseDto> posts = postsPage.stream()
                 .map(post -> {
-                    List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(),5L)
+                    List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 5L)
                             .stream()
                             .map(ImageResponseDto::from)
                             .toList();
@@ -287,7 +287,7 @@ public class TailyFriendService {
 
         return TailyFriendPageResponseDto.builder()
                 .data(posts)
-                .totalCount(postsPage.getTotalElements()) // 총 게시글 수
+                .totalCount(postsPage.getTotalElements())
                 .build();
     }
 
@@ -400,20 +400,6 @@ public class TailyFriendService {
         }
 
         commentRepository.delete(comment);
-    }
-
-    // 검색 기능
-    public List<TailyFriendListResponseDto> searchTailyFriendsPage(String keyword, int page, int size) {
-        Page<TailyFriend> posts = tailyFriendRepository.searchByKeyword(keyword, PageRequest.of(page, size));
-        return posts.stream()
-                .map(post -> {
-                    List<ImageResponseDto> images = imageRepository.findByPostsIdAndTableTypesId(post.getId(),5L)
-                            .stream()
-                            .map(ImageResponseDto::from)
-                            .toList();
-                    return TailyFriendListResponseDto.from(post, images);
-                })
-                .collect(Collectors.toList());
     }
 
     // 주소만 검색
