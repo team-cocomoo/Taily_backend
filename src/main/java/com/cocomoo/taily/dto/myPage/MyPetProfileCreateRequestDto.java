@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 내 반려동물 프로필 작성 요청 DTO
  * - 클라이언트 → 서버로 전달되는 게시글 작성 정보
@@ -22,6 +24,5 @@ public class MyPetProfileCreateRequestDto {
     private String preference;
     private String introduction;
     private String tel;
-
-//    private ImageRequestDto image;
+    private Long imageId;
 }
