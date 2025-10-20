@@ -108,8 +108,8 @@ public class ImageService {
                     image.setUser(user);
                 } else { // 피드, 펫 등
                     if (postsId == null) {
-                        if (tableTypesId == 4L) {
-                            log.info("산책 일기 업로드 예외 허용: postsId가 null이지만 임시 업로드 처리됨 (tableTypesId={})", tableTypesId);
+                        if (tableTypesId == 2L || tableTypesId == 4L) {
+                            log.info("업로드 예외 허용: postsId가 null이지만 임시 업로드 처리됨 (tableTypesId={})", tableTypesId);
                         } else {
                             throw new IllegalArgumentException("기능 연관 이미지 업로드 시 postsId는 필수입니다. (tableTypesId=" + tableTypesId + ")");
                         }

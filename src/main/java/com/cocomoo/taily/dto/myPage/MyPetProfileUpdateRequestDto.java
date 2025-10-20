@@ -21,4 +21,5 @@ public class MyPetProfileUpdateRequestDto {
     private Integer age;
     private String preference;
     private String introduction;
+    private Long imageId;
 }

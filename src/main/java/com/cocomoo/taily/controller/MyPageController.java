@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.Token;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -146,8 +147,10 @@ public class MyPageController {
     /**
      * 내 반려동물 프로필 작성
      */
-    @PostMapping("/mypet")
-    public ResponseEntity<?> createMyPetProfile (@RequestBody MyPetProfileCreateRequestDto myPetProfileCreateRequestDto) {
+    @PostMapping(value = "/mypet", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<?> createMyPetProfile (
+            @RequestPart("myPetProfile") MyPetProfileCreateRequestDto myPetProfileCreateRequestDto
+    ) {
         log.info("내 반려동물 프로필 작성 시작!");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -182,8 +185,11 @@ public class MyPageController {
     /**
      * 내 반려동물 프로필 수정
      */
-    @PutMapping("/mypet/{id}")
-    public ResponseEntity<?> updateMyPetProfile(@PathVariable Long id, @RequestBody MyPetProfileUpdateRequestDto myPetProfileUpdateRequestDto) {
+    @PutMapping(value = "/mypet/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateMyPetProfile(
+            @PathVariable Long id,
+            @RequestPart("myPetProfile") MyPetProfileUpdateRequestDto myPetProfileUpdateRequestDto
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName();
