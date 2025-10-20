@@ -345,24 +345,37 @@ public class WalkPathService {
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
+        String profileImagePath = imageRepository
+                .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(user.getId(), 1L)
+                .map(image -> image.getFilePath())
+                .orElse(null);
 
-        return CommentResponseDto.from(savedComment);
+        return CommentResponseDto.from(savedComment, profileImagePath);
     }
     //댓글 조회
     public Map<String, Object> getCommentsPage(Long postId, int page, int size) {
         Page<Comment> parentComments = commentRepository.findByPostsIdAndParentCommentsIdIsNullWithUser(postId, PageRequest.of(page, size));
         List<Comment> allComments = commentRepository.findByPostsIdWithUser(postId);
 
+        Set<Long> userIds = allComments.stream()
+                .map(c -> c.getUsersId().getId())
+                .collect(Collectors.toSet());
+
+        Map<Long, String> profileMap = new HashMap<>();
+        for (Long userId : userIds) {
+            imageRepository.findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(userId, 1L)
+                    .ifPresent(image -> profileMap.put(userId, image.getFilePath()));
+        }
+
         List<CommentResponseDto> comments = parentComments.getContent().stream()
-                .map(root -> CommentResponseDto.fromWithReplies(root, allComments))
+                .map(root -> CommentResponseDto.fromWithReplies(root, allComments, profileMap))
                 .collect(Collectors.toList());
 
-        Map<String, Object> result = Map.of(
+        return Map.of(
                 "content", comments,
-                "page", page + 1,                 // 프론트에서는 1부터 시작
+                "page", page + 1, // 프론트는 1부터 시작
                 "totalPages", parentComments.getTotalPages()
         );
-        return result;
     }
 
     // 댓글 수정
@@ -377,7 +390,12 @@ public class WalkPathService {
 
         comment.updateContent(newContent);
 
-        return CommentResponseDto.from(comment);
+        String profileImagePath = imageRepository
+                .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(comment.getUsersId().getId(), 1L)
+                .map(image -> image.getFilePath())
+                .orElse(null);
+
+        return CommentResponseDto.from(comment, profileImagePath);
     }
     // 댓글 삭제
     public void deleteComment(Long commentId, String username) {
