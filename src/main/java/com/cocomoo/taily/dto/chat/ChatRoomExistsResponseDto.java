@@ -18,8 +18,8 @@ public class ChatRoomExistsResponseDto {
     public static ChatRoomExistsResponseDto from(MessageRoom room) {
         return new ChatRoomExistsResponseDto(
                 room.getId(),
-                room.getUser1().getUsername(),
-                room.getUser2().getUsername()
+                room.getUser1().getNickname(),
+                room.getUser2().getNickname()
         );
     }
 }

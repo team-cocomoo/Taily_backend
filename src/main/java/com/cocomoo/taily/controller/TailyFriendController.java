@@ -83,7 +83,7 @@ public class TailyFriendController {
         TailyFriendCreateRequestDto dtoWithImages = requestDto.withImages(images);
 
         TailyFriendDetailResponseDto updatedPost =
-                tailyFriendService.updateTailyFriend(id, username, requestDto);
+                tailyFriendService.updateTailyFriend(id, username, dtoWithImages);
 
         return ResponseEntity
                 .ok(ApiResponseDto.success(updatedPost, "게시글 수정 성공"));

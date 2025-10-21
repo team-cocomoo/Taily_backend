@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class ChatRoomListResponseDto {
     private Long roomId;
     private String otherUsername;
+    private String otherUserNickname;
     private String otherProfileImage;
     private String lastMessageContent;
     private LocalDateTime lastMessageTime;
@@ -29,6 +30,7 @@ public class ChatRoomListResponseDto {
         return ChatRoomListResponseDto.builder()
                 .roomId(room.getId())
                 .otherUsername(otherUser.getUsername())
+                .otherUserNickname(otherUser.getNickname())
                 .otherProfileImage(otherProfileImage)
                 .lastMessageContent(lastMessage != null ? lastMessage.getContent() : null)
                 .lastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null)

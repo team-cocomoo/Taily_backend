@@ -1,9 +1,9 @@
 package com.cocomoo.taily.service;
 
-import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.User.*;
 import com.cocomoo.taily.dto.admin.AdminUserResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
+import com.cocomoo.taily.entity.Image;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.UserRole;
 import com.cocomoo.taily.entity.UserState;
@@ -11,7 +11,6 @@ import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +25,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ImageService imageService;
     private final JwtUtil jwtUtil;
 
     /**
@@ -296,16 +296,32 @@ public class UserService {
     public AdminUserResponseDto findUserInfoById(Long id) {
         log.info("관리자 조회: id={}", id);
         User user = userRepository.findById(id).orElseThrow(() -> {
-            log.error("관리자 조회 실패: id={}", id);
-            return new IllegalArgumentException("존재하지 않는 관리자 계정입니다.");
+            log.error("관리자 회원 조회 실패: id={}", id);
+            return new IllegalArgumentException("존재하지 않는 회원입니다.");
         });
 
-        log.info("산책 일지 상세 조회 성공: userId={}", user.getId());
+        log.info("관리자 회원 상세 조회 성공: userId={}", user.getId());
 
-        return AdminUserResponseDto.from(user);
+        // 작성자 프로필 조회 + url 완성
+        String imagePath = imageService.getImages(1L, user.getId(), null)
+                .stream()
+                .map(Image::getFilePath)
+                .findFirst()
+                .orElse(null);
+
+        return AdminUserResponseDto.from(user, imagePath);
     }
 
+    public boolean isUsernameDuplicate(String username) {
+        return userRepository.existsByUsername(username);
+    }
 
-//    public UserProfileResponseDto updateMyProfile(String username, UserUpdateRequestDto requestDto) {
-//    }
+    public boolean isNicknameDuplicate(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    public boolean isEmailDuplicate(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
 }

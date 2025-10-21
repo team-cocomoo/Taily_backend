@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
+@ToString(exclude = "password")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
     @Id
@@ -54,14 +54,12 @@ public class User {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private UserRole role = UserRole.ROLE_USER;
+    private UserRole role;
     // (추후 구현)관리자 유저 객체 생성시 ROLE_ADMIN 되게 처리해야됨
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private UserState state = UserState.ACTIVE;
+    private UserState state;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -83,10 +81,22 @@ public class User {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private TableType tableType;
 
+
+    /**
+     * INSERT 직전에 null 값 보정
+     */
     @PrePersist
-    protected void setDefaultTableType() {
+    protected void onCreate() {
         if (this.tableType == null) {
             this.tableType = TableType.builder().id(1L).build();
+        }
+
+        if (this.role == null) {
+            this.role = UserRole.ROLE_USER;
+        }
+
+        if (this.state == null) {
+            this.state = UserState.ACTIVE;
         }
     }
 

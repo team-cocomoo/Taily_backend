@@ -22,9 +22,13 @@ public class AdminUserResponseDto {
     private String introduction;
     private UserState state;
     private Long sanctionCount;
+    private LocalDateTime penaltyStartDate;
+    private LocalDateTime penaltyEndDate;
     private LocalDateTime createdAt;
+    private String imagePath;  // 이미지 경로 리스트
 
-    public static AdminUserResponseDto from(User user) {
+
+    public static AdminUserResponseDto from(User user, String imagePath) {
         return AdminUserResponseDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -35,7 +39,10 @@ public class AdminUserResponseDto {
                 .introduction(user.getIntroduction())
                 .state(user.getState())
                 .sanctionCount(user.getSanctionCount())
+                .penaltyStartDate(user.getPenaltyStartDate())
+                .penaltyEndDate(user.getPenaltyEndDate())
                 .createdAt(user.getCreatedAt())
+                .imagePath(imagePath)
                 .build();
     }
 
