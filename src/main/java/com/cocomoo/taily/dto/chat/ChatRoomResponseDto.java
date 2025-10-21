@@ -14,6 +14,8 @@ public class ChatRoomResponseDto {
     private Long roomId;
     private String user1Name;
     private String user2Name;
+    private String user1NickName;
+    private String user2NickName;
     private String user1ProfileImage;
     private String user2ProfileImage;
 
@@ -24,6 +26,8 @@ public class ChatRoomResponseDto {
                 .roomId(room.getId())
                 .user1Name(room.getUser1().getUsername())
                 .user2Name(room.getUser2().getUsername())
+                .user1NickName(room.getUser1().getNickname())
+                .user2NickName(room.getUser2().getNickname())
                 .user1ProfileImage(user1Profile)
                 .user2ProfileImage(user2Profile)
                 .build();

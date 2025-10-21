@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class MessageDataResponseDto {
     private Long id;
     private String senderName;
+    private String senderNickName;
     private String content;
     private LocalDateTime createdAt;
 
@@ -22,6 +23,7 @@ public class MessageDataResponseDto {
         return MessageDataResponseDto.builder()
                 .id(messageData.getId())
                 .senderName(messageData.getUser().getUsername())
+                .senderNickName(messageData.getUser().getNickname())
                 .content(messageData.getContent())
                 .createdAt(messageData.getCreatedAt())
                 .build();

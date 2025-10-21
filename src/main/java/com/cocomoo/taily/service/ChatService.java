@@ -170,7 +170,7 @@ public class ChatService {
     }
 
     public List<UserChatSearchResponseDto> searchUsersByNickname(String nickname) {
-        List<User> users = userRepository.findByUsernameContainingIgnoreCase(nickname);
+        List<User> users = userRepository.findByNicknameContainingIgnoreCase(nickname);
 
         return users.stream()
                 .map(user -> {
