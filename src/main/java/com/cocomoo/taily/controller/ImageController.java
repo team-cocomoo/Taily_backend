@@ -6,6 +6,7 @@ import com.cocomoo.taily.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -89,5 +90,17 @@ public class ImageController {
         log.info("이미지 삭제 요청: tableTypesId={}, usersId={}, postsId={}", tableTypesId, usersId, postsId);
         imageService.deleteImages(tableTypesId, usersId, postsId);
         return ResponseEntity.ok("이미지 삭제 완료");
+    }
+
+    @GetMapping("/my-feeds")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<Image>> getMyFeedImages(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long usersId = userDetails.getUserId();
+        log.info("내 피드 이미지 목록 조회 요청: usersId={}", usersId);
+
+        List<Image> images = imageService.getImagesByUserFeeds(usersId);
+        return ResponseEntity.ok(images);
     }
 }

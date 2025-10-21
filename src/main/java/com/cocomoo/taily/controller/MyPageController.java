@@ -335,4 +335,7 @@ public class MyPageController {
         log.info("문의 + 답변 조회, ID: {}", id);
         return ResponseEntity.ok(ApiResponseDto.success(response, "문의 + 답변 조회 성공"));
     }
+
+    // 내 피드
+
 }

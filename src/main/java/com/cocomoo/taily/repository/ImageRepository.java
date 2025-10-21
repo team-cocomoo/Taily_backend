@@ -38,4 +38,7 @@ public interface ImageRepository extends JpaRepository<Image,Long> {
     Optional<Image> findFirstByPostsIdAndTableTypesId(Long postsId, Long tableTypesId);
 
     List<Image> findAllByTableTypesId(long l);
+
+    List<Image> findByTableTypesIdAndPostsIdIn(Long tableTypesId, List<Long> postsIds);
+
 }
