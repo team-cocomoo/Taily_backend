@@ -132,4 +132,16 @@ public class FeedController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/myfeed")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<FeedResponseDto>> getMyFeeds(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.debug("내 피드 목록 조회 요청: userId={}, page={}, size={}", user.getUserId(), page, size);
+        Page<FeedResponseDto> feeds = feedService.getMyFeeds(user.getUserId(), page, size);
+        return ResponseEntity.ok(feeds);
+    }
 }

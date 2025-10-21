@@ -180,6 +180,8 @@ public class FeedService {
         feedRepository.delete(feed);
     }
 
+
+
     /**
      * 무한 스크롤용 피드 조회
      */
@@ -202,4 +204,25 @@ public class FeedService {
         List<TagList> tagList = tagListRepository.findByFeed(feed);
         return FeedResponseDto.of(feed, imageList, tagList);
     }
+
+    /**
+     * 로그인한 사용자의 피드 목록 조회 (최신순)
+     */
+    @Transactional(readOnly = true)
+    public Page<FeedResponseDto> getMyFeeds(Long userId, int page, int size) {
+        // createdAt 기준 내림차순 정렬 (최신순)
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Feed> feedPage = feedRepository.findByUser_Id(userId, pageable);
+
+        List<FeedResponseDto> dtoList = feedPage.getContent().stream()
+                .map(this::mapToDto)
+                .toList();
+
+        log.info("내 피드 목록 조회 완료 (최신순): userId={}, totalFeeds={}", userId, feedPage.getTotalElements());
+
+        return new PageImpl<>(dtoList, pageable, feedPage.getTotalElements());
+    }
+
+
 }

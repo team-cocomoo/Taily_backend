@@ -29,4 +29,6 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
 
     Comment getCommentById(Long parentCommentId);
     // 페이지 단위로 피드를 가져온다.
+
+    Page<Feed> findByUser_Id(Long userId, Pageable pageable);
 }
