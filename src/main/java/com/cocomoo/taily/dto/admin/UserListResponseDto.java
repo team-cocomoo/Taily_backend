@@ -21,8 +21,9 @@ public class UserListResponseDto {
     private LocalDateTime createdAt;
     private UserState state;
     private Long sanctionCount;
+    private String imagePath;
 
-    public static UserListResponseDto from(User user) {
+    public static UserListResponseDto from(User user, String imagePath) {
         return UserListResponseDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -31,6 +32,7 @@ public class UserListResponseDto {
                 .createdAt(user.getCreatedAt())
                 .state(user.getState())
                 .sanctionCount(user.getSanctionCount())
+                .imagePath(imagePath)
                 .build();
     }
 }
