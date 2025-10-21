@@ -7,6 +7,7 @@ import com.cocomoo.taily.dto.common.report.ReportResponseDto;
 import com.cocomoo.taily.dto.inquiry.InquiryPageResponseDto;
 import com.cocomoo.taily.dto.inquiry.InquiryResponseDto;
 import com.cocomoo.taily.entity.*;
+import com.cocomoo.taily.repository.ImageRepository;
 import com.cocomoo.taily.repository.InquiryRepository;
 import com.cocomoo.taily.repository.ReportRepository;
 import com.cocomoo.taily.repository.UserRepository;
@@ -20,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -30,6 +30,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
     private final InquiryRepository inquiryRepository;
+    private final ImageRepository imageRepository;
 
     /**
      * 전체 회원 리스트 + 검색 + 페이지네이션
@@ -40,13 +41,24 @@ public class AdminService {
      * @param size
      * @return
      */
+    @Transactional(readOnly = true)
     public UserPageResponseDto getUsersPage(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<User> usersPage = userRepository.findAndSearchUser(keyword, pageable);
 
         List<UserListResponseDto> userList = usersPage.stream()
-                .map(UserListResponseDto::from)
+                .map(user -> {
+                    // 프로필용 최신 이미지 1개 조회 (tableTypesId = 1)
+                    String imagePath = imageRepository
+                            .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(user.getId(), 1L)
+                            .map(Image::getFilePath)
+                            .orElse(null);
+
+                    // imagePath 포함 DTO 생성
+                    return UserListResponseDto.from(user, imagePath);
+                })
                 .toList();
+
         return UserPageResponseDto.builder()
                 .data(userList)
                 .totalCount(usersPage.getTotalElements())

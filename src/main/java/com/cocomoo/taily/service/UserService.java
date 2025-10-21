@@ -3,10 +3,8 @@ package com.cocomoo.taily.service;
 import com.cocomoo.taily.dto.User.*;
 import com.cocomoo.taily.dto.admin.AdminUserResponseDto;
 import com.cocomoo.taily.dto.myPage.UserProfileResponseDto;
-import com.cocomoo.taily.entity.Image;
-import com.cocomoo.taily.entity.User;
-import com.cocomoo.taily.entity.UserRole;
-import com.cocomoo.taily.entity.UserState;
+import com.cocomoo.taily.entity.*;
+import com.cocomoo.taily.repository.ImageRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import com.cocomoo.taily.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +24,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ImageService imageService;
+    private final ImageRepository imageRepository;
     private final JwtUtil jwtUtil;
 
     /**
@@ -301,6 +300,8 @@ public class UserService {
         });
 
         log.info("관리자 회원 상세 조회 성공: userId={}", user.getId());
+
+//        TableType user
 
         // 작성자 프로필 조회 + url 완성
         String imagePath = imageService.getImages(1L, user.getId(), null)

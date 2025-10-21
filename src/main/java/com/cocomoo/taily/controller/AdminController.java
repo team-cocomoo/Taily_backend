@@ -1,21 +1,18 @@
 package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
-import com.cocomoo.taily.dto.admin.*;
+import com.cocomoo.taily.dto.admin.AdminUserResponseDto;
+import com.cocomoo.taily.dto.admin.UserPageResponseDto;
+import com.cocomoo.taily.dto.admin.UserPenaltyResponseDto;
 import com.cocomoo.taily.dto.common.report.ReportResponseDto;
 import com.cocomoo.taily.dto.inquiry.InquiryPageResponseDto;
 import com.cocomoo.taily.dto.inquiry.InquiryResponseDto;
-import com.cocomoo.taily.entity.User;
-import com.cocomoo.taily.entity.UserRole;
 import com.cocomoo.taily.security.jwt.JwtUtil;
 import com.cocomoo.taily.service.AdminService;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -55,8 +52,10 @@ public class AdminController {
     // 회원 정보 출력
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserInfoById(@PathVariable Long id) {
+        log.info("넘어온 파라미터 값: {}", id);
         AdminUserResponseDto userInfo = userService.findUserInfoById(id);
 
+        log.info("조회해 온 userInfo: {}, imagePath: {}", userInfo.getUsername(), userInfo.getImagePath());
         return ResponseEntity.ok(ApiResponseDto.success(userInfo, "회원 정보 조회 성공"));
     }
 
