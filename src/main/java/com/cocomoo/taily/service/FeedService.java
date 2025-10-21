@@ -1,5 +1,7 @@
 package com.cocomoo.taily.service;
 
+import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
+import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.petstory.FeedRequestDto;
 import com.cocomoo.taily.dto.petstory.FeedResponseDto;
 import com.cocomoo.taily.entity.*;
@@ -9,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +28,8 @@ public class FeedService {
     private final TableTypeRepository tableTypeRepository;
     private final TagRepository tagRepository;
     private final TagListRepository tagListRepository;
+    private final CommentRepository commentRepository;
+    private final AlarmService alarmService;
 
     /**
      * Feed 등록 (이미지 경로 기반)
@@ -222,6 +227,110 @@ public class FeedService {
         log.info("내 피드 목록 조회 완료 (최신순): userId={}, totalFeeds={}", userId, feedPage.getTotalElements());
 
         return new PageImpl<>(dtoList, pageable, feedPage.getTotalElements());
+    }
+
+//  댓글 작성
+    @Transactional
+    public CommentResponseDto createComment(Long postId, Long userId, CommentCreateRequestDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        Feed feed = feedRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("피드 없음"));
+
+        TableType tableType = tableTypeRepository.findById(3L)
+                .orElseThrow(() -> new IllegalArgumentException("TableType 없음"));
+
+        Comment parent = null;
+        if (dto.getParentCommentsId() != null) {
+            parent = commentRepository.findById(dto.getParentCommentsId())
+                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글 없음"));
+        }
+
+        Comment comment = Comment.builder()
+                .postsId(feed.getId())
+                .usersId(user)
+                .tableTypesId(tableType)
+                .content(dto.getContent())
+                .parentCommentsId(parent)
+                .build();
+
+        Comment saved = commentRepository.save(comment);
+
+        // 알림은 별도 트랜잭션에서 실행 (Feed 트랜잭션에 영향 없음)
+        try {
+            alarmService.sendCommentAlarmAsync(
+                    user.getUsername(),
+                    postId,
+                    dto.getParentCommentsId(),
+                    tableType.getId()
+            );
+        } catch (Exception e) {
+            log.warn("[FeedService] 알람 전송 실패 (무시됨): {}", e.getMessage());
+        }
+
+        String profileImagePath = imageRepository
+                .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(user.getId(), 1L)
+                .map(Image::getFilePath)
+                .orElse(null);
+
+        return CommentResponseDto.from(saved, profileImagePath);
+    }
+
+
+    /* 댓글 조회 */
+    public Map<String, Object> getCommentsPage(Long feedId, int page, int size) {
+        Page<Comment> parentComments =
+                commentRepository.findByPostsIdAndParentCommentsIdIsNullWithUser(feedId, PageRequest.of(page, size));
+        List<Comment> allComments = commentRepository.findByPostsIdWithUser(feedId);
+
+        Set<Long> userIds = allComments.stream()
+                .map(c -> c.getUsersId().getId())
+                .collect(Collectors.toSet());
+
+        Map<Long, String> profileMap = new HashMap<>();
+        for (Long uid : userIds) {
+            imageRepository.findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(uid, 1L)
+                    .ifPresent(img -> profileMap.put(uid, img.getFilePath()));
+        }
+
+        List<CommentResponseDto> comments = parentComments.getContent().stream()
+                .map(root -> CommentResponseDto.fromWithReplies(root, allComments, profileMap))
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "content", comments,
+                "page", page + 1,
+                "totalPages", parentComments.getTotalPages()
+        );
+    }
+
+    /* 댓글 수정 */
+    @Transactional
+    public CommentResponseDto updateComment(Long commentId, Long userId, String newContent) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+        if (!comment.getUsersId().getId().equals(userId)) {
+            throw new IllegalArgumentException("작성자만 수정 가능");
+        }
+
+        comment.updateContent(newContent);
+        String profileImagePath = imageRepository
+                .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(userId, 1L)
+                .map(Image::getFilePath)
+                .orElse(null);
+        return CommentResponseDto.from(comment, profileImagePath);
+    }
+
+    /* 댓글 삭제 */
+    @Transactional
+    public void deleteComment(Long commentId, Long userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+        if (!comment.getUsersId().getId().equals(userId)) {
+            throw new IllegalArgumentException("작성자만 삭제 가능");
+        }
+        commentRepository.delete(comment);
     }
 
 

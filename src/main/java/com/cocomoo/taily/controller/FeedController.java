@@ -1,5 +1,8 @@
 package com.cocomoo.taily.controller;
 
+import com.cocomoo.taily.dto.ApiResponseDto;
+import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
+import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.petstory.FeedRequestDto;
 import com.cocomoo.taily.dto.petstory.FeedResponseDto;
 import com.cocomoo.taily.security.user.CustomUserDetails;
@@ -7,10 +10,13 @@ import com.cocomoo.taily.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * FeedController
@@ -144,4 +150,85 @@ public class FeedController {
         Page<FeedResponseDto> feeds = feedService.getMyFeeds(user.getUserId(), page, size);
         return ResponseEntity.ok(feeds);
     }
+
+    /** -------------------- 댓글 CRUD -------------------- **/
+
+// ✅ 댓글 작성
+    @PostMapping("/{id}/comments")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponseDto<CommentResponseDto>> createComment(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody CommentCreateRequestDto requestDto
+    ) {
+        CommentResponseDto dto = feedService.createComment(id, user.getUserId(), requestDto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponseDto.success(dto, "댓글 작성 성공"));
+    }
+
+    // ✅ 대댓글 작성
+    @PostMapping("/{id}/comments/{parentId}/reply")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponseDto<CommentResponseDto>> createReply(
+            @PathVariable Long id,
+            @PathVariable Long parentId,
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody CommentCreateRequestDto requestDto
+    ) {
+        CommentCreateRequestDto dtoWithParent = CommentCreateRequestDto.builder()
+                .content(requestDto.getContent())
+                .parentCommentsId(parentId)
+                .build();
+
+        log.info("대댓글 요청 - feedId={}, parentId={}, content={}", id, parentId, requestDto.getContent());
+
+        CommentResponseDto dto = feedService.createComment(id, user.getUserId(), dtoWithParent);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponseDto.success(dto, "대댓글 작성 성공"));
+    }
+
+    // ✅ 댓글 조회 (페이징)
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<ApiResponseDto<Map<String, Object>>> getComments(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        Map<String, Object> response = feedService.getCommentsPage(id, page - 1, size);
+        return ResponseEntity
+                .ok(ApiResponseDto.success(response, "댓글 목록 조회 성공"));
+    }
+
+    // ✅ 댓글 수정
+    @PatchMapping("/{id}/comments/{commentId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponseDto<CommentResponseDto>> updateComment(
+            @PathVariable Long id,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody Map<String, String> request
+    ) {
+        String newContent = request.get("content");
+        CommentResponseDto updated =
+                feedService.updateComment(commentId, user.getUserId(), newContent);
+        return ResponseEntity
+                .ok(ApiResponseDto.success(updated, "댓글 수정 성공"));
+    }
+
+    // ✅ 댓글 삭제
+    @DeleteMapping("/{id}/comments/{commentId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponseDto<Void>> deleteComment(
+            @PathVariable Long id,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        feedService.deleteComment(commentId, user.getUserId());
+        return ResponseEntity
+                .ok(ApiResponseDto.success(null, "댓글 삭제 성공"));
+    }
+
 }

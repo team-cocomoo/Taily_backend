@@ -6,7 +6,9 @@ import com.cocomoo.taily.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -297,5 +299,15 @@ public class AlarmService {
         Alarm alarm = alarmRepository.findById(alarmId).orElseThrow(() -> new IllegalArgumentException("해당 알람이 존재하지 않습니다."));
 
         alarm.markAsRead();
+    }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void sendCommentAlarmAsync(String username, Long postId, Long parentCommentId, Long tableTypeId) {
+        try {
+            sendCommentAlarm(username, postId, parentCommentId, tableTypeId);
+        } catch (Exception e) {
+            log.warn("[AlarmService] 비동기 알람 전송 실패 (무시됨): {}", e.getMessage());
+        }
     }
 }

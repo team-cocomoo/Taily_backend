@@ -24,6 +24,7 @@ public class CommentResponseDto {
     private String nickname;
     private String profileImage;
     private LocalDateTime createdAt;
+    private Long writerId; // 추가: 작성자 식별용 ID
     private List<CommentResponseDto> replies;
 
     public static CommentResponseDto from (Comment comment, String profileImagePath){
@@ -31,6 +32,7 @@ public class CommentResponseDto {
                 .id(comment.getId())
                 .content(comment.getContent())
                 .nickname(comment.getUsersId().getNickname())
+                .writerId(comment.getUsersId().getId()) // 작성자 ID 추가
                 .profileImage(profileImagePath)
                 .createdAt(comment.getCreatedAt())
                 .replies(new ArrayList<>())
@@ -49,6 +51,7 @@ public class CommentResponseDto {
                 .id(comment.getId())
                 .content(comment.getContent())
                 .nickname(comment.getUsersId().getNickname())
+                .writerId(comment.getUsersId().getId()) // 동일하게 포함
                 .profileImage(profileImagePath)
                 .createdAt(comment.getCreatedAt())
                 .replies(childReplies)

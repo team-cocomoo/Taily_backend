@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -31,4 +32,8 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     // 페이지 단위로 피드를 가져온다.
 
     Page<Feed> findByUser_Id(Long userId, Pageable pageable);
+
+    @Query("SELECT f.id FROM Feed f WHERE f.user.id = :userId")
+    List<Long> findFeedIdsByUserId(@Param("userId") Long userId);
+
 }

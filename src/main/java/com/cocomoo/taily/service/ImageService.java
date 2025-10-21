@@ -3,6 +3,7 @@ package com.cocomoo.taily.service;
 import com.cocomoo.taily.config.FileStorageProperties;
 import com.cocomoo.taily.entity.Image;
 import com.cocomoo.taily.entity.User;
+import com.cocomoo.taily.repository.FeedRepository;
 import com.cocomoo.taily.repository.ImageRepository;
 import com.cocomoo.taily.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class ImageService {
     private final ImageRepository imageRepository;
     private final FileStorageProperties fileStorageProperties;
     private final UserRepository userRepository;
+    private final FeedRepository feedRepository;
 
     /**
      * 이미지 업로드 (하위 폴더 지원)
@@ -206,4 +208,13 @@ public class ImageService {
             return imageRepository.findByPostsIdAndTableTypesId(postsId, tableTypesId);
         }
     }
+
+    public List<Image> getImagesByUserFeeds(Long usersId) {
+        // 1. 유저가 작성한 피드 ID 목록 조회
+        List<Long> feedIds = feedRepository.findFeedIdsByUserId(usersId);
+
+        // 2. feedId에 해당하는 이미지들 조회 (tableTypesId = 3 → FEEDS)
+        return imageRepository.findByTableTypesIdAndPostsIdIn(3L, feedIds);
+    }
+
 }
