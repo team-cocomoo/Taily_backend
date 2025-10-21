@@ -15,7 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/faqs")
+@RequestMapping("/api/evnets")
 @RequiredArgsConstructor
 @Slf4j
 public class EventController {
@@ -31,7 +31,7 @@ public class EventController {
         return ResponseEntity.ok(ApiResponseDto.success(result, "전체 event 리스트 조회 성공"));
     }
 
-    @GetMapping("{/id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getEventById(@PathVariable Long id){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();

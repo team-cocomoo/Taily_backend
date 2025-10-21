@@ -93,7 +93,7 @@ public class ImageService {
                 // Image 엔티티 생성
                 Image image = Image.builder()
                         .uuid(uuid)
-                        .filePath(filePath) // ✅ 올바른 경로 유지
+                        .filePath(filePath) // 올바른 경로 유지
                         .fileSize(String.valueOf(file.getSize()))
                         .tableTypesId(tableTypesId)
                         .build();
@@ -120,7 +120,7 @@ public class ImageService {
                 // 저장
                 imageRepository.save(image);
                 savedImages.add(image);
-                log.info("✅ 이미지 저장 완료: [{}] {} ({} bytes)", subFolder, dest.getAbsolutePath(), file.getSize());
+                log.info("이미지 저장 완료: [{}] {} ({} bytes)", subFolder, dest.getAbsolutePath(), file.getSize());
             }
 
         } catch (IOException e) {
