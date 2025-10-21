@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class UserChatSearchResponseDto {
     private Long id;
     private String username;
+    private String nickname;
     private String publicId;
     private String profileImage;
 
@@ -21,6 +22,7 @@ public class UserChatSearchResponseDto {
         return UserChatSearchResponseDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
+                .nickname(user.getNickname())
                 .publicId(user.getPublicId())
                 .profileImage(profileImage)
                 .build();

@@ -51,10 +51,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "ORDER BY u.createdAt DESC")
     Page<User> findAndSearchUser(@Param("keyword") String keyword, Pageable pageable);
 
-    List<User> findByUsernameContainingIgnoreCase(String nickname);
 
     List<User> findByStateAndPenaltyEndDateBefore(UserState state, LocalDateTime dateTime);
 
 
-
+    List<User> findByNicknameContainingIgnoreCase(String nickname);
 }

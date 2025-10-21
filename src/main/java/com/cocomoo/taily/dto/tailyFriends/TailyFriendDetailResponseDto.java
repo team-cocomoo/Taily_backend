@@ -29,8 +29,9 @@ public class TailyFriendDetailResponseDto {
     private Long userId;
     private String nickname;
     private boolean liked;
+    private String profileImage;
 
-    public static TailyFriendDetailResponseDto from(TailyFriend tailyFriend, boolean liked, List<ImageResponseDto> images){
+    public static TailyFriendDetailResponseDto from(TailyFriend tailyFriend, boolean liked, List<ImageResponseDto> images, String profileImage){
         return TailyFriendDetailResponseDto.builder()
                 .id(tailyFriend.getId())
                 .title(tailyFriend.getTitle())
@@ -44,6 +45,7 @@ public class TailyFriendDetailResponseDto {
                 .category(tailyFriend.getTableType().getCategory())
                 .userId(tailyFriend.getUser().getId())
                 .nickname(tailyFriend.getUser().getNickname())
+                .profileImage(profileImage)
                 .build();
     }
 }

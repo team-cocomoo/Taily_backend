@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 내 반려동물 상세 응답 DTO
@@ -28,10 +29,10 @@ public class MyPetProfileResponseDto {
     private String username;
     private String userNickname;
     private LocalDateTime createdAt;
-    //    private ImageResponseDto image;
+    private String imagePath;  // 이미지 경로 리스트
 
     //public static MypetProfileResponseDto from (Pet pet, ImageResponseDto image) {
-    public static MyPetProfileResponseDto from (Pet pet) {
+    public static MyPetProfileResponseDto from (Pet pet, String imagePath) {
         User user = pet.getUser();
 
         return MyPetProfileResponseDto.builder()
@@ -46,7 +47,7 @@ public class MyPetProfileResponseDto {
                 .username(user.getUsername())
                 .userNickname(user.getNickname())
                 .createdAt(pet.getCreatedAt())
-//                .image(image)
+                .imagePath(imagePath)
                 .build();
     }
 }

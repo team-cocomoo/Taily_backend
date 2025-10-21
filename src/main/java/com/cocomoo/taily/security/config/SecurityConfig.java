@@ -131,7 +131,7 @@ public class SecurityConfig {
                         "/api/event/**", // 이벤트
                         "/api/taily-friends/**", // 테일리 프렌드
                         "/api/feeds/**",  // 피드
-                        "/api/api/walk-paths/**", // 산책경로
+                        "/api/walk-paths/**", // 산책경로
                         "/api/images/**", // 이미지 api
                         "/uploads/**" // 업로드 폴더 접근
                 ).hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")

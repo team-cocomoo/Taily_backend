@@ -38,6 +38,8 @@ public interface WalkPathRepository extends JpaRepository<WalkPath,Long>{
     @Query("SELECT COUNT(w) FROM WalkPath w JOIN w.user u WHERE u.id = :userId")
     Long countWalkPathsByUserId(@Param("userId") Long userId);
 
+    Page<WalkPath> findByUserId(Long userId, Pageable pageable);
+
     List<WalkPath> findAllByIdIn(List<Long> walkPathIds);
 
     Comment getCommentById(Long parentCommentId);

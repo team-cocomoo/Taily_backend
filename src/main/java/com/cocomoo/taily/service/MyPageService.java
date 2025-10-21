@@ -106,23 +106,57 @@ public class MyPageService {
                 .age(myPetProfileCreateRequestDto.getAge())
                 .preference(myPetProfileCreateRequestDto.getPreference())
                 .introduction(myPetProfileCreateRequestDto.getIntroduction())
-                .tel(myPetProfileCreateRequestDto.getTel())
+                .tel(petOwner.getTel())
                 .user(petOwner)
                 .build();
 
         Pet savedMyPetProfile = myPetRepository.save(pet);
 
-        // 이미지 추후 추가
+        // 업로드된 이미지 ID들 반려동물 프로필에 연결
+        if (myPetProfileCreateRequestDto.getImageId() != null) {
+            Image image = imageRepository.findById(myPetProfileCreateRequestDto.getImageId()).orElseThrow(() -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다."));
 
+            image.setPostsId(savedMyPetProfile.getId());
+            image.setTableTypesId(2L);
+            imageRepository.save(image);
+        }
 
-        return MyPetProfileResponseDto.from(savedMyPetProfile);
+        String imagePath = imageRepository.findByPostsIdAndTableTypesId(savedMyPetProfile.getId(), 2L).stream().map(Image::getFilePath).findFirst().orElse(null);
+
+        return MyPetProfileResponseDto.from(savedMyPetProfile, imagePath);
     }
+
+    /**
+     * 내 반려동물 리스트 조회
+     *
+     * @param username
+     * @return
+     */
     @Transactional
     public List<MyPetProfileResponseDto> getMyPetProfiles(String username) {
-        List<Pet> myPetProfiles = myPetRepository.findMyPetProfilesByPetOwner(username);
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        return myPetProfiles.stream().map(MyPetProfileResponseDto::from).collect(Collectors.toList());
+        List<Pet> myPetProfiles = myPetRepository.findByUserUsernameOrderByCreatedAtDesc(username);
+
+        // 이미지 조회 + url 완성
+        return myPetProfiles.stream()
+                .map(pet -> {
+                    String imagepath = imageRepository.findByPostsIdAndTableTypesId(pet.getId(), 2L)
+                            .stream()
+                            .map(Image::getFilePath)
+                            .findFirst()
+                            .orElse(null);
+                    return MyPetProfileResponseDto.from(pet, imagepath);
+                }).collect(Collectors.toList());
     }
+
+    /**
+     * 내 반려동물 정보 업데이트
+     * @param id
+     * @param myPetProfileUpdateRequestDto
+     * @param username
+     * @return
+     */
     @Transactional
     public MyPetProfileResponseDto updateMyPetProfile(Long id, MyPetProfileUpdateRequestDto myPetProfileUpdateRequestDto, String username) {
         Pet pet = myPetRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("작성된 내 반려동물 프로필이 존재하지 않습니다."));
@@ -139,9 +173,20 @@ public class MyPageService {
                 myPetProfileUpdateRequestDto.getIntroduction()
         );
 
-        // 이미지 수정
+        // 기존 프로필 이미지 제거 후 새 이미지로 교체
+        if (myPetProfileUpdateRequestDto.getImageId() != null) {
+            imageRepository.findByPostsIdAndTableTypesId(pet.getId(), 2L).forEach(imageRepository::delete);
 
-        return MyPetProfileResponseDto.from(pet);
+            Image newImage = imageRepository.findById(myPetProfileUpdateRequestDto.getImageId()).orElseThrow(() -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다."));
+            newImage.setPostsId(pet.getId());
+            newImage.setTableTypesId(2L);
+            imageRepository.save(newImage);
+        }
+
+        // 수정된 프로필 이미지 경로 조회
+        String imagePath = imageRepository.findByPostsIdAndTableTypesId(pet.getId(), 2L).stream().map(Image::getFilePath).findFirst().orElse(null);
+
+        return MyPetProfileResponseDto.from(pet, imagePath);
     }
 
     @Transactional
@@ -152,6 +197,16 @@ public class MyPageService {
             throw new IllegalArgumentException("본인 반려동물 프로필만 삭제할 수 있습니다.");
         }
         myPetRepository.delete(pet);
+    }
+    //내 산책경로 게시글들 조회
+    public Page<MyWalkPathListResponseDto> getMyWalkPaths(String username, int page, int size) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<WalkPath> postsPage = walkPathRepository.findByUserId(user.getId(), pageable);
+
+        return postsPage.map(MyWalkPathListResponseDto::from); // DTO로 변환
     }
 
     // 내 테일리프렌즈 게시글들 조회

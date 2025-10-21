@@ -14,4 +14,6 @@ public interface MyPetRepository extends JpaRepository<Pet, Long> {
 
     @Query("SELECT p FROM Pet p JOIN FETCH p.user u WHERE u.username = :username")
     List<Pet> findMyPetProfilesByPetOwner(@Param("username") String username);
+
+    List<Pet> findByUserUsernameOrderByCreatedAtDesc(String username);
 }
