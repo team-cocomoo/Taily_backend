@@ -2,20 +2,17 @@ package com.cocomoo.taily.controller;
 
 import com.cocomoo.taily.dto.ApiResponseDto;
 import com.cocomoo.taily.dto.cs.EventDetailResponseDto;
-import com.cocomoo.taily.dto.cs.EventListResponseDto;
 import com.cocomoo.taily.dto.cs.EventPageResponseDto;
-import com.cocomoo.taily.dto.cs.FaqPageResponseDto;
 import com.cocomoo.taily.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/evnets")
+@RequestMapping("/api/events")
 @RequiredArgsConstructor
 @Slf4j
 public class EventController {
