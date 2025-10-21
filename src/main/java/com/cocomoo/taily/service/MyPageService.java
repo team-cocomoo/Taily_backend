@@ -198,6 +198,16 @@ public class MyPageService {
         }
         myPetRepository.delete(pet);
     }
+    //내 산책경로 게시글들 조회
+    public Page<MyWalkPathListResponseDto> getMyWalkPaths(String username, int page, int size) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<WalkPath> postsPage = walkPathRepository.findByUserId(user.getId(), pageable);
+
+        return postsPage.map(MyWalkPathListResponseDto::from); // DTO로 변환
+    }
 
     // 내 테일리프렌즈 게시글들 조회
     public Page<MyTailyFriendListResponseDto> getMyTailyFriends(String username, int page, int size) {

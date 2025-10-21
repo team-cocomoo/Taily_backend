@@ -212,6 +212,19 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponseDto.success(null, "내 반려동물 프로필 삭제 성공"));
     }
 
+    @GetMapping("/mywalk-paths")
+    public ResponseEntity<?> getMyWalkPaths(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Page<MyWalkPathListResponseDto> postsPage = myPageService.getMyWalkPaths(
+                username, page, size);
+
+        return ResponseEntity.ok(ApiResponseDto.success(postsPage, "내가 작성한 게시글 조회 성공"));
+    }
+
     @GetMapping("/mytaily-friends")
     public ResponseEntity<?> getMyTailyFriends(
             @RequestParam(defaultValue = "1") int page,
