@@ -42,7 +42,7 @@ public interface TailyFriendRepository extends JpaRepository<TailyFriend, Long> 
     Comment getCommentById(@Param("commentId") Long parentCommentId);
 
     @Query("SELECT tf FROM TailyFriend tf JOIN FETCH tf.user u " +
-            "WHERE (:keyword IS NULL OR tf.title LIKE %:keyword% OR tf.content LIKE %:keyword% OR u.nickname LIKE %:keyword%)")
+            "WHERE (:keyword IS NULL OR tf.title LIKE %:keyword% OR tf.content LIKE %:keyword% OR u.nickname LIKE %:keyword%) ORDER BY tf.createdAt DESC")
     Page<TailyFriend> findAllWithUserAndKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     @Modifying
