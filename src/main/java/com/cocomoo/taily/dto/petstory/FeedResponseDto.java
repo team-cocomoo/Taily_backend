@@ -30,6 +30,7 @@ public class FeedResponseDto {
     private List<String> tags;        // 태그 리스트
     private String writerNickName;    // 작성자 닉네임
     private String writerPublicId;    // 작성자 공개 ID
+    private Long writerId;              // 작성자 pk
 
     /**
      * Feed → DTO 변환 메서드 (이미지 경로 기반)
@@ -54,6 +55,7 @@ public class FeedResponseDto {
                         .collect(Collectors.toList()))
                 .writerNickName(feed.getUser().getNickname())
                 .writerPublicId(feed.getUser().getPublicId())
+                .writerId(feed.getUser().getId())
                 .build();
     }
 
