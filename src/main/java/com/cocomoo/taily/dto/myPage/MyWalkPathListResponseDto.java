@@ -16,6 +16,7 @@ import java.util.List;
 public class MyWalkPathListResponseDto {
     private Long id;
     private String title;
+    private String content;
     private Long view;
     private LocalDateTime createdAt;
 
@@ -23,6 +24,7 @@ public class MyWalkPathListResponseDto {
         return MyWalkPathListResponseDto.builder()
                 .id(post.getId())
                 .title(post.getTitle())
+                .content(post.getContent())
                 .view(post.getView())
                 .createdAt(post.getCreatedAt())
                 .build();

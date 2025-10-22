@@ -69,25 +69,33 @@ public class TailyFriendController {
                 .body(ApiResponseDto.success(responseDto, "게시글 작성 성공"));
     }
 
-    // 게시글 수정
-    @PatchMapping("/{id}")
+    @PatchMapping(
+            value = "/{id}",
+            consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }
+    )
     public ResponseEntity<?> updateTailyFriend(
             @PathVariable Long id,
             @RequestPart("post") TailyFriendCreateRequestDto requestDto,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
+            @RequestPart(value = "existingImagePaths", required = false) List<String> existingImagePaths
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         log.info("게시글 수정 요청 - 작성자: {}", username);
 
-        TailyFriendCreateRequestDto dtoWithImages = requestDto.withImages(images);
+        TailyFriendUpdateRequestDto updateDto = new TailyFriendUpdateRequestDto(
+                requestDto.getTitle(),
+                requestDto.getAddress(),
+                requestDto.getContent(),
+                existingImagePaths
+        );
 
         TailyFriendDetailResponseDto updatedPost =
-                tailyFriendService.updateTailyFriend(id, username, dtoWithImages);
+                tailyFriendService.updateTailyFriend(id, username, updateDto, newImages);
 
-        return ResponseEntity
-                .ok(ApiResponseDto.success(updatedPost, "게시글 수정 성공"));
+        return ResponseEntity.ok(ApiResponseDto.success(updatedPost, "게시글 수정 성공"));
     }
+
 
     // 게시글 삭제
     @DeleteMapping("/{id}")

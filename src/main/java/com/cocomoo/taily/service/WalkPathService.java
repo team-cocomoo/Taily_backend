@@ -390,14 +390,12 @@ public class WalkPathService {
         if (!comment.getUsersId().getUsername().equals(username)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
-
-        comment.updateContent(newContent);
-
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
         String profileImagePath = imageRepository
                 .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(comment.getUsersId().getId(), 1L)
                 .map(image -> image.getFilePath())
                 .orElse(null);
-
+        comment.updateContent(newContent);
         return CommentResponseDto.from(comment, profileImagePath);
     }
     // 댓글 삭제

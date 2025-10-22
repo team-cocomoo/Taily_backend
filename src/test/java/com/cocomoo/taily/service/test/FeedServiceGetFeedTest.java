@@ -9,6 +9,7 @@ import com.cocomoo.taily.security.config.SecurityConfig;
 import com.cocomoo.taily.service.FeedService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +30,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * BDD 기반 테스트
  * 피드와 이미지를 저장하고 피드와 이미지 URL 정보 가져오기
  */
+
 @Slf4j
 @SpringBootTest
 @Import(SecurityConfig.class)
 @Transactional
+
 public class FeedServiceGetFeedTest {
 
     @Autowired

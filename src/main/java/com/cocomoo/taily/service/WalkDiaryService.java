@@ -1,6 +1,7 @@
 package com.cocomoo.taily.service;
 
 import com.cocomoo.taily.config.FileStorageProperties;
+import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.dto.walkDiary.*;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.ImageRepository;
@@ -31,6 +32,7 @@ public class WalkDiaryService {
     private final UserRepository userRepository;
     private final TableTypeRepository tableTypeRepository;
     private final ImageRepository imageRepository;
+    private final ImageService imageService;
     private final FileStorageProperties fileStorageProperties;
 
     /**
@@ -110,18 +112,21 @@ public class WalkDiaryService {
             for (Image img : images) {
                 img.setPostsId(savedWalkDiary.getId());
                 img.setTableTypesId(4L); // WALK_DIARY
+                img.setUser(user);
             }
             imageRepository.saveAll(images);
         }
 
-        List<String> imagePaths = imageRepository.findByPostsIdAndTableTypesId(savedWalkDiary.getId(), 4L)
+        List<ImageResponseDto> imageDtos = imageRepository
+                .findByPostsIdAndTableTypesId(savedWalkDiary.getId(), 4L)
                 .stream()
-                .map(Image::getFilePath)
+                .map(ImageResponseDto::from)
                 .toList();
 
-        log.info("산책 일지 작성 완료: id={}, title={}", savedWalkDiary.getId(), savedWalkDiary.getContent());
+        log.info("산책 일지 작성 완료: id={}, content={}", savedWalkDiary.getId(), savedWalkDiary.getContent());
 
-        return WalkDiaryDetailResponseDto.from(savedWalkDiary, imagePaths);
+
+        return WalkDiaryDetailResponseDto.from(savedWalkDiary, imageDtos);
     }
 
     /**
@@ -147,11 +152,15 @@ public class WalkDiaryService {
         });
 
         // 이미지 조회 + url 완성
-        List<String> imagePaths  = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L).stream().map(Image::getFilePath).toList();
+        List<ImageResponseDto> imageDtos = imageRepository
+                .findByPostsIdAndTableTypesId(walkDiary.getId(), 4L)
+                .stream()
+                .map(ImageResponseDto::from)
+                .toList();
 
         log.info("산책 일지 조회 성공: content={}", walkDiary.getContent());
 
-        return WalkDiaryDetailResponseDto.from(walkDiary, imagePaths);
+        return WalkDiaryDetailResponseDto.from(walkDiary, imageDtos);
     }
 
     /**
@@ -201,23 +210,61 @@ public class WalkDiaryService {
         TableType tableType = tableTypeRepository.findById(4L)
                 .orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
 
-        if (walkDiaryUpdateRequestDto.getImageIds() != null && !walkDiaryUpdateRequestDto.getImageIds().isEmpty()) {
-            imageRepository.deleteAll(
-                    imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L)
-            );
+        Long tableTypesId = 4L; // WALK_DIARY
 
-            List<Image> images = imageRepository.findAllById(walkDiaryUpdateRequestDto.getImageIds());
-            for (Image img : images) {
-                img.setPostsId(walkDiary.getId());
-                img.setTableTypesId(4L);
+        // ✅ 기존 이미지
+        List<Image> existingImages = imageService.getImages(tableTypesId, null, walkDiary.getId());
+        List<Long> existingIds = existingImages.stream().map(Image::getId).toList();
+
+        // ✅ 요청으로 받은 유지/추가 이미지 목록
+        List<Long> requestedIds = walkDiaryUpdateRequestDto.getImageIds() != null
+                ? walkDiaryUpdateRequestDto.getImageIds()
+                : List.of();
+
+        // ✅ 삭제 대상
+        List<Long> toDeleteIds = existingIds.stream()
+                .filter(id -> !requestedIds.contains(id))
+                .toList();
+
+        if (!toDeleteIds.isEmpty()) {
+            List<Image> toDelete = imageRepository.findAllById(toDeleteIds);
+            for (Image img : toDelete) {
+                try {
+                    String relativePath = img.getFilePath().replaceFirst("^/+", "");
+                    File file = new File(new File("").getAbsolutePath(), relativePath);
+                    if (file.exists() && file.delete()) {
+                        log.info("🗑️ 파일 삭제 완료: {}", file.getAbsolutePath());
+                    }
+                } catch (Exception e) {
+                    log.warn("파일 삭제 실패: {}", e.getMessage());
+                }
             }
-            imageRepository.saveAll(images);
+            imageRepository.deleteAll(toDelete);
         }
 
-        // 최종 이미지 리스트 반환
-        List<String> imagePaths = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), 4L).stream().map(Image::getFilePath).toList();
+        // ✅ 추가 대상
+        List<Long> toAddIds = requestedIds.stream()
+                .filter(id -> !existingIds.contains(id))
+                .toList();
 
-        return WalkDiaryDetailResponseDto.from(walkDiary, imagePaths);
+        if (!toAddIds.isEmpty()) {
+            List<Image> toAdd = imageRepository.findAllById(toAddIds);
+            for (Image img : toAdd) {
+                img.setPostsId(walkDiary.getId());
+                img.setTableTypesId(tableTypesId);
+                img.setUser(user); // ✅ user 연결 명시
+            }
+            imageRepository.saveAll(toAdd);
+        }
+
+        // ✅ 최종 이미지 목록
+        List<Image> imageEntities = imageRepository.findByPostsIdAndTableTypesId(walkDiary.getId(), tableTypesId);
+        List<ImageResponseDto> imageDtos = imageEntities.stream()
+                .map(ImageResponseDto::from)
+                .toList();
+
+        log.info("✅ 산책 일지 수정 완료 (id={})", walkDiary.getId());
+        return WalkDiaryDetailResponseDto.from(walkDiary, imageDtos);
     }
 
     /**
