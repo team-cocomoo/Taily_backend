@@ -1,12 +1,10 @@
 package com.cocomoo.taily.controller;
 
+import com.cocomoo.taily.security.jwt.TokenBlacklistService;
 import com.cocomoo.taily.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -14,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     /** 아이디 중복확인 */
     @GetMapping("/check-username")
@@ -31,5 +30,14 @@ public class AuthController {
     @GetMapping("/check-email")
     public ResponseEntity<Boolean> checkEmail(@RequestParam String email) {
         return ResponseEntity.ok(userService.isEmailDuplicate(email));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.add(token); // 블랙리스트 등록
+        }
+        return ResponseEntity.ok("로그아웃 완료");
     }
 }
