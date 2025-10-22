@@ -55,22 +55,22 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-//tasks.withType(Test) {
-//    useJUnitPlatform()
-//
-//    // ✅ 특정 테스트 패키지 제외
-//    exclude '**/service/test/**'
-//}
+tasks.withType(Test) {
+    useJUnitPlatform()
+
+    // ✅ 특정 테스트 패키지 제외
+    exclude '**/service/test/**'
+}
 
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 }
-//
-//sourceSets {
-//    test {
-//        java {
-//            // ✅ Feed 관련 테스트를 컴파일 단계에서 완전히 제외
-//            exclude '**/service/test/**'
-//        }
-//    }
-//}
+
+sourceSets {
+    test {
+        java {
+            // ✅ Feed 관련 테스트를 컴파일 단계에서 완전히 제외
+            exclude '**/service/test/**'
+        }
+    }
+}
