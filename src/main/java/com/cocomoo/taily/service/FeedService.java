@@ -30,6 +30,7 @@ public class FeedService {
     private final TagListRepository tagListRepository;
     private final CommentRepository commentRepository;
     private final AlarmService alarmService;
+    private final LikeRepository likeRepository;
 
     /**
      * Feed 등록 (이미지 경로 기반)
@@ -164,10 +165,14 @@ public class FeedService {
     public FeedResponseDto getFeed(Long feedId) {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new RuntimeException("피드를 찾을 수 없습니다."));
+
+        // 조회수 증가
         feed.setView(feed.getView() + 1);
         feedRepository.save(feed);
+
         return mapToDto(feed);
     }
+
 
     /**
      * 피드 삭제
@@ -203,11 +208,18 @@ public class FeedService {
 
     /**
      * Feed → DTO 변환 (공통)
+     * 작성자 정보를 명시적으로 로드하여 전달
      */
     private FeedResponseDto mapToDto(Feed feed) {
+        User user = null;
+        if (feed.getUser() != null && feed.getUser().getId() != null) {
+            user = userRepository.findById(feed.getUser().getId()).orElse(null);
+        }
+
         List<Image> imageList = imageRepository.findByPostsIdAndTableTypesId(feed.getId(), 3L);
         List<TagList> tagList = tagListRepository.findByFeed(feed);
-        return FeedResponseDto.of(feed, imageList, tagList);
+
+        return FeedResponseDto.of(feed, imageList, tagList, user);
     }
 
     /**
@@ -280,10 +292,17 @@ public class FeedService {
 
     /* 댓글 조회 */
     public Map<String, Object> getCommentsPage(Long feedId, int page, int size) {
-        Page<Comment> parentComments =
-                commentRepository.findByPostsIdAndParentCommentsIdIsNullWithUser(feedId, PageRequest.of(page, size));
-        List<Comment> allComments = commentRepository.findByPostsIdWithUser(feedId);
+        final Long TABLE_TYPE_FEED = 3L; // ✅ Feed 게시판 고정
 
+        Page<Comment> parentComments = commentRepository
+                .findRootCommentsByPostAndTableWithUser(
+                        feedId, TABLE_TYPE_FEED, PageRequest.of(page, size)
+                );
+
+        List<Comment> allComments = commentRepository
+                .findAllCommentsByPostAndTableWithUser(feedId, TABLE_TYPE_FEED);
+
+        // 프로필 이미지 맵 구성
         Set<Long> userIds = allComments.stream()
                 .map(c -> c.getUsersId().getId())
                 .collect(Collectors.toSet());
@@ -332,6 +351,47 @@ public class FeedService {
         }
         commentRepository.delete(comment);
     }
+
+    @Transactional
+    public boolean toggleLike(Long postId, String username, Long tableTypeId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
+
+        TableType tableType = tableTypeRepository.findById(tableTypeId)
+                .orElseThrow(() -> new IllegalArgumentException("TableType이 존재하지 않습니다."));
+
+        Like like = likeRepository.findByPostsIdAndTableTypeAndUser(postId, tableType, user)
+                .orElse(null);
+
+        boolean isLiked;
+
+        if (like == null) {
+            // 좋아요 추가
+            likeRepository.save(Like.builder()
+                    .postsId(postId)
+                    .user(user)
+                    .tableType(tableType)
+                    .state(true)
+                    .build());
+            isLiked = true;
+            alarmService.sendLikeAlarm(username, postId, tableTypeId);
+        } else {
+            like.toggle();
+            isLiked = like.isState();
+        }
+
+        // ✅ Feed 좋아요 수 업데이트
+        Long likeCount = likeRepository.countByPostsIdAndTableTypeAndState(postId, tableType, true);
+
+        if (tableTypeId == 3L) { // Feed 게시판
+            feedRepository.findById(postId).ifPresent(feed -> {
+                feed.setLikeCount(likeCount);
+            });
+        }
+
+        return isLiked;
+    }
+
 
 
 }

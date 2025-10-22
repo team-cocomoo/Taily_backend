@@ -83,4 +83,18 @@ public class UserProfileService {
                 petImages
         );
     }
+
+    // publicId 기반 요약 조회
+    public OtherUserProfileSummaryResponseDto getUserProfileSummaryByPublicId(String publicId) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. publicId=" + publicId));
+        return getUserProfileSummary(user.getId());
+    }
+
+    // publicId 기반 상세 조회
+    public OtherUserProfileResponseDto getOtherUserProfileByPublicId(String publicId) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. publicId=" + publicId));
+        return getOtherUserProfile(user.getId());
+    }
 }

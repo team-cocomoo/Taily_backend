@@ -3,6 +3,7 @@ package com.cocomoo.taily.dto.petstory;
 import com.cocomoo.taily.entity.Feed;
 import com.cocomoo.taily.entity.Image;
 import com.cocomoo.taily.entity.TagList;
+import com.cocomoo.taily.entity.User;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -53,6 +54,34 @@ public class FeedResponseDto {
                         .collect(Collectors.toList()))
                 .writerNickName(feed.getUser().getNickname())
                 .writerPublicId(feed.getUser().getPublicId())
+                .build();
+    }
+
+    /**
+     * Feed → DTO 변환 (User 명시적 전달 버전)
+     * Lazy 로딩 방지용으로 userRepository에서 직접 조회한 User를 전달 가능
+     */
+    public static FeedResponseDto of(
+            Feed feed,
+            List<Image> imageList,
+            List<TagList> tagList,
+            User user
+    ) {
+        return FeedResponseDto.builder()
+                .id(feed.getId())
+                .content(feed.getContent())
+                .view(feed.getView())
+                .likeCount(feed.getLikeCount())
+                .createdAt(feed.getCreatedAt())
+                .updatedAt(feed.getUpdatedAt())
+                .images(imageList.stream()
+                        .map(Image::getFilePath)
+                        .collect(Collectors.toList()))
+                .tags(tagList.stream()
+                        .map(t -> t.getTag().getName())
+                        .collect(Collectors.toList()))
+                .writerNickName(user != null ? user.getNickname() : "익명")
+                .writerPublicId(user != null ? user.getPublicId() : null)
                 .build();
     }
 }
