@@ -1,5 +1,6 @@
 package com.cocomoo.taily.dto.walkDiary;
 
+import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.entity.User;
 import com.cocomoo.taily.entity.WalkDiary;
 import com.cocomoo.taily.entity.WalkDiaryEmotion;
@@ -32,7 +33,7 @@ public class WalkDiaryDetailResponseDto {
     private String username;
     private String userNickname;
     private LocalDateTime createdAt;
-    private List<String> images;  // 이미지 경로 리스트
+    private List<ImageResponseDto> images;  // 이미지 경로 리스트
 
     /**
      * Entity -> Dto 변환 메서드
@@ -42,7 +43,7 @@ public class WalkDiaryDetailResponseDto {
      * @param walkDiary 변환할 WalkDiary 엔티티
      * @return WalkDairyDetailResponseDto
      */
-    public static WalkDiaryDetailResponseDto from(WalkDiary walkDiary, List<String> imagePaths) {
+    public static WalkDiaryDetailResponseDto from(WalkDiary walkDiary, List<ImageResponseDto> imageEntities) {
         User user = walkDiary.getUser();
 
         return WalkDiaryDetailResponseDto.builder()
@@ -53,7 +54,14 @@ public class WalkDiaryDetailResponseDto {
                 .endTime(walkDiary.getEndTime())
                 .walkDiaryEmotion(walkDiary.getWalkDiaryEmotion())
                 .content(walkDiary.getContent())
-                .images(imagePaths)
+                .images(
+                        imageEntities.stream()
+                                .map(img -> ImageResponseDto.builder()
+                                        .id(img.getId())
+                                        .filePath(img.getFilePath())
+                                        .build())
+                                .toList()
+                )
                 .userId(user.getId())
                 .username(user.getUsername())
                 .userNickname(user.getNickname())
