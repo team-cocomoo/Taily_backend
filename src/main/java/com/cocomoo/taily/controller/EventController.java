@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class EventController {
     private final EventService eventService;
 
+    //이벤트 게시물 전체 조회
     @GetMapping
     public ResponseEntity<?> getAppEvents(@RequestParam(defaultValue = "1") int page,
                                           @RequestParam(defaultValue = "10") int size){
