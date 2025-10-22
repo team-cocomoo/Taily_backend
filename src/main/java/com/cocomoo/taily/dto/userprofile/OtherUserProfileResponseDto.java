@@ -57,6 +57,7 @@ public class OtherUserProfileResponseDto {
                     return PetInfoResponseDto.builder()
                             .name(pet.getName())
                             .gender(pet.getGender())
+                            .age(pet.getAge())
                             .preference(pet.getPreference())
                             .introduction(pet.getIntroduction())
                             .createdAt(pet.getCreatedAt())
