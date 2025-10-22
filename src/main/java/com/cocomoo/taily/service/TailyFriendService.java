@@ -141,9 +141,13 @@ public class TailyFriendService {
         }
     }
 
-    // ✅ 게시글 수정
     @Transactional
-    public TailyFriendDetailResponseDto updateTailyFriend(Long postId, String username, TailyFriendCreateRequestDto dto) {
+    public TailyFriendDetailResponseDto updateTailyFriend(
+            Long postId,
+            String username,
+            TailyFriendUpdateRequestDto dto,
+            List<MultipartFile> newImages
+    ) {
         TailyFriend post = tailyFriendRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
@@ -153,32 +157,41 @@ public class TailyFriendService {
 
         post.updatePost(dto.getTitle(), dto.getContent(), dto.getAddress());
 
-        // 기존 이미지 삭제
-        List<Image> existingImages = imageRepository.findByPostsIdAndTableTypesId(post.getId(), 5L);
-        if (!existingImages.isEmpty()) {
-            imageRepository.deleteAll(existingImages);
-            for (Image oldImg : existingImages) {
+        List<Image> existingImages = imageRepository.findByPostsIdAndTableTypesId(postId, 5L);
+
+        // 유지할 이미지 경로 목록
+        List<String> keepPaths = dto.getExistingImagePaths() != null ? dto.getExistingImagePaths() : List.of();
+
+        // 삭제 대상 = 기존 이미지 중 유지 목록에 없는 것
+        List<Image> deleteTargets = existingImages.stream()
+                .filter(img -> !keepPaths.contains(img.getFilePath()))
+                .toList();
+
+        if (!deleteTargets.isEmpty()) {
+            imageRepository.deleteAll(deleteTargets);
+            for (Image oldImg : deleteTargets) {
                 try {
                     Path oldPath = Paths.get(System.getProperty("user.dir") + oldImg.getFilePath());
                     Files.deleteIfExists(oldPath);
+                    log.info("삭제된 이미지 파일: {}", oldImg.getFilePath());
                 } catch (IOException e) {
-                    log.warn("기존 이미지 파일 삭제 실패: {}", oldImg.getFilePath(), e);
+                    log.warn("이미지 파일 삭제 실패: {}", oldImg.getFilePath(), e);
                 }
             }
         }
 
-        // 새 이미지 저장
-        List<Image> newImages = new ArrayList<>();
+        List<Image> newImageEntities = new ArrayList<>();
         List<String> savedFileNames = new ArrayList<>();
 
-        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
-            for (MultipartFile file : dto.getImages()) {
+        if (newImages != null && !newImages.isEmpty()) {
+            for (MultipartFile file : newImages) {
                 String uuid = UUID.randomUUID().toString();
                 String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
                 String newFileName = uuid + "_" + originalFileName;
+
                 savedFileNames.add(newFileName);
 
-                Image img = Image.builder()
+                Image newImg = Image.builder()
                         .uuid(uuid)
                         .filePath("/uploads/taily-friends/" + newFileName)
                         .fileSize(String.valueOf(file.getSize()))
@@ -187,30 +200,33 @@ public class TailyFriendService {
                         .tableTypesId(5L)
                         .build();
 
-                newImages.add(img);
+                newImageEntities.add(newImg);
             }
-            imageRepository.saveAll(newImages);
+            imageRepository.saveAll(newImageEntities);
         }
 
         try {
-            if (!savedFileNames.isEmpty()) saveFilesWithLog(savedFileNames, dto.getImages(), "taily-friends");
+            if (!savedFileNames.isEmpty())
+                saveFilesWithLog(savedFileNames, newImages, "taily-friends");
         } catch (IOException e) {
-            if (!newImages.isEmpty()) imageRepository.deleteAll(newImages);
+            if (!newImageEntities.isEmpty()) imageRepository.deleteAll(newImageEntities);
             throw new RuntimeException("파일 저장 실패", e);
         }
 
-        List<ImageResponseDto> imageDtos = (newImages.isEmpty() ?
-                imageRepository.findByPostsIdAndTableTypesId(post.getId(), 5L) :
-                newImages).stream().map(ImageResponseDto::from).toList();
+        List<ImageResponseDto> imageDtos =
+                imageRepository.findByPostsIdAndTableTypesId(postId, 5L)
+                        .stream().map(ImageResponseDto::from).toList();
 
-        // ✅ 작성자 프로필 이미지 (table_types_id = 1L)
-        Optional<Image> profileImageOpt = imageRepository
-                .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(post.getUser().getId(), 1L);
-
+        Optional<Image> profileImageOpt =
+                imageRepository.findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(post.getUser().getId(), 1L);
         String profileImagePath = profileImageOpt.map(Image::getFilePath).orElse(null);
+
+        log.info("게시글 수정 완료: {}, 유지 {}, 삭제 {}, 추가 {}",
+                postId, keepPaths.size(), deleteTargets.size(), newImageEntities.size());
 
         return TailyFriendDetailResponseDto.from(post, false, imageDtos, profileImagePath);
     }
+
 
     // 게시글 삭제
     @Transactional
