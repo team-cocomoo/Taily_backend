@@ -34,4 +34,26 @@ public class UserProfileController {
         OtherUserProfileResponseDto profile = userProfileService.getOtherUserProfile(id);
         return ResponseEntity.ok(profile);
     }
+
+    /**
+     * 추가: publicId 기반 요약 정보 조회
+     */
+    @GetMapping("/public/{publicId}")
+    public ResponseEntity<OtherUserProfileSummaryResponseDto> getUserProfileSummaryByPublicId(
+            @PathVariable String publicId) {
+        log.debug("publicId로 사용자 요약 조회 요청: {}", publicId);
+        OtherUserProfileSummaryResponseDto summary = userProfileService.getUserProfileSummaryByPublicId(publicId);
+        return ResponseEntity.ok(summary);
+    }
+
+    /**
+     * 추가: publicId 기반 전체 프로필 조회
+     */
+    @GetMapping("/public/{publicId}/profile")
+    public ResponseEntity<OtherUserProfileResponseDto> getOtherUserProfileByPublicId(
+            @PathVariable String publicId) {
+        log.debug("publicId로 사용자 상세 프로필 조회 요청: {}", publicId);
+        OtherUserProfileResponseDto profile = userProfileService.getOtherUserProfileByPublicId(publicId);
+        return ResponseEntity.ok(profile);
+    }
 }

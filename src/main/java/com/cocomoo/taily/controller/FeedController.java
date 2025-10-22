@@ -190,7 +190,7 @@ public class FeedController {
                 .body(ApiResponseDto.success(dto, "대댓글 작성 성공"));
     }
 
-    // ✅ 댓글 조회 (페이징)
+    // 댓글 조회 (페이징)
     @GetMapping("/{id}/comments")
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> getComments(
             @PathVariable Long id,

@@ -54,6 +54,13 @@ public class JwtFilter extends OncePerRequestFilter {
         // 요청 URI 로깅 (디버깅용)
         log.debug("JWT 필터 실행: {}", request.getRequestURI());
 
+        // [추가] WebSocket handshake 경로는 JWT 필터 예외 처리
+        if (request.getRequestURI().startsWith("/ws-chat")) {
+            log.debug("WebSocket handshake 요청 -> JWT 필터 패스");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 1. Authorization 헤더 추출
         String authorization = request.getHeader("Authorization");
 
