@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -67,9 +68,14 @@ public class UserProfileService {
         List<Feed> feeds = feedRepository.findByUserId(userId);
 
         // 피드 이미지 목록
-        List<Image> feedImages = imageRepository.findByUserIdAndTableTypesId(userId, 3L);
+        List<Image> feedImages = feeds.stream()
+                .flatMap(feed -> imageRepository.findByPostsIdAndTableTypesId(feed.getId(), 3L).stream())
+                .collect(Collectors.toList());
 
-        List<Image> petImages = imageRepository.findByUserIdAndTableTypesId(userId, 2L);
+        // 펫 이미지 목록
+        List<Image> petImages = pets.stream()
+                .flatMap(pet -> imageRepository.findByPostsIdAndTableTypesId(pet.getId(), 2L).stream())
+                .collect(Collectors.toList());
 
         // DTO 변환
         return OtherUserProfileResponseDto.from(

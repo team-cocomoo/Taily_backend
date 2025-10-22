@@ -57,4 +57,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByNicknameContainingIgnoreCase(String nickname);
 
+    @Query("SELECT COUNT(u) FROM User u WHERE u.state = 'ACTIVE'")
+    Long countActiveUsers();
 }

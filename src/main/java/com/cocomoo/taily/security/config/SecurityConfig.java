@@ -99,7 +99,8 @@ public class SecurityConfig {
                         "/webjars/**",
                         "/api-docs/**",
                         "/api/health", // aws health check 를 위해
-                        "/ws-chat/**"
+                        "/ws-chat/**",
+                        "/api/stats/**"
                 )
                 .permitAll()
 
