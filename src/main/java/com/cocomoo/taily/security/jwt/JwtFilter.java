@@ -95,7 +95,7 @@ public class JwtFilter extends OncePerRequestFilter {
             Long id = jwtUtil.getId(token);
             String publicId = jwtUtil.getPublicId(token);
             String username = jwtUtil.getUsername(token);
-            String role = jwtUtil.getRole(token);
+            String role = jwtUtil.getRole(token); // role 추가 파싱
 
             // ROLE prefix 보장
             if (!role.startsWith("ROLE_")) {
@@ -120,6 +120,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             List<GrantedAuthority> authorities =
                     List.of(new SimpleGrantedAuthority(role));
+            // JWT 토큰에서 role 정보를 직접 파싱해서 Security Context에 반영하도록 함.
 
             // 9. Spring Security 인증 토큰 생성
             // 이미 JWT로 인증되었으므로 credentials(비밀번호)는 null
