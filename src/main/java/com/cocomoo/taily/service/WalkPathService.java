@@ -4,7 +4,6 @@ import com.cocomoo.taily.dto.common.comment.CommentCreateRequestDto;
 import com.cocomoo.taily.dto.common.comment.CommentResponseDto;
 import com.cocomoo.taily.dto.common.image.ImageResponseDto;
 import com.cocomoo.taily.dto.common.like.LikeResponseDto;
-import com.cocomoo.taily.dto.tailyFriends.TailyFriendListResponseDto;
 import com.cocomoo.taily.dto.walkPaths.*;
 import com.cocomoo.taily.entity.*;
 import com.cocomoo.taily.repository.*;
@@ -12,13 +11,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,6 +36,7 @@ public class WalkPathService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final FileUploadService fileUploadService;
+    private final AlarmService alarmService;
 
     //게시물 상세 조회
     @Transactional
@@ -352,6 +352,14 @@ public class WalkPathService {
                 .findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(user.getId(), 1L)
                 .map(image -> image.getFilePath())
                 .orElse(null);
+
+        // 알람 전송
+        try {
+            alarmService.sendCommentAlarm(username, post.getId(), dto.getParentCommentsId(), tableType.getId());
+            log.info("[WalkPathService] 댓글 알람 전송 성공 → postId={}, username={}", post.getId(), username);
+        } catch (Exception e) {
+            log.error("[WalkPathService] 댓글 알람 전송 실패 → postId={}, username={}, 이유={}", post.getId(), username, e.getMessage());
+        }
 
         return CommentResponseDto.from(savedComment, profileImagePath);
     }
