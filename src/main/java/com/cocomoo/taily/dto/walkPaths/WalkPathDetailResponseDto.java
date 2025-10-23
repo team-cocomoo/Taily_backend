@@ -43,7 +43,7 @@ public class WalkPathDetailResponseDto {
                 .liked(liked)
                 .images(images)
                 .user(user.getId())
-                .authorName(user.getUsername())
+                .authorName(user.getNickname())
                 .authorEmail(user.getEmail())
                 .createdAt(walkPath.getCreatedAt())
                 .routes(routes)
