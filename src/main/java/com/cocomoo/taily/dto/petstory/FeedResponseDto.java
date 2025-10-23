@@ -84,6 +84,7 @@ public class FeedResponseDto {
                         .collect(Collectors.toList()))
                 .writerNickName(user != null ? user.getNickname() : "익명")
                 .writerPublicId(user != null ? user.getPublicId() : null)
+                .writerId(user != null ? user.getId() : null)
                 .build();
     }
 }
