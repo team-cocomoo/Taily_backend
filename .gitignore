@@ -190,4 +190,9 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+# === 파일 업로드 관련 ===
+uploads/
+*/uploads/
+src/main/resources/static/uploads/
+
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle,intellij+all,windows,git
