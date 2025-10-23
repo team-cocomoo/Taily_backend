@@ -23,7 +23,7 @@ public class OtherUserProfileResponseDto {
     private String nickname;
     private String introduction;
     private String publicId;
-
+    private String profileImageUrl;
     // 통계 정보
     private Long followerCount;
     private Long followingCount;
@@ -43,7 +43,8 @@ public class OtherUserProfileResponseDto {
             List<Pet> petList,
             List<Feed> feedList,
             List<Image> feedImageList,
-            List<Image> petImageList
+            List<Image> petImageList,
+            String userProfileUrl
     ) {
         List<PetInfoResponseDto> petDtos = petList.stream()
                 .map(pet -> {
@@ -84,6 +85,7 @@ public class OtherUserProfileResponseDto {
                 .nickname(user.getNickname())
                 .introduction(user.getIntroduction())
                 .publicId(user.getPublicId())
+                .profileImageUrl(userProfileUrl)
                 .followerCount(followerCount)
                 .followingCount(followingCount)
                 .postCount(postCount)

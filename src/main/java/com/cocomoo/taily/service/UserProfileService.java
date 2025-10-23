@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -58,8 +59,18 @@ public class UserProfileService {
         Long feedCount = feedRepository.countFeedsByUserId(userId);
         Long tailyFriendCount = tailyFriendRepository.countTailyFriendsByUserId(userId);
         Long walkPathCount = walkPathRepository.countWalkPathsByUserId(userId);
-
         Long postCount = feedCount + tailyFriendCount + walkPathCount;
+
+        // ✅ 유저 프로필 이미지 목록 조회 (피드/펫처럼)
+        Optional<Image> userImages = imageRepository.findTopByUserIdAndTableTypesIdOrderByCreatedAtDesc(userId, 1L);
+
+        // ✅ 가장 첫 번째 이미지를 대표 프로필로 선택
+        String userProfileUrl = userImages.stream()
+                .map(Image::getFilePath)
+                .findFirst()
+                .orElse(null);
+
+        log.info("🔍 [프로필 이미지 조회] userId={}, url={}", user.getId(), userProfileUrl);
 
         // 반려동물 목록
         List<Pet> pets = myPetRepository.findMyPetProfilesByPetOwner(user.getUsername());
@@ -77,7 +88,6 @@ public class UserProfileService {
                 .flatMap(pet -> imageRepository.findByPostsIdAndTableTypesId(pet.getId(), 2L).stream())
                 .collect(Collectors.toList());
 
-        // DTO 변환
         return OtherUserProfileResponseDto.from(
                 user,
                 followerCount,
@@ -86,9 +96,11 @@ public class UserProfileService {
                 pets,
                 feeds,
                 feedImages,
-                petImages
+                petImages,
+                userProfileUrl
         );
     }
+
 
     // publicId 기반 요약 조회
     public OtherUserProfileSummaryResponseDto getUserProfileSummaryByPublicId(String publicId) {
