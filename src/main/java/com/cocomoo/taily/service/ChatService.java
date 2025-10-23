@@ -174,7 +174,7 @@ public class ChatService {
                 MessageDataResponseDto.from(message)
         );
 
-        log.info("메시지 저장 및 전송 완료: roomId={}, sender={}, content={} 111",
+        log.info("메시지 저장 및 전송 완료: roomId={}, sender={}, content={} 111123",
                 dto.getRoomId(), sender.getUsername(), dto.getContent());
     }
 
