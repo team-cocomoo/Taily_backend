@@ -294,6 +294,10 @@ public class AlarmService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 알람 읽음 처리
+     * @param alarmId
+     */
     @Transactional
     public void markAsRead(Long alarmId) {
         Alarm alarm = alarmRepository.findById(alarmId).orElseThrow(() -> new IllegalArgumentException("해당 알람이 존재하지 않습니다."));
